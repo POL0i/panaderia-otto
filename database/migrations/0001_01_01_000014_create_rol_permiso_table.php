@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('id_rol')->constrained('roles', 'id_rol')->onDelete('cascade');
             $table->foreignId('id_permiso')->constrained('permisos', 'id_permiso')->onDelete('cascade');
             $table->string('estado', 15)->default('activo'); // activo/inactivo
-            $table->string('descripcion', 50)->nullable();
+            $table->string('descripcion', 90)->nullable();
             $table->timestamps();
             
             // Evitar duplicados
