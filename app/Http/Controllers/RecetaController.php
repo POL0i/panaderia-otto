@@ -4,73 +4,103 @@ namespace App\Http\Controllers;
 
 use App\Models\Receta;
 use App\Models\Insumo;
+use App\Models\CategoriaInsumo;
+use App\Models\DetalleReceta;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RecetaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $recetas = Receta::with('detalles')
+        $recetas = Receta::with(['detalles.insumo.categoria'])
+            ->withCount('detalles')
             ->orderBy('nombre')
             ->paginate(15);
 
         return view('produccion.recetas.index', compact('recetas'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        return view('produccion.recetas.create');
+        $categorias = CategoriaInsumo::orderBy('nombre')->get();
+        $insumos = Insumo::with('categoria')->orderBy('nombre')->get();
+        
+        return view('produccion.recetas.create', compact('categorias', 'insumos'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'nombre' => 'required|string|max:100|unique:recetas,nombre',
             'descripcion' => 'nullable|string',
-            'cantidad_requerida' => 'required|numeric|min:0.01',
+            'insumos' => 'nullable|array',
+            'insumos.*.id_insumo' => 'required|exists:insumos,id_insumo',
+            'insumos.*.cantidad' => 'required|numeric|min:0.001',
+            'insumos.*.unidad' => 'required|string|in:kg,g,lb,oz,L,mL,unidad',
         ]);
 
-        Receta::create($validated);
+        DB::beginTransaction();
+        try {
+            // Crear receta
+            $receta = Receta::create([
+                'nombre' => $validated['nombre'],
+                'descripcion' => $validated['descripcion'] ?? null,
+                'cantidad_requerida' => 1, // Valor temporal, se actualizará después
+            ]);
 
-        return redirect()->route('recetas.index')
-            ->with('success', 'Receta creada correctamente');
+            $totalInsumos = 0;
+            
+            // Crear detalles de receta
+            if (!empty($validated['insumos'])) {
+                foreach ($validated['insumos'] as $insumoData) {
+                    DetalleReceta::create([
+                        'id_receta' => $receta->id_receta,
+                        'id_insumo' => $insumoData['id_insumo'],
+                        'cantidad_requerida' => $insumoData['cantidad'],
+                        'unidad_medida' => $insumoData['unidad'],
+                    ]);
+                    $totalInsumos++;
+                }
+            }
+
+            // Actualizar cantidad de insumos en la receta
+            $receta->update(['cantidad_requerida' => $totalInsumos]);
+
+            DB::commit();
+            return redirect()->route('recetas.show', $receta)
+                ->with('success', 'Receta creada correctamente con ' . $totalInsumos . ' insumos');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al crear receta: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Receta $receta)
     {
-        $receta->load('detalles.insumo');
-        return view('produccion.recetas.show', compact('receta'));
+        $receta->load(['detalles.insumo.categoria']);
+        $categorias = CategoriaInsumo::orderBy('nombre')->get();
+        $insumos = Insumo::with('categoria')->orderBy('nombre')->get();
+        
+        return view('produccion.recetas.show', compact('receta', 'categorias', 'insumos'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Receta $receta)
     {
-        return view('produccion.recetas.edit', compact('receta'));
+        $receta->load(['detalles.insumo.categoria']);
+        $categorias = CategoriaInsumo::orderBy('nombre')->get();
+        $insumos = Insumo::with('categoria')->orderBy('nombre')->get();
+        
+        return view('produccion.recetas.edit', compact('receta', 'categorias', 'insumos'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Receta $receta)
     {
         $validated = $request->validate([
             'nombre' => 'required|string|max:100|unique:recetas,nombre,' . $receta->id_receta . ',id_receta',
             'descripcion' => 'nullable|string',
-            'cantidad_requerida' => 'required|numeric|min:0.01',
         ]);
 
         $receta->update($validated);
@@ -79,20 +109,85 @@ class RecetaController extends Controller
             ->with('success', 'Receta actualizada correctamente');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Receta $receta)
     {
-        // Verificar si hay producciones asociadas
         if ($receta->producciones()->count() > 0) {
-            return back()->with('error', 'No se puede eliminar una receta que tiene producciones asociadas');
+            return back()->with('error', 'No se puede eliminar una receta con producciones asociadas');
         }
 
-        $receta->detalles()->delete();
-        $receta->delete();
+        DB::beginTransaction();
+        try {
+            $receta->detalles()->delete();
+            $receta->delete();
+            DB::commit();
+            
+            return redirect()->route('recetas.index')
+                ->with('success', 'Receta eliminada correctamente');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al eliminar receta: ' . $e->getMessage());
+        }
+    }
 
-        return redirect()->route('recetas.index')
-            ->with('success', 'Receta eliminada correctamente');
+    // ============================================
+    // MÉTODOS AJAX PARA GESTIÓN DE DETALLES
+    // ============================================
+
+    public function storeDetalle(Request $request, Receta $receta)
+    {
+        $validated = $request->validate([
+            'id_insumo' => 'required|exists:insumos,id_insumo',
+            'cantidad' => 'required|numeric|min:0.001',
+            'unidad' => 'required|string|in:kg,g,lb,oz,L,mL,unidad',
+        ]);
+
+        $detalle = DetalleReceta::create([
+            'id_receta' => $receta->id_receta,
+            'id_insumo' => $validated['id_insumo'],
+            'cantidad_requerida' => $validated['cantidad'],
+            'unidad_medida' => $validated['unidad'],
+        ]);
+
+        // Actualizar contador en receta
+        $receta->update(['cantidad_requerida' => $receta->detalles()->count()]);
+
+        return response()->json([
+            'success' => true,
+            'detalle' => $detalle->load('insumo.categoria'),
+            'message' => 'Insumo agregado a la receta'
+        ]);
+    }
+
+    public function updateDetalle(Request $request, DetalleReceta $detalle)
+    {
+        $validated = $request->validate([
+            'cantidad' => 'required|numeric|min:0.001',
+            'unidad' => 'required|string|in:kg,g,lb,oz,L,mL,unidad',
+        ]);
+
+        $detalle->update([
+            'cantidad_requerida' => $validated['cantidad'],
+            'unidad_medida' => $validated['unidad'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'detalle' => $detalle->load('insumo.categoria'),
+            'message' => 'Detalle actualizado correctamente'
+        ]);
+    }
+
+    public function destroyDetalle(DetalleReceta $detalle)
+    {
+        $receta = $detalle->receta;
+        $detalle->delete();
+        
+        // Actualizar contador
+        $receta->update(['cantidad_requerida' => $receta->detalles()->count()]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Insumo removido de la receta'
+        ]);
     }
 }

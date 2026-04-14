@@ -14,6 +14,7 @@ class DetalleReceta extends Model
         'id_receta',
         'id_insumo',
         'cantidad_requerida',
+        'unidad_medida',
     ];
 
     /**

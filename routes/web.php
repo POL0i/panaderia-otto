@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\ProduccionModuleController;
+use App\Http\Controllers\RecetaController;
+use App\Http\Controllers\DetalleRecetaController;
+use App\Http\Controllers\InsumoController;
 
 Route::get('/', function () {
     return view('PanaderiaOtto');
@@ -101,5 +105,28 @@ Route::middleware(['auth'])->group(function () {
         
         Route::resource('produccion-items', App\Http\Controllers\ProduccionItemAlmacenController::class);
         Route::get('produccion-items/por-produccion/{id_produccion}', [App\Http\Controllers\ProduccionItemAlmacenController::class, 'porProduccion'])->name('produccion-items.por-produccion');
+    });
+    
+    Route::middleware(['auth'])->group(function () {
+        // Panel principal
+        Route::get('/produccion', [ProduccionModuleController::class, 'index'])
+            ->name('produccion.index');
+        
+        // Endpoints AJAX - ¡Asegúrate que estos nombres coincidan con los usados en el formulario!
+        Route::post('/produccion/categorias', [ProduccionModuleController::class, 'storeCategoria'])
+            ->name('produccion.categorias.store');
+        
+        Route::post('/produccion/insumos', [ProduccionModuleController::class, 'storeInsumo'])
+            ->name('produccion.insumos.store');
+        
+        Route::post('/produccion/recetas', [ProduccionModuleController::class, 'storeReceta'])
+            ->name('produccion.recetas.store');
+        
+        // Detalles de receta
+        Route::get('/produccion/recetas/{receta}/detalles', [ProduccionModuleController::class, 'detallesReceta'])
+            ->name('produccion.recetas.detalles');
+        
+        Route::post('/produccion/recetas/{receta}/detalles', [ProduccionModuleController::class, 'storeDetallesReceta'])
+            ->name('produccion.recetas.detalles.store');
     });
 });

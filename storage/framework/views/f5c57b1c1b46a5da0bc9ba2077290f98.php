@@ -17,6 +17,9 @@
     <!-- Theme style -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
     
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
     <!-- Panadería Theme -->
     <link rel="stylesheet" href="<?php echo e(asset('css/panaderia-theme.css')); ?>">
     
@@ -475,7 +478,7 @@
 
                     <!-- Producción -->
                     <?php if(in_array('produccion_ver', $userPermissions) || $isAdmin): ?>
-                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('recetas.*') || Request::routeIs('detalles-receta.*') || Request::routeIs('producciones.*') ? 'menu-open' : ''); ?>">
+                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('produccion.*') || Request::routeIs('recetas.*') || Request::routeIs('detalles-receta.*') || Request::routeIs('producciones.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-industry"></i>
                             <p>
@@ -484,20 +487,35 @@
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
+                            
                             <li class="nav-item">
-                                <a href="<?php echo e(route('recetas.index')); ?>" class="nav-link">
+                                <a href="<?php echo e(route('produccion.index')); ?>" class="nav-link <?php echo e(Request::routeIs('produccion.index') ? 'active' : ''); ?>">
+                                    <i class="far fa-dashboard nav-icon"></i>
+                                    <p>Panel de Producción</p>
+                                </a>
+                            </li>
+                            
+                            <li class="nav-divider"></li>
+                            
+                            
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('recetas.index')); ?>" class="nav-link <?php echo e(Request::routeIs('recetas.*') ? 'active' : ''); ?>">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Recetas</p>
                                 </a>
                             </li>
+                            
+                            
                             <li class="nav-item">
-                                <a href="<?php echo e(route('detalles-receta.index')); ?>" class="nav-link">
+                                <a href="<?php echo e(route('detalles-receta.index')); ?>" class="nav-link <?php echo e(Request::routeIs('detalles-receta.*') ? 'active' : ''); ?>">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Detalles Receta</p>
                                 </a>
                             </li>
+                            
+                            
                             <li class="nav-item">
-                                <a href="<?php echo e(route('producciones.index')); ?>" class="nav-link">
+                                <a href="<?php echo e(route('producciones.index')); ?>" class="nav-link <?php echo e(Request::routeIs('producciones.*') ? 'active' : ''); ?>">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Producciones</p>
                                 </a>
@@ -569,6 +587,16 @@
             }
         });
     });
+</script>
+<!-- Toastr JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script>
+    toastr.options = {
+        "closeButton": true,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "timeOut": "3000"
+    };
 </script>
 
 <?php echo $__env->yieldPushContent('scripts'); ?>
