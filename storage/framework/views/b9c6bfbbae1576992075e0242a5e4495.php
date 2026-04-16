@@ -1,40 +1,50 @@
 
-<div class="modal fade" id="createPermisoModal" tabindex="-1" role="dialog">
+<div class="modal fade" id="createPermisoModal" tabindex="-1" role="dialog" data-backdrop="static">
     <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-primary">
-                <h5 class="modal-title">
-                    <i class="fas fa-key"></i> Crear Nuevo Permiso
+        <div class="modal-content border-panaderia">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--color-primary-medium) 0%, var(--color-primary-dark) 100%);">
+                <h5 class="modal-title text-white">
+                    <i class="fas fa-key mr-2"></i> Crear Nuevo Permiso
                 </h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
             </div>
             <form id="formCrearPermiso">
                 <?php echo csrf_field(); ?>
-                <div class="modal-body">
+                <div class="modal-body bg-panaderia-light">
+                    <div class="alert alert-info animate-fade-in">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <strong>Instrucciones:</strong> Cree un nuevo permiso para asignarlo a roles. Use nombres descriptivos con guiones bajos.
+                    </div>
+                    
                     <div class="form-group">
-                        <label>Nombre del Permiso <span class="text-danger">*</span></label>
+                        <label class="text-panaderia" for="nombrePermiso">
+                            <i class="fas fa-tag mr-1"></i>Nombre del Permiso <span class="text-danger">*</span>
+                        </label>
                         <input type="text" name="nombre" id="nombrePermiso" class="form-control" 
-                               placeholder="Ej: gestion_comercial_ver, almacen_crear, etc." required>
+                               placeholder="Ej: gestion_comercial_ver" required>
                         <small class="form-text text-muted">
-                            Usa nombres descriptivos con guiones bajos. Ej: modulo_accion
+                            Formato recomendado: <code>modulo_accion</code> (ej: almacen_ver, recetas_crear)
                         </small>
                     </div>
                     
-                    <div class="alert alert-info">
-                        <i class="fas fa-lightbulb"></i> 
+                    <div class="alert alert-warning animate-fade-in">
+                        <i class="fas fa-lightbulb mr-2"></i>
                         <strong>Sugerencias de permisos:</strong>
                         <ul class="mb-0 mt-2">
-                            <li><code>gestion_comercial_ver</code> - Ver módulo comercial</li>
-                            <li><code>almacen_crear</code> - Crear en almacén</li>
-                            <li><code>inventario_editar</code> - Editar inventario</li>
-                            <li><code>produccion_eliminar</code> - Eliminar producción</li>
+                            <li><i class="fas fa-eye mr-1"></i><code>gestion_comercial_ver</code> - Ver módulo comercial</li>
+                            <li><i class="fas fa-plus mr-1"></i><code>almacen_crear</code> - Crear en almacén</li>
+                            <li><i class="fas fa-edit mr-1"></i><code>inventario_editar</code> - Editar inventario</li>
+                            <li><i class="fas fa-trash mr-1"></i><code>produccion_eliminar</code> - Eliminar producción</li>
+                            <li><i class="fas fa-chart-bar mr-1"></i><code>reportes_ver</code> - Ver reportes</li>
                         </ul>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Crear Permiso
+                <div class="modal-footer bg-panaderia-lighter">
+                    <button type="button" class="btn btn-cancel" data-dismiss="modal">
+                        <i class="fas fa-times mr-1"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-save">
+                        <i class="fas fa-save mr-1"></i> Crear Permiso
                     </button>
                 </div>
             </form>
@@ -43,99 +53,37 @@
 </div>
 
 <script>
-// Esperar a que el DOM esté completamente cargado
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('formCrearPermiso');
-    
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault(); // ✅ Evitar envío tradicional
-            
-            // Obtener el token CSRF
-            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            
-            // Crear FormData
-            const formData = new FormData(form);
-            
-            // Enviar con fetch API
-            fetch('/permisos/store-ajax', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': token,
-                    'Accept': 'application/json'
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Cerrar modal
-                    $('#createPermisoModal').modal('hide');
-                    
-                    // Mostrar mensaje de éxito
-                    if (typeof toastr !== 'undefined') {
-                        toastr.success(data.message);
-                    } else {
-                        alert(data.message);
-                    }
-                    
-                    // Limpiar formulario
-                    form.reset();
-                    
-                    // Recargar página después de 1.5 segundos
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    alert('Error: ' + (data.message || 'Error desconocido'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al procesar la solicitud');
-            });
-        });
-    }
-});
-</script>
-
-<!-- Versión con jQuery por si prefieres -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
 $(document).ready(function() {
     $('#formCrearPermiso').on('submit', function(e) {
         e.preventDefault();
-        
-        var formData = $(this).serialize();
+        var form = $(this);
         
         $.ajax({
             url: '/permisos/store-ajax',
             method: 'POST',
-            data: formData,
+            data: form.serialize(),
             success: function(response) {
                 if (response.success) {
                     $('#createPermisoModal').modal('hide');
+                    toastr.success(response.message);
+                    form[0].reset();
                     
-                    if (typeof toastr !== 'undefined') {
-                        toastr.success(response.message);
-                    } else {
-                        alert(response.message);
+                    // Agregar al select de permisos
+                    var newOption = new Option(response.permiso.nombre, response.permiso.id_permiso, true, true);
+                    $('select[name="id_permiso"]').append(newOption.clone());
+                    
+                    // Volver al modal anterior si existe
+                    if (typeof returnToPreviousModal === 'function') {
+                        returnToPreviousModal();
                     }
-                    
-                    $('#formCrearPermiso')[0].reset();
-                    
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1500);
                 }
             },
             error: function(xhr) {
                 var message = 'Error al crear el permiso';
-                if (xhr.responseJSON && xhr.responseJSON.errors) {
-                    var errors = xhr.responseJSON.errors;
-                    message = Object.values(errors).flat().join('\n');
+                if (xhr.responseJSON?.errors) {
+                    message = Object.values(xhr.responseJSON.errors).flat().join('\n');
                 }
-                alert(message);
+                toastr.error(message);
             }
         });
     });

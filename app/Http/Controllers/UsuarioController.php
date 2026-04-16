@@ -302,4 +302,136 @@ class UsuarioController extends Controller
             'message' => 'Permiso asignado al rol exitosamente'
         ]);
     }
+
+    public function edit($id)
+    {
+        $usuario = Usuario::with(['empleado', 'cliente'])->findOrFail($id);
+        
+        $empleados = Empleado::all();
+        $clientes = Cliente::all();
+        
+        // Obtener permisos actuales
+        $permisosActuales = $usuario->rolPermisoUsuarios()
+            ->where('estado', 'activo')
+            ->pluck('id_rol_permiso')
+            ->toArray();
+        
+        // Todos los rol_permiso disponibles
+        $todosRolPermisos = RolPermiso::with(['rol', 'permiso'])
+            ->where('estado', 'activo')
+            ->get();
+        
+        return response()->json([
+            'usuario' => $usuario,
+            'empleados' => $empleados,
+            'clientes' => $clientes,
+            'permisos_actuales' => $permisosActuales,
+            'todos_rol_permisos' => $todosRolPermisos
+        ]);
+    }
+
+    /**
+     * Update the specified user.
+     */
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'correo' => 'required|email|unique:usuarios,correo,' . $id . ',id_usuario',
+            'contraseña' => 'nullable|min:8',
+            'tipo_usuario' => 'required|in:cliente,empleado',
+            'estado' => 'required|in:activo,inactivo',
+            'id_empleado' => 'nullable|exists:empleados,id_empleado',
+            'id_cliente' => 'nullable|exists:clientes,id_cliente',
+            'rol_permiso_ids' => 'nullable|array',
+            'rol_permiso_ids.*' => 'exists:rol_permiso,id_rol_permiso'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $usuario = Usuario::findOrFail($id);
+            
+            $updateData = [
+                'correo' => $validated['correo'],
+                'tipo_usuario' => $validated['tipo_usuario'],
+                'estado' => $validated['estado'],
+                'id_empleado' => $validated['tipo_usuario'] == 'empleado' ? $validated['id_empleado'] : null,
+                'id_cliente' => $validated['tipo_usuario'] == 'cliente' ? $validated['id_cliente'] : null,
+            ];
+            
+            // Solo actualizar contraseña si se proporcionó
+            if (!empty($validated['contraseña'])) {
+                $updateData['contraseña'] = Hash::make($validated['contraseña']);
+            }
+            
+            $usuario->update($updateData);
+            
+            // Actualizar permisos
+            // Desactivar permisos actuales
+            $usuario->rolPermisoUsuarios()->update(['estado' => 'inactivo']);
+            
+            // Asignar nuevos permisos
+            if (!empty($validated['rol_permiso_ids'])) {
+                foreach ($validated['rol_permiso_ids'] as $rolPermisoId) {
+                    $existente = RolPermisoUsuario::where([
+                        'id_rol_permiso' => $rolPermisoId,
+                        'id_usuario' => $id
+                    ])->first();
+                    
+                    if ($existente) {
+                        $existente->update(['estado' => 'activo']);
+                    } else {
+                        RolPermisoUsuario::create([
+                            'id_rol_permiso' => $rolPermisoId,
+                            'id_usuario' => $id,
+                            'estado' => 'activo',
+                            'fecha_asignacion' => now(),
+                        ]);
+                    }
+                }
+            }
+
+            DB::commit();
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Usuario actualizado exitosamente'
+                ]);
+            }
+            
+            return redirect()->route('usuarios.create-access')
+                ->with('success', 'Usuario actualizado exitosamente.');
+                
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al actualizar usuario: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return back()->with('error', 'Error al actualizar usuario: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    public function storeCliente(Request $request)
+    {
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'apellido' => 'nullable|string|max:255',
+            'telefono' => 'nullable|string|max:20',
+        ]);
+
+        $cliente = Cliente::create($validated);
+        
+        return response()->json([
+            'success' => true,
+            'cliente' => $cliente,
+            'message' => 'Cliente creado exitosamente'
+        ]);
+    }
+
 }   

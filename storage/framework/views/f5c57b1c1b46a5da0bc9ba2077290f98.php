@@ -24,6 +24,29 @@
     <link rel="stylesheet" href="<?php echo e(asset('css/panaderia-theme.css')); ?>">
     
     <style>
+        /* Estilo para módulos destacados */
+        .nav-link-modulo-destacado {
+            background: linear-gradient(90deg, rgba(46, 93, 58, 0.15) 0%, rgba(26, 61, 42, 0.1) 100%) !important;
+            border-left: 4px solid #2E5D3A !important;
+            margin: 2px 0;
+        }
+
+        .nav-link-modulo-destacado:hover {
+            background: linear-gradient(90deg, rgba(46, 93, 58, 0.25) 0%, rgba(26, 61, 42, 0.2) 100%) !important;
+        }
+
+        .nav-link-modulo-destacado .nav-icon {
+            color: #2E5D3A !important;
+        }
+
+        .nav-link-modulo-destacado.active {
+            background: linear-gradient(90deg, #2E5D3A 0%, #1A3D2A 100%) !important;
+            color: white !important;
+        }
+
+        .nav-link-modulo-destacado.active .nav-icon {
+            color: white !important;
+        }
         /* Asegurar que Poppins sea la fuente principal */
         body, .main-header .navbar, .brand-link, .nav-sidebar .nav-link {
             font-family: 'Poppins', sans-serif;
@@ -285,18 +308,17 @@
                         </a>
                     </li>
 
-                    <!-- Usuarios - Solo Admin -->
+                    <!-- ============================================ -->
+                    <!-- MÓDULO: USUARIOS (Solo Admin) -->
+                    <!-- ============================================ -->
                     <?php if($isAdmin): ?>
-                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('usuarios.*') || Request::routeIs('clientes.*') || Request::routeIs('empleados.*') || Request::routeIs('roles.*') || Request::routeIs('permisos.*') ? 'menu-open' : ''); ?>">
+                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('usuarios.*') || Request::routeIs('empleados.*') || Request::routeIs('roles.*') || Request::routeIs('permisos.*') || Request::routeIs('rol-permisos.*') || Request::routeIs('rol-permiso-usuarios.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-user-tie"></i>
-                            <p>
-                                Usuarios
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
+                            <p>Usuarios <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
-
+                            
                             <li class="nav-item">
                                 <a href="<?php echo e(route('usuarios.create-access')); ?>" class="nav-link nav-link-acceso <?php echo e(Request::routeIs('usuarios.create-access') ? 'active' : ''); ?>">
                                     <i class="fas fa-lock-open nav-icon" style="color: #4caf50;"></i>
@@ -307,39 +329,34 @@
                             </li>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('empleados.index')); ?>" class="nav-link <?php echo e(Request::routeIs('empleados.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Empleados</p>
+                                    <i class="far fa-circle nav-icon"></i><p>Empleados</p>
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('roles.index')); ?>" class="nav-link <?php echo e(Request::routeIs('roles.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Roles</p>
+                                    <i class="far fa-circle nav-icon"></i><p>Roles</p>
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('permisos.index')); ?>" class="nav-link <?php echo e(Request::routeIs('permisos.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Permisos</p>
+                                    <i class="far fa-circle nav-icon"></i><p>Permisos</p>
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('rol-permisos.index')); ?>" class="nav-link <?php echo e(Request::routeIs('rol-permisos.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Rol Permisos</p>
+                                    <i class="far fa-circle nav-icon"></i><p>Rol Permisos</p>
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('rol-permiso-usuarios.index')); ?>" class="nav-link <?php echo e(Request::routeIs('rol-permiso-usuarios.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Rol Permiso Usuarios</p>
+                                    <i class="far fa-circle nav-icon"></i><p>Rol Permiso Usuarios</p>
                                 </a>
                             </li>
                         </ul>
                     </li>
                     <?php endif; ?>
 
-                    <!-- Clientes - Visible para todos los autenticados -->
+                    <!-- Clientes -->
                     <li class="nav-item">
                         <a href="<?php echo e(route('clientes.index')); ?>" class="nav-link <?php echo e(Request::routeIs('clientes.*') ? 'active' : ''); ?>">
                             <i class="nav-icon fas fa-users"></i>
@@ -347,182 +364,188 @@
                         </a>
                     </li>
 
-                    <!-- Gestión Comercial -->
+                    <!-- ============================================ -->
+                    <!-- MÓDULO: GESTIÓN COMERCIAL -->
+                    <!-- ============================================ -->
                     <?php if(in_array('gestion_comercial_ver', $userPermissions) || $isAdmin): ?>
-                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('notas-venta.*') || Request::routeIs('notas-compra.*') || Request::routeIs('proveedores.*') ? 'menu-open' : ''); ?>">
+                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('notas-venta.*') || Request::routeIs('detalles-venta.*') || Request::routeIs('notas-compra.*') || Request::routeIs('detalles-compra.*') || Request::routeIs('proveedores.*') || Request::routeIs('ppersona.*') || Request::routeIs('pempresa.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-exchange-alt"></i>
-                            <p>
-                                Gestión Comercial
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
+                            <p>Gestión Comercial <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="<?php echo e(route('notas-venta.index')); ?>" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Notas de Venta</p>
+                                <a href="<?php echo e(route('notas-venta.index')); ?>" class="nav-link <?php echo e(Request::routeIs('notas-venta.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Notas de Venta</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('notas-compra.index')); ?>" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Notas de Compra</p>
+                                <a href="<?php echo e(route('notas-compra.index')); ?>" class="nav-link <?php echo e(Request::routeIs('notas-compra.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Notas de Compra</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('detalles-venta.index')); ?>" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Detalles de Venta</p>
+                                <a href="<?php echo e(route('detalles-venta.index')); ?>" class="nav-link <?php echo e(Request::routeIs('detalles-venta.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Detalles de Venta</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('detalles-compra.index')); ?>" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Detalles de Compra</p>
+                                <a href="<?php echo e(route('detalles-compra.index')); ?>" class="nav-link <?php echo e(Request::routeIs('detalles-compra.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Detalles de Compra</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('proveedores.index')); ?>" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Proveedores</p>
+                                <a href="<?php echo e(route('proveedores.index')); ?>" class="nav-link <?php echo e(Request::routeIs('proveedores.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Proveedores</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('ppersona.index')); ?>" class="nav-link <?php echo e(Request::routeIs('ppersona.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Personas Proveedores</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('pempresa.index')); ?>" class="nav-link <?php echo e(Request::routeIs('pempresa.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Empresas Proveedoras</p>
                                 </a>
                             </li>
                         </ul>
                     </li>
                     <?php endif; ?>
 
-                    <!-- Almacén -->
+                    <!-- ============================================ -->
+                    <!-- MÓDULO: ALMACÉN -->
+                    <!-- ============================================ -->
                     <?php if(in_array('almacen_ver', $userPermissions) || $isAdmin): ?>
-                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('almacenes.*') || Request::routeIs('productos.*') || Request::routeIs('items.*') || Request::routeIs('insumos.*') ? 'menu-open' : ''); ?>">
+                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('modulo-almacen.*') || Request::routeIs('almacenes.*') || Request::routeIs('productos.*') || Request::routeIs('items.*') || Request::routeIs('insumos.*') || Request::routeIs('almacen-items.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-warehouse"></i>
-                            <p>
-                                Almacén
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
+                            <p>Almacén <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
+                            
+                            <?php if(in_array('panel_almacen_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('almacenes.index')); ?>" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Almacenes</p>
+                                <a href="<?php echo e(route('modulo-almacen.index')); ?>" class="nav-link nav-link-modulo-destacado <?php echo e(Request::routeIs('modulo-almacen.index') ? 'active' : ''); ?>">
+                                    <i class="nav-icon fas fa-warehouse"></i>
+                                    <p style="font-weight: 600;"><i class="fas fa-star-of-life" style="font-size: 10px;"></i> Panel de Almacén</p>
+                                </a>
+                            </li>
+                            <?php endif; ?>
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('almacenes.index')); ?>" class="nav-link <?php echo e(Request::routeIs('almacenes.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Almacenes</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('productos.index')); ?>" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Productos</p>
+                                <a href="<?php echo e(route('productos.index')); ?>" class="nav-link <?php echo e(Request::routeIs('productos.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Productos</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('items.index')); ?>" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Items</p>
+                                <a href="<?php echo e(route('items.index')); ?>" class="nav-link <?php echo e(Request::routeIs('items.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Items</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('insumos.index')); ?>" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Insumos</p>
+                                <a href="<?php echo e(route('insumos.index')); ?>" class="nav-link <?php echo e(Request::routeIs('insumos.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Insumos</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('almacen-items.index')); ?>" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Inventario (Stock)</p>
+                                <a href="<?php echo e(route('almacen-items.index')); ?>" class="nav-link <?php echo e(Request::routeIs('almacen-items.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Inventario (Stock)</p>
                                 </a>
                             </li>
                         </ul>
                     </li>
                     <?php endif; ?>
 
-                    <!-- Inventario -->
+                    <!-- Reportes -->
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-chart-bar"></i>
+                            <p>Reportes</p>
+                        </a>
+                    </li>
+
+                    <!-- ============================================ -->
+                    <!-- MÓDULO: INVENTARIO -->
+                    <!-- ============================================ -->
                     <?php if(in_array('inventario_ver', $userPermissions) || $isAdmin): ?>
-                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('movimientos.*') || Request::routeIs('traspasos.*') || Request::routeIs('lotes.*') ? 'menu-open' : ''); ?>">
+                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('movimientos.*') || Request::routeIs('traspasos.*') || Request::routeIs('lotes.*') || Request::routeIs('configuracion.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-boxes"></i>
-                            <p>
-                                Inventario
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
+                            <p>Inventario <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="<?php echo e(route('movimientos.index')); ?>" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Movimientos</p>
+                                <a href="<?php echo e(route('movimientos.index')); ?>" class="nav-link <?php echo e(Request::routeIs('movimientos.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Movimientos</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('traspasos.index')); ?>" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Traspasos</p>
+                                <a href="<?php echo e(route('traspasos.index')); ?>" class="nav-link <?php echo e(Request::routeIs('traspasos.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Traspasos</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('lotes.index')); ?>" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Lotes</p>
+                                <a href="<?php echo e(route('lotes.index')); ?>" class="nav-link <?php echo e(Request::routeIs('lotes.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Lotes</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('configuracion.edit')); ?>" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Configuración</p>
+                                <a href="<?php echo e(route('configuracion.edit')); ?>" class="nav-link <?php echo e(Request::routeIs('configuracion.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Configuración</p>
                                 </a>
                             </li>
                         </ul>
                     </li>
                     <?php endif; ?>
 
-                    <!-- Producción -->
+                    <!-- ============================================ -->
+                    <!-- MÓDULO: PRODUCCIÓN -->
+                    <!-- ============================================ -->
                     <?php if(in_array('produccion_ver', $userPermissions) || $isAdmin): ?>
-                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('produccion.*') || Request::routeIs('recetas.*') || Request::routeIs('detalles-receta.*') || Request::routeIs('producciones.*') ? 'menu-open' : ''); ?>">
+                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('produccion.*') || Request::routeIs('recetas.*') || Request::routeIs('detalles-receta.*') || Request::routeIs('producciones.*') || Request::routeIs('produccion-items.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-industry"></i>
-                            <p>
-                                Producción
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
+                            <p>Producción <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
                             
+                            <?php if(in_array('panel_produccion_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('produccion.index')); ?>" class="nav-link <?php echo e(Request::routeIs('produccion.index') ? 'active' : ''); ?>">
-                                    <i class="far fa-dashboard nav-icon"></i>
-                                    <p>Panel de Producción</p>
+                                <a href="<?php echo e(route('produccion.index')); ?>" class="nav-link nav-link-modulo-destacado <?php echo e(Request::routeIs('produccion.index') ? 'active' : ''); ?>">
+                                    <i class="nav-icon fas fa-industry"></i>
+                                    <p style="font-weight: 600;"><i class="fas fa-star-of-life" style="font-size: 10px;"></i> Panel de Producción</p>
                                 </a>
                             </li>
-                            
-                            <li class="nav-divider"></li>
-                            
-                            
+                            <?php endif; ?>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('recetas.index')); ?>" class="nav-link <?php echo e(Request::routeIs('recetas.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Recetas</p>
+                                    <i class="far fa-circle nav-icon"></i><p>Recetas</p>
                                 </a>
                             </li>
-                            
-                            
                             <li class="nav-item">
                                 <a href="<?php echo e(route('detalles-receta.index')); ?>" class="nav-link <?php echo e(Request::routeIs('detalles-receta.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Detalles Receta</p>
+                                    <i class="far fa-circle nav-icon"></i><p>Detalles Receta</p>
                                 </a>
                             </li>
-                            
-                            
                             <li class="nav-item">
                                 <a href="<?php echo e(route('producciones.index')); ?>" class="nav-link <?php echo e(Request::routeIs('producciones.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Producciones</p>
+                                    <i class="far fa-circle nav-icon"></i><p>Producciones</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('produccion-items.index')); ?>" class="nav-link <?php echo e(Request::routeIs('produccion-items.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i><p>Items Almacén</p>
                                 </a>
                             </li>
                         </ul>
                     </li>
                     <?php endif; ?>
+
                 </ul>
             </nav>
         </div>

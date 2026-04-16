@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('id_receta')->constrained('recetas', 'id_receta')->onDelete('cascade');
             $table->foreignId('id_insumo')->constrained('insumos', 'id_insumo')->onDelete('cascade');
             $table->integer('cantidad_requerida');
-            $table->string('unidad_medida', 20);
             $table->timestamps();
             
             // Evitar duplicados: una receta no puede tener el mismo insumo dos veces
