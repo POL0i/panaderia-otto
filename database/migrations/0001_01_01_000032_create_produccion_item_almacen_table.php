@@ -12,15 +12,30 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('produccion_item_almacen', function (Blueprint $table) {
-            $table->foreignId('id_produccion')->constrained('producciones', 'id_produccion')->onDelete('cascade');
-            $table->foreignId('id_item')->constrained('items', 'id_item')->onDelete('cascade');
-            $table->foreignId('id_almacen')->constrained('almacenes', 'id_almacen')->onDelete('cascade');
+            // FK a producciones
+            $table->foreignId('id_produccion')
+                  ->constrained('producciones', 'id_produccion')
+                  ->onDelete('cascade');
+            
+            // Referencias a almacen_item
+            $table->foreignId('id_almacen');
+            $table->foreignId('id_item');
+            
             $table->integer('cantidad');
-            $table->string('tipo_movimiento', 20); // ingreso/egreso
+            $table->enum('tipo_movimiento', ['ingreso', 'egreso']);
             $table->timestamps();
             
             // Primaria compuesta
-            $table->primary(['id_produccion', 'id_item', 'id_almacen']);
+            $table->primary(['id_produccion', 'id_almacen', 'id_item']);
+            
+            // Foreign key compuesta hacia almacen_item
+            $table->foreign(['id_almacen', 'id_item'])
+                  ->references(['id_almacen', 'id_item'])
+                  ->on('almacen_item')
+                  ->onDelete('restrict');
+            
+            // Índice para consultas rápidas por producción
+            $table->index(['id_produccion', 'tipo_movimiento']);
         });
     }
 

@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <title><?php echo $__env->yieldContent('title', 'Panadería Otto - Sistema de Gestión'); ?></title>
     
-    <!-- Google Font: Poppins (igual que el login) -->
+    <!-- Google Font: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -47,6 +47,7 @@
         .nav-link-modulo-destacado.active .nav-icon {
             color: white !important;
         }
+        
         /* Asegurar que Poppins sea la fuente principal */
         body, .main-header .navbar, .brand-link, .nav-sidebar .nav-link {
             font-family: 'Poppins', sans-serif;
@@ -96,6 +97,90 @@
         .main-sidebar .nav-treeview .nav-link:hover {
             background: rgba(210, 180, 140, 0.15);
             color: #D2B48C;
+        }
+        
+        /* User Panel */
+        .user-panel {
+            border-bottom: 1px solid rgba(210, 180, 140, 0.3);
+            padding: 1rem 0.8rem !important;
+            margin-bottom: 0.5rem;
+        }
+        
+        .user-panel .image i {
+            color: #D2B48C;
+        }
+        
+        .user-panel .info a {
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+        }
+        
+        .user-panel .info a:hover {
+            color: #D2B48C;
+        }
+        
+        .user-role-badge {
+            display: inline-block;
+            background: rgba(210, 180, 140, 0.2);
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #D2B48C;
+        }
+        
+        .user-status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+            margin-left: 5px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+        
+        /* Footer del sidebar - CORREGIDO para no solaparse */
+        .sidebar-wrapper {
+            position: relative;
+            min-height: 100%;
+            padding-bottom: 80px;
+        }
+        
+        .sidebar-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 250px;
+            padding: 0.8rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(210, 180, 140, 0.2);
+            font-size: 0.7rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            z-index: 99;
+        }
+        
+        /* Cuando el sidebar está colapsado */
+        .sidebar-mini.sidebar-collapse .sidebar-footer {
+            width: 4.6rem;
+        }
+        
+        .sidebar-footer a {
+            color: #D2B48C;
+            text-decoration: none;
+        }
+        
+        .sidebar-footer a:hover {
+            color: white;
         }
         
         /* Navbar superior */
@@ -208,7 +293,6 @@
 
     <!-- Navbar -->
     <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-        <!-- Botón colapsar sidebar -->
         <ul class="navbar-nav">
             <li class="nav-item">
                 <a class="nav-link" data-widget="pushmenu" href="#" role="button">
@@ -227,9 +311,7 @@
             </li>
         </ul>
 
-        <!-- Navbar derecha -->
         <ul class="navbar-nav ml-auto">
-            <!-- Notificaciones (opcional) -->
             <li class="nav-item dropdown">
                 <a class="nav-link" data-toggle="dropdown" href="#">
                     <i class="far fa-bell"></i>
@@ -255,7 +337,6 @@
                 </div>
             </li>
             
-            <!-- Usuario -->
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">
                     <i class="fas fa-user-circle"></i>
@@ -282,15 +363,47 @@
 
     <!-- Main Sidebar Container -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
-        <!-- Brand Logo -->
         <a href="<?php echo e(route('home')); ?>" class="brand-link d-flex align-items-center justify-content-center">
             <i class="fas fa-bread-slice fa-2x mr-2" style="color: #D2B48C;"></i>
             <span class="brand-text font-weight-bold" style="font-size: 1.2rem;">Panadería Otto</span>
         </a>
 
-        <!-- Sidebar -->
         <div class="sidebar">
-            <!-- Sidebar Menu -->
+            <!-- User Panel -->
+            <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                <div class="image">
+                    <i class="fas fa-user-circle fa-2x"></i>
+                </div>
+                <div class="info">
+                    <a href="#" class="d-block">
+                        <?php echo e(Auth::user()->name ?? 'Usuario'); ?>
+
+                        <span class="user-status"></span>
+                    </a>
+                    <span class="user-role-badge">
+                        <?php
+                            $user = Auth::user();
+                            if($user) {
+                                if($user->esAdmin()) {
+                                    echo '<i class="fas fa-crown"></i> Administrador';
+                                } elseif($user->tipo_usuario == 'empleado') {
+                                    echo '<i class="fas fa-user-tie"></i> Empleado';
+                                } else {
+                                    echo '<i class="fas fa-user"></i> Cliente';
+                                }
+                            }
+                        ?>
+                    </span>
+                </div>
+            </div>
+
+            <div class="text-center mb-3">
+                <small style="color: rgba(255,255,255,0.5);">
+                    <i class="fas fa-bread-slice"></i> Menú Principal
+                </small>
+            </div>
+
+            <!-- Sidebar Menu COMPLETO -->
             <nav class="mt-2">
                 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
                     
@@ -308,9 +421,7 @@
                         </a>
                     </li>
 
-                    <!-- ============================================ -->
                     <!-- MÓDULO: USUARIOS (Solo Admin) -->
-                    <!-- ============================================ -->
                     <?php if($isAdmin): ?>
                     <li class="nav-item has-treeview <?php echo e(Request::routeIs('usuarios.*') || Request::routeIs('empleados.*') || Request::routeIs('roles.*') || Request::routeIs('permisos.*') || Request::routeIs('rol-permisos.*') || Request::routeIs('rol-permiso-usuarios.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
@@ -318,13 +429,10 @@
                             <p>Usuarios <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
-                            
                             <li class="nav-item">
                                 <a href="<?php echo e(route('usuarios.create-access')); ?>" class="nav-link nav-link-acceso <?php echo e(Request::routeIs('usuarios.create-access') ? 'active' : ''); ?>">
                                     <i class="fas fa-lock-open nav-icon" style="color: #4caf50;"></i>
-                                    <p style="font-weight: 600;">
-                                        <i class="fas fa-star-of-life" style="font-size: 10px;"></i> Módulo de Acceso
-                                    </p>
+                                    <p><i class="fas fa-star-of-life" style="font-size: 10px;"></i> Módulo de Acceso</p>
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -364,9 +472,7 @@
                         </a>
                     </li>
 
-                    <!-- ============================================ -->
                     <!-- MÓDULO: GESTIÓN COMERCIAL -->
-                    <!-- ============================================ -->
                     <?php if(in_array('gestion_comercial_ver', $userPermissions) || $isAdmin): ?>
                     <li class="nav-item has-treeview <?php echo e(Request::routeIs('notas-venta.*') || Request::routeIs('detalles-venta.*') || Request::routeIs('notas-compra.*') || Request::routeIs('detalles-compra.*') || Request::routeIs('proveedores.*') || Request::routeIs('ppersona.*') || Request::routeIs('pempresa.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
@@ -413,9 +519,7 @@
                     </li>
                     <?php endif; ?>
 
-                    <!-- ============================================ -->
                     <!-- MÓDULO: ALMACÉN -->
-                    <!-- ============================================ -->
                     <?php if(in_array('almacen_ver', $userPermissions) || $isAdmin): ?>
                     <li class="nav-item has-treeview <?php echo e(Request::routeIs('modulo-almacen.*') || Request::routeIs('almacenes.*') || Request::routeIs('productos.*') || Request::routeIs('items.*') || Request::routeIs('insumos.*') || Request::routeIs('almacen-items.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
@@ -423,12 +527,11 @@
                             <p>Almacén <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
-                            
                             <?php if(in_array('panel_almacen_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('modulo-almacen.index')); ?>" class="nav-link nav-link-modulo-destacado <?php echo e(Request::routeIs('modulo-almacen.index') ? 'active' : ''); ?>">
                                     <i class="nav-icon fas fa-warehouse"></i>
-                                    <p style="font-weight: 600;"><i class="fas fa-star-of-life" style="font-size: 10px;"></i> Panel de Almacén</p>
+                                    <p><i class="fas fa-star-of-life" style="font-size: 10px;"></i> Panel de Almacén</p>
                                 </a>
                             </li>
                             <?php endif; ?>
@@ -469,9 +572,7 @@
                         </a>
                     </li>
 
-                    <!-- ============================================ -->
                     <!-- MÓDULO: INVENTARIO -->
-                    <!-- ============================================ -->
                     <?php if(in_array('inventario_ver', $userPermissions) || $isAdmin): ?>
                     <li class="nav-item has-treeview <?php echo e(Request::routeIs('movimientos.*') || Request::routeIs('traspasos.*') || Request::routeIs('lotes.*') || Request::routeIs('configuracion.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
@@ -503,9 +604,7 @@
                     </li>
                     <?php endif; ?>
 
-                    <!-- ============================================ -->
                     <!-- MÓDULO: PRODUCCIÓN -->
-                    <!-- ============================================ -->
                     <?php if(in_array('produccion_ver', $userPermissions) || $isAdmin): ?>
                     <li class="nav-item has-treeview <?php echo e(Request::routeIs('produccion.*') || Request::routeIs('recetas.*') || Request::routeIs('detalles-receta.*') || Request::routeIs('producciones.*') || Request::routeIs('produccion-items.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
@@ -513,12 +612,11 @@
                             <p>Producción <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
-                            
                             <?php if(in_array('panel_produccion_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('produccion.index')); ?>" class="nav-link nav-link-modulo-destacado <?php echo e(Request::routeIs('produccion.index') ? 'active' : ''); ?>">
                                     <i class="nav-icon fas fa-industry"></i>
-                                    <p style="font-weight: 600;"><i class="fas fa-star-of-life" style="font-size: 10px;"></i> Panel de Producción</p>
+                                    <p><i class="fas fa-star-of-life" style="font-size: 10px;"></i> Panel de Producción</p>
                                 </a>
                             </li>
                             <?php endif; ?>
@@ -548,12 +646,23 @@
 
                 </ul>
             </nav>
+
+            <!-- Footer del sidebar - CORREGIDO -->
+            <div class="sidebar-footer">
+                <i class="fas fa-store"></i> Versión 2.0
+                <br>
+                <i class="far fa-clock"></i> 
+                <span id="sidebar-clock"></span>
+                <br>
+                <a href="#" data-toggle="modal" data-target="#aboutModal">
+                    <i class="fas fa-info-circle"></i> Acerca de
+                </a>
+            </div>
         </div>
     </aside>
 
     <!-- Content Wrapper -->
     <div class="content-wrapper" style="background-color: #FFF9F0;">
-        <!-- Content Header -->
         <div class="content-header">
             <div class="container-fluid">
                 <div class="row mb-2">
@@ -569,7 +678,6 @@
             </div>
         </div>
 
-        <!-- Main Content -->
         <section class="content">
             <div class="container-fluid">
                 <?php echo $__env->yieldContent('content'); ?>
@@ -577,7 +685,6 @@
         </section>
     </div>
 
-    <!-- Footer -->
     <footer class="main-footer">
         <div class="float-right d-none d-sm-inline-block">
             <i class="fas fa-bread-slice"></i> Hecho con amor
@@ -589,13 +696,54 @@
     </footer>
 </div>
 
+<!-- Modal Acerca de -->
+<div class="modal fade" id="aboutModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-bread-slice"></i> Panadería Otto
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="fas fa-bread-slice fa-3x" style="color: #8B4513;"></i>
+                <h4 class="mt-3">Sistema de Gestión</h4>
+                <p>Versión 2.0.0</p>
+                <hr>
+                <p class="text-muted">
+                    <i class="fas fa-copyright"></i> <?php echo e(date('Y')); ?> Panadería Otto.<br>
+                    Todos los derechos reservados.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 
 <script>
-    // Activar el treeview automáticamente para los menús activos
+    // Reloj en tiempo real
+    function updateClock() {
+        const now = new Date();
+        const time = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        const clockElement = document.getElementById('sidebar-clock');
+        if (clockElement) {
+            clockElement.textContent = time;
+        }
+    }
+    updateClock();
+    setInterval(updateClock, 60000);
+
+    // Activar treeview
     $(document).ready(function() {
         $('.has-treeview.menu-open > .nav-link').each(function() {
             $(this).find('.right').addClass('fa-angle-down').removeClass('fa-angle-left');
@@ -611,6 +759,7 @@
         });
     });
 </script>
+
 <!-- Toastr JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>

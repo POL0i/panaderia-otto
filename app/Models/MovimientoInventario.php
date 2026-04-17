@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MovimientoInventario extends Model
 {
     protected $table = 'movimientos_inventario';
     protected $primaryKey = 'id_movimiento';
-    public $timestamps = true;
 
     protected $fillable = [
         'tipo_movimiento',
@@ -17,78 +17,108 @@ class MovimientoInventario extends Model
         'cantidad',
         'precio_unitario',
         'costo_total',
+        'stock_resultante',
         'fecha_movimiento',
         'referencia_id',
         'referencia_tipo',
         'estado',
         'observaciones',
+        'id_usuario',
     ];
 
     protected $casts = [
+        'cantidad' => 'decimal:2',
+        'precio_unitario' => 'decimal:2',
+        'costo_total' => 'decimal:2',
+        'stock_resultante' => 'decimal:2',
         'fecha_movimiento' => 'datetime',
     ];
 
     /**
-     * Get the almacen for this movimiento.
+     * Relación con almacen_item
      */
-    public function almacen()
+    public function almacenItem(): BelongsTo
     {
-        return $this->belongsTo(Almacen::class, 'id_almacen', 'id_almacen');
+        return $this->belongsTo(
+            AlmacenItem::class,
+            ['id_almacen', 'id_item'],
+            ['id_almacen', 'id_item']
+        );
     }
 
     /**
-     * Get the item for this movimiento.
+     * Relación con usuario
      */
-    public function item()
+    public function usuario(): BelongsTo
     {
-        return $this->belongsTo(Item::class, 'id_item', 'id_item');
+        return $this->belongsTo(Usuario::class, 'id_usuario', 'id_usuario');
     }
 
     /**
-     * Scope para obtener solo ingresos
+     * Registrar movimiento genérico
+     */
+    public static function registrar($data)
+    {
+        // Obtener stock actual
+        $almacenItem = AlmacenItem::where('id_almacen', $data['id_almacen'])
+            ->where('id_item', $data['id_item'])
+            ->first();
+            
+        $stockActual = $almacenItem ? $almacenItem->stock : 0;
+        
+        return self::create([
+            'tipo_movimiento' => $data['tipo_movimiento'],
+            'id_almacen' => $data['id_almacen'],
+            'id_item' => $data['id_item'],
+            'cantidad' => $data['cantidad'],
+            'precio_unitario' => $data['precio_unitario'] ?? 0,
+            'costo_total' => $data['costo_total'] ?? ($data['cantidad'] * ($data['precio_unitario'] ?? 0)),
+            'stock_resultante' => $stockActual + $data['cantidad'],
+            'fecha_movimiento' => $data['fecha_movimiento'] ?? now(),
+            'referencia_id' => $data['referencia_id'] ?? null,
+            'referencia_tipo' => $data['referencia_tipo'] ?? null,
+            'observaciones' => $data['observaciones'] ?? null,
+            'id_usuario' => $data['id_usuario'] ?? auth()->id(),
+        ]);
+    }
+
+    /**
+     * Scope para reporte de movimientos por período
+     */
+    public function scopeEnPeriodo($query, $desde, $hasta)
+    {
+        return $query->whereBetween('fecha_movimiento', [$desde, $hasta]);
+    }
+
+    /**
+     * Scope para un item específico
+     */
+    public function scopeDelItem($query, $idItem)
+    {
+        return $query->where('id_item', $idItem);
+    }
+
+    /**
+     * Scope para un almacén específico
+     */
+    public function scopeEnAlmacen($query, $idAlmacen)
+    {
+        return $query->where('id_almacen', $idAlmacen);
+    }
+
+    /**
+     * Scope para ingresos
      */
     public function scopeIngresos($query)
     {
-        return $query->where('tipo_movimiento', 'ingreso');
+        return $query->where('cantidad', '>', 0);
     }
 
     /**
-     * Scope para obtener solo egresos
+     * Scope para egresos
      */
     public function scopeEgresos($query)
     {
-        return $query->where('tipo_movimiento', 'egreso');
-    }
-
-    /**
-     * Scope para obtener solo traspasos
-     */
-    public function scopeTraspasos($query)
-    {
-        return $query->whereIn('tipo_movimiento', ['traspaso_origen', 'traspaso_destino']);
-    }
-
-    /**
-     * Scope para obtener solo movimientos completados
-     */
-    public function scopeCompletados($query)
-    {
-        return $query->where('estado', 'completado');
-    }
-
-    /**
-     * Scope por fecha
-     */
-    public function scopePorFecha($query, $fecha)
-    {
-        return $query->whereDate('fecha_movimiento', $fecha);
-    }
-
-    /**
-     * Scope por almacén e item
-     */
-    public function scopePorAlmacenItem($query, $id_almacen, $id_item)
-    {
-        return $query->where('id_almacen', $id_almacen)->where('id_item', $id_item);
+        return $query->where('cantidad', '<', 0);
     }
 }

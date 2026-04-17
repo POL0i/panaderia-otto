@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 class TraspasoAlmacenItem extends Model
 {
@@ -18,35 +20,114 @@ class TraspasoAlmacenItem extends Model
         'cantidad',
     ];
 
+    protected $casts = [
+        'cantidad' => 'integer',
+    ];
+
     /**
-     * Get the traspaso for this detalle.
+     * Boot method para manejar el stock automáticamente
      */
-    public function traspaso()
+    protected static function booted()
+    {
+        static::creating(function ($traspasoItem) {
+            // Validar que los almacenes sean diferentes
+            if ($traspasoItem->id_almacen_origen === $traspasoItem->id_almacen_destino) {
+                throw new \Exception('El almacén origen y destino no pueden ser el mismo');
+            }
+            
+            DB::transaction(function () use ($traspasoItem) {
+                // Verificar stock en origen
+                $almacenItemOrigen = AlmacenItem::where('id_almacen', $traspasoItem->id_almacen_origen)
+                    ->where('id_item', $traspasoItem->id_item)
+                    ->lockForUpdate()
+                    ->first();
+                
+                if (!$almacenItemOrigen || $almacenItemOrigen->stock < $traspasoItem->cantidad) {
+                    $stock = $almacenItemOrigen->stock ?? 0;
+                    throw new \Exception("Stock insuficiente en almacén origen. Disponible: {$stock}");
+                }
+                
+                // Descontar del origen
+                $almacenItemOrigen->decrement('stock', $traspasoItem->cantidad);
+                
+                // Agregar al destino (crear si no existe)
+                AlmacenItem::updateOrCreate(
+                    [
+                        'id_almacen' => $traspasoItem->id_almacen_destino,
+                        'id_item' => $traspasoItem->id_item
+                    ],
+                    ['stock' => 0]
+                )->increment('stock', $traspasoItem->cantidad);
+            });
+        });
+
+        static::deleting(function ($traspasoItem) {
+            DB::transaction(function () use ($traspasoItem) {
+                // Revertir el traspaso
+                AlmacenItem::where('id_almacen', $traspasoItem->id_almacen_origen)
+                    ->where('id_item', $traspasoItem->id_item)
+                    ->increment('stock', $traspasoItem->cantidad);
+                
+                AlmacenItem::where('id_almacen', $traspasoItem->id_almacen_destino)
+                    ->where('id_item', $traspasoItem->id_item)
+                    ->decrement('stock', $traspasoItem->cantidad);
+            });
+        });
+    }
+
+    /**
+     * Relación con el traspaso
+     */
+    public function traspaso(): BelongsTo
     {
         return $this->belongsTo(Traspaso::class, 'id_traspaso', 'id_traspaso');
     }
 
     /**
-     * Get the almacen origen for this detalle.
+     * Relación con almacen_item (origen)
+     */
+    public function almacenItemOrigen(): BelongsTo
+    {
+        return $this->belongsTo(
+            AlmacenItem::class,
+            ['id_almacen_origen', 'id_item'],
+            ['id_almacen', 'id_item']
+        );
+    }
+
+    /**
+     * Relación con almacen_item (destino)
+     */
+    public function almacenItemDestino(): BelongsTo
+    {
+        return $this->belongsTo(
+            AlmacenItem::class,
+            ['id_almacen_destino', 'id_item'],
+            ['id_almacen', 'id_item']
+        );
+    }
+
+    /**
+     * Acceso rápido al almacén origen
      */
     public function almacenOrigen()
     {
-        return $this->belongsTo(Almacen::class, 'id_almacen_origen', 'id_almacen');
+        return $this->almacenItemOrigen->almacen();
     }
 
     /**
-     * Get the almacen destino for this detalle.
+     * Acceso rápido al almacén destino
      */
     public function almacenDestino()
     {
-        return $this->belongsTo(Almacen::class, 'id_almacen_destino', 'id_almacen');
+        return $this->almacenItemDestino->almacen();
     }
 
     /**
-     * Get the item for this detalle.
+     * Acceso rápido al item
      */
     public function item()
     {
-        return $this->belongsTo(Item::class, 'id_item', 'id_item');
+        return $this->almacenItemOrigen->item();
     }
 }

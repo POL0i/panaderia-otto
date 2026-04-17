@@ -12,14 +12,34 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('detalles_compra', function (Blueprint $table) {
-            $table->foreignId('id_nota_compra')->constrained('notas_compra', 'id_nota_compra')->onDelete('cascade');
-            $table->foreignId('id_insumo')->constrained('insumos', 'id_insumo')->onDelete('cascade');
+            // FK a nota_compra
+            $table->foreignId('id_nota_compra')
+                  ->constrained('notas_compra', 'id_nota_compra')
+                  ->onDelete('cascade');
+            
+            // FK a almacen (para saber a qué almacén ingresa)
+            $table->foreignId('id_almacen')
+                  ->constrained('almacenes', 'id_almacen')
+                  ->onDelete('restrict');
+            
+            // FK a item (para conectar con almacen_item)
+            $table->foreignId('id_item')
+                  ->constrained('items', 'id_item')
+                  ->onDelete('restrict');
+            
             $table->integer('cantidad');
-            $table->integer('precio'); // Precio unitario
+            $table->integer('precio'); // Precio unitario de compra
+            $table->decimal('subtotal', 12, 2)->storedAs('cantidad * precio');
             $table->timestamps();
             
-            // Primaria compuesta
-            $table->primary(['id_nota_compra', 'id_insumo']);
+            // Primaria compuesta con las 3 llaves
+            $table->primary(['id_nota_compra', 'id_almacen', 'id_item']);
+            
+            // Foreign key compuesta hacia almacen_item
+            $table->foreign(['id_almacen', 'id_item'])
+                  ->references(['id_almacen', 'id_item'])
+                  ->on('almacen_item')
+                  ->onDelete('restrict');
         });
     }
 

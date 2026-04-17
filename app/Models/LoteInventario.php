@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LoteInventario extends Model
 {
     protected $table = 'lotes_inventario';
     protected $primaryKey = 'id_lote';
-    public $timestamps = true;
 
     protected $fillable = [
         'id_almacen',
@@ -20,82 +20,122 @@ class LoteInventario extends Model
         'fecha_salida',
         'metodo_valuacion',
         'estado',
+        'referencia_id',
+        'referencia_tipo',
     ];
 
     protected $casts = [
+        'cantidad_inicial' => 'decimal:2',
+        'cantidad_disponible' => 'decimal:2',
+        'precio_unitario' => 'decimal:2',
         'fecha_entrada' => 'datetime',
         'fecha_salida' => 'datetime',
     ];
 
     /**
-     * Get the almacen for this lote.
+     * Relación con almacen_item
      */
-    public function almacen()
+    public function almacenItem(): BelongsTo
     {
-        return $this->belongsTo(Almacen::class, 'id_almacen', 'id_almacen');
+        return $this->belongsTo(
+            AlmacenItem::class,
+            ['id_almacen', 'id_item'],
+            ['id_almacen', 'id_item']
+        );
     }
 
     /**
-     * Get the item for this lote.
+     * Crear lote desde una compra
      */
-    public function item()
+    public static function desdeCompra(DetalleCompra $detalleCompra)
     {
-        return $this->belongsTo(Item::class, 'id_item', 'id_item');
+        return self::create([
+            'id_almacen' => $detalleCompra->id_almacen,
+            'id_item' => $detalleCompra->id_item,
+            'cantidad_inicial' => $detalleCompra->cantidad,
+            'cantidad_disponible' => $detalleCompra->cantidad,
+            'precio_unitario' => $detalleCompra->precio,
+            'fecha_entrada' => now(),
+            'referencia_id' => $detalleCompra->id_nota_compra,
+            'referencia_tipo' => 'compra',
+            'estado' => 'disponible'
+        ]);
     }
 
     /**
-     * Scope para obtener lotes disponibles (PEPS)
+     * Crear lote desde producción
      */
-    public function scopePEPS($query)
+    public static function desdeProduccion(ProduccionItemAlmacen $produccionItem)
     {
-        return $query->where('metodo_valuacion', 'PEPS')->where('estado', 'disponible')->orderBy('fecha_entrada', 'asc');
+        if ($produccionItem->esIngreso()) {
+            return self::create([
+                'id_almacen' => $produccionItem->id_almacen,
+                'id_item' => $produccionItem->id_item,
+                'cantidad_inicial' => $produccionItem->cantidad,
+                'cantidad_disponible' => $produccionItem->cantidad,
+                'precio_unitario' => self::calcularCostoProduccion($produccionItem),
+                'fecha_entrada' => now(),
+                'referencia_id' => $produccionItem->id_produccion,
+                'referencia_tipo' => 'produccion',
+                'estado' => 'disponible'
+            ]);
+        }
+        return null;
     }
 
     /**
-     * Scope para obtener lotes disponibles (UEPS)
+     * Consumir del lote (PEPS/UEPS)
      */
-    public function scopeUEPS($query)
+    public static function consumir($idAlmacen, $idItem, $cantidad, $metodo = 'PEPS')
     {
-        return $query->where('metodo_valuacion', 'UEPS')->where('estado', 'disponible')->orderBy('fecha_entrada', 'desc');
+        $lotes = self::where('id_almacen', $idAlmacen)
+            ->where('id_item', $idItem)
+            ->where('estado', 'disponible')
+            ->where('cantidad_disponible', '>', 0)
+            ->when($metodo === 'PEPS', fn($q) => $q->orderBy('fecha_entrada', 'asc'))
+            ->when($metodo === 'UEPS', fn($q) => $q->orderBy('fecha_entrada', 'desc'))
+            ->lockForUpdate()
+            ->get();
+
+        $pendiente = $cantidad;
+        $costoTotal = 0;
+
+        foreach ($lotes as $lote) {
+            if ($pendiente <= 0) break;
+
+            $consumir = min($lote->cantidad_disponible, $pendiente);
+            $lote->cantidad_disponible -= $consumir;
+            
+            if ($lote->cantidad_disponible <= 0) {
+                $lote->estado = 'consumido';
+                $lote->fecha_salida = now();
+            }
+            
+            $lote->save();
+            
+            $costoTotal += $consumir * $lote->precio_unitario;
+            $pendiente -= $consumir;
+        }
+
+        return [
+            'costo_total' => $costoTotal,
+            'costo_unitario_promedio' => $cantidad > 0 ? $costoTotal / $cantidad : 0,
+            'cantidad_consumida' => $cantidad - $pendiente
+        ];
     }
 
-    /**
-     * Scope para obtener lotes disponibles
-     */
-    public function scopeDisponibles($query)
+    private static function calcularCostoProduccion($produccionItem)
     {
-        return $query->where('estado', 'disponible')->where('cantidad_disponible', '>', 0);
-    }
-
-    /**
-     * Scope por almacén e item
-     */
-    public function scopePorAlmacenItem($query, $id_almacen, $id_item)
-    {
-        return $query->where('id_almacen', $id_almacen)->where('id_item', $id_item);
-    }
-
-    /**
-     * Scope por método de valuación
-     */
-    public function scopePorMetodo($query, $metodo)
-    {
-        return $query->where('metodo_valuacion', $metodo);
-    }
-
-    /**
-     * Calcular costo total consumido
-     */
-    public function getCostoConsumidoAttribute()
-    {
-        return ($this->cantidad_inicial - $this->cantidad_disponible) * $this->precio_unitario;
-    }
-
-    /**
-     * Calcular valor del lote disponible
-     */
-    public function getValorDisponibleAttribute()
-    {
-        return $this->cantidad_disponible * $this->precio_unitario;
+        // Calcular costo basado en insumos consumidos
+        $insumos = ProduccionItemAlmacen::where('id_produccion', $produccionItem->id_produccion)
+            ->egresos()
+            ->get();
+            
+        $costoTotal = 0;
+        foreach ($insumos as $insumo) {
+            $costoTotal += $insumo->cantidad * ($insumo->item->insumo->precio_compra ?? 0);
+        }
+        
+        return $costoTotal / $produccionItem->cantidad;
     }
 }

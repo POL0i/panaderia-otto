@@ -1,38 +1,309 @@
 /* ==========================================
    TEMA PANADERÍA OTTO - ESTILOS GLOBALES
+   Manteniendo la esencia de panadería
    ========================================== */
 
 :root {
     --color-primary-dark: #5D3A1A;
     --color-primary-medium: #8B4513;
-    --color-primary-light: #6B4226;
-    --color-secondary: #A0522D;
+    --color-primary-light: #A0522D;
+    --color-secondary: #6B4226;
     --color-accent: #D2B48C;
+    --color-accent-dark: #C4A47A;
     --color-bg-light: #FFF9F0;
     --color-bg-lighter: #FFF5E6;
     --color-bg-lightest: #FFFDF8;
+    --color-success: #4caf50;
+    --color-warning: #ff9800;
+    --color-danger: #f44336;
+    --transition-speed: 0.3s;
+}
+
+/* ==========================================
+   SIDEBAR - TONOS PANADERÍA
+   ========================================== */
+
+.main-sidebar {
+    background: linear-gradient(180deg, #5D3A1A 0%, #3E2510 100%);
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
+}
+
+.main-sidebar .brand-link {
+    background: linear-gradient(135deg, #8B4513 0%, #5D3A1A 100%);
+    border-bottom: 3px solid #D2B48C;
+    padding: 1.2rem 1rem;
+}
+
+.main-sidebar .brand-link:hover {
+    background: linear-gradient(135deg, #9B5523 0%, #6B4A2A 100%);
+}
+
+.brand-link .brand-text {
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.brand-link i {
+    color: #D2B48C;
+    transition: transform 0.3s ease;
+}
+
+.brand-link:hover i {
+    transform: rotate(10deg) scale(1.05);
+}
+
+/* User Panel - Información del usuario */
+.user-panel {
+    border-bottom: 1px solid rgba(210, 180, 140, 0.3);
+    padding: 1rem 0.8rem !important;
+    margin-bottom: 0.5rem;
+}
+
+.user-panel .image i {
+    color: #D2B48C;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.user-panel .info a {
+    color: white;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+}
+
+.user-panel .info a:hover {
+    color: #D2B48C;
+}
+
+.user-role-badge {
+    display: inline-block;
+    background: rgba(210, 180, 140, 0.2);
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #D2B48C;
+}
+
+.user-status {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4caf50;
+    margin-left: 5px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+    70% { box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+}
+
+/* Navegación principal */
+.nav-sidebar .nav-item {
+    margin: 4px 8px;
+}
+
+.nav-sidebar .nav-link {
+    border-radius: 12px;
+    padding: 0.7rem 1rem;
+    color: rgba(255, 255, 255, 0.85);
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-sidebar .nav-link:hover {
+    background: rgba(139, 69, 19, 0.6);
+    color: white;
+    transform: translateX(5px);
+}
+
+.nav-sidebar .nav-link.active {
+    background: linear-gradient(90deg, #8B4513 0%, #A0522D 100%);
+    color: white;
+    border-left: 4px solid #D2B48C;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.nav-sidebar .nav-icon {
+    color: #D2B48C;
+    transition: all 0.3s ease;
+    margin-right: 0.8rem;
+}
+
+.nav-sidebar .nav-link:hover .nav-icon {
+    color: white;
+    transform: scale(1.1);
+}
+
+.nav-sidebar .nav-link.active .nav-icon {
+    color: white;
+}
+
+/* Treeview (submenús) */
+.nav-sidebar .nav-treeview {
+    margin-left: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    padding: 0.5rem 0;
+}
+
+.nav-sidebar .nav-treeview .nav-link {
+    padding: 0.5rem 1rem;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.85rem;
+}
+
+.nav-sidebar .nav-treeview .nav-link:hover {
+    background: rgba(210, 180, 140, 0.15);
+    color: #D2B48C;
+    transform: translateX(3px);
+}
+
+.nav-sidebar .nav-treeview .nav-link.active {
+    background: rgba(210, 180, 140, 0.2);
+    color: #D2B48C;
+    border-left: 3px solid #D2B48C;
+}
+
+/* Módulos destacados */
+.nav-link-modulo-destacado {
+    background: linear-gradient(90deg, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0.08) 100%) !important;
+    border-left: 4px solid #4caf50 !important;
+}
+
+.nav-link-modulo-destacado:hover {
+    background: linear-gradient(90deg, rgba(76, 175, 80, 0.25) 0%, rgba(76, 175, 80, 0.15) 100%) !important;
+}
+
+.nav-link-modulo-destacado .nav-icon {
+    color: #4caf50 !important;
+}
+
+.nav-link-modulo-destacado.active {
+    background: linear-gradient(90deg, #4caf50 0%, #2E7D32 100%) !important;
+    color: white !important;
+}
+
+.nav-link-modulo-destacado.active .nav-icon {
+    color: white !important;
+}
+
+/* Módulo de acceso destacado */
+.nav-link-acceso {
+    background: rgba(255, 152, 0, 0.15) !important;
+    border-left: 4px solid #ff9800 !important;
+}
+
+.nav-link-acceso:hover {
+    background: rgba(255, 152, 0, 0.25) !important;
+}
+
+/* Footer del sidebar */
+.sidebar-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.8rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-top: 1px solid rgba(210, 180, 140, 0.2);
+    font-size: 0.7rem;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.sidebar-footer a {
+    color: #D2B48C;
+    text-decoration: none;
+}
+
+.sidebar-footer a:hover {
+    color: white;
+}
+
+/* Scrollbar personalizada */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: #3E2510;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #D2B48C;
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #C4A47A;
+}
+
+/* ==========================================
+   NAVBAR SUPERIOR
+   ========================================== */
+
+.main-header.navbar {
+    background: white;
+    border-bottom: 2px solid #D2B48C;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.main-header .navbar-nav .nav-link {
+    color: #5D3A1A;
+}
+
+.main-header .navbar-nav .nav-link:hover {
+    color: #8B4513;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border-top: 3px solid #8B4513;
+}
+
+.dropdown-item {
+    color: #5D3A1A;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background: #FFF5E6;
+    color: #8B4513;
 }
 
 /* ==========================================
    FORMULARIOS
    ========================================== */
+
 .form-control {
     border-radius: 10px !important;
-    border: 1px solid var(--color-accent) !important;
+    border: 1px solid #D2B48C !important;
     transition: all 0.3s ease !important;
 }
+
 .form-control:focus {
-    border-color: var(--color-primary-medium) !important;
+    border-color: #8B4513 !important;
     box-shadow: 0 0 0 0.2rem rgba(139, 69, 19, 0.25) !important;
 }
+
 label {
-    color: var(--color-primary-dark) !important;
+    color: #5D3A1A !important;
     font-weight: 600 !important;
 }
 
 /* ==========================================
    BOTONES
    ========================================== */
+
 .btn {
     border-radius: 25px !important;
     padding: 0.5rem 1.5rem !important;
@@ -40,129 +311,380 @@ label {
     transition: all 0.2s ease !important;
     border: none !important;
 }
+
 .btn:hover {
-    transform: translateY(-1px) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
+
 .btn-primary, .btn-save {
-    background: linear-gradient(135deg, var(--color-primary-medium) 0%, var(--color-primary-dark) 100%) !important;
+    background: linear-gradient(135deg, #8B4513 0%, #5D3A1A 100%) !important;
     color: white !important;
 }
+
 .btn-success {
-    background: #4caf50 !important;
+    background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%) !important;
     color: white !important;
 }
+
 .btn-warning {
-    background: #ff9800 !important;
+    background: linear-gradient(135deg, #ffb74d 0%, #ff9800 100%) !important;
     color: white !important;
 }
+
 .btn-cancel, .btn-secondary {
-    background: var(--color-accent) !important;
-    color: var(--color-primary-dark) !important;
+    background: linear-gradient(135deg, #D2B48C 0%, #C4A47A 100%) !important;
+    color: #5D3A1A !important;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ef5350 0%, #f44336 100%) !important;
+    color: white !important;
 }
 
 /* ==========================================
    CARDS
    ========================================== */
+
 .card {
     border: none !important;
     border-radius: 15px !important;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
 .card-header {
-    background: linear-gradient(135deg, var(--color-primary-medium) 0%, var(--color-primary-dark) 100%) !important;
+    background: linear-gradient(135deg, #8B4513 0%, #5D3A1A 100%) !important;
     color: white !important;
-    border-bottom: 2px solid var(--color-accent) !important;
+    border-bottom: 2px solid #D2B48C !important;
+    border-radius: 15px 15px 0 0 !important;
 }
+
 .card-body {
-    background: var(--color-bg-light) !important;
+    background: #FFF9F0 !important;
 }
+
 .card-footer {
-    background: var(--color-bg-lighter) !important;
-    border-top: 1px solid var(--color-accent) !important;
+    background: #FFF5E6 !important;
+    border-top: 1px solid #D2B48C !important;
+    border-radius: 0 0 15px 15px !important;
+}
+
+/* ==========================================
+   TABLAS
+   ========================================== */
+
+.table {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background: linear-gradient(135deg, #8B4513 0%, #5D3A1A 100%);
+    color: white;
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+}
+
+.table tbody tr {
+    transition: background 0.3s ease;
+}
+
+.table tbody tr:hover {
+    background: #FFF5E6;
 }
 
 /* ==========================================
    ALERTAS
    ========================================== */
+
 .alert {
     border-radius: 10px !important;
     border: none !important;
     border-left: 4px solid !important;
+    animation: slideInRight 0.3s ease-out;
 }
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
 .alert-success {
     background: #e8f5e9 !important;
     color: #1b5e20 !important;
     border-left-color: #4caf50 !important;
 }
+
 .alert-danger {
     background: #ffebee !important;
     color: #b71c1c !important;
     border-left-color: #f44336 !important;
 }
+
 .alert-warning {
     background: #fff3e0 !important;
     color: #e65100 !important;
     border-left-color: #ff9800 !important;
 }
+
 .alert-info {
-    background: var(--color-bg-lighter) !important;
-    color: var(--color-primary-dark) !important;
-    border-left-color: var(--color-primary-medium) !important;
+    background: #FFF5E6 !important;
+    color: #5D3A1A !important;
+    border-left-color: #8B4513 !important;
 }
 
 /* ==========================================
    BADGES
    ========================================== */
+
 .badge {
     border-radius: 20px !important;
     padding: 0.3rem 0.7rem !important;
     font-weight: 500 !important;
 }
+
 .badge-success { background: #4caf50 !important; color: white !important; }
 .badge-danger { background: #f44336 !important; color: white !important; }
 .badge-warning { background: #ff9800 !important; color: white !important; }
-.badge-info { background: var(--color-primary-medium) !important; color: white !important; }
-.badge-primary { background: var(--color-primary-dark) !important; color: white !important; }
-.badge-secondary { background: var(--color-accent) !important; color: var(--color-primary-dark) !important; }
+.badge-info { background: #8B4513 !important; color: white !important; }
+.badge-primary { background: #5D3A1A !important; color: white !important; }
+.badge-secondary { background: #D2B48C !important; color: #5D3A1A !important; }
+
+/* ==========================================
+   CONTENT HEADER
+   ========================================== */
+
+.content-header h1 {
+    color: #5D3A1A;
+    font-weight: 600;
+}
+
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    color: #8B4513;
+}
+
+.breadcrumb-item.active {
+    color: #5D3A1A;
+    font-weight: 500;
+}
+
+/* ==========================================
+   FOOTER PRINCIPAL
+   ========================================== */
+
+.main-footer {
+    background: #FFF5E6;
+    color: #5D3A1A;
+    border-top: 1px solid #D2B48C;
+}
+
+/* ==========================================
+   MODALES
+   ========================================== */
+
+.modal-content {
+    border-radius: 15px !important;
+    border: none !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #8B4513 0%, #5D3A1A 100%);
+    color: white;
+    border-radius: 15px 15px 0 0;
+    border-bottom: 2px solid #D2B48C;
+}
+
+.modal-header .close {
+    color: white;
+    text-shadow: none;
+    opacity: 0.8;
+}
+
+.modal-header .close:hover {
+    opacity: 1;
+}
+
+.modal-footer {
+    background: #FFF5E6;
+    border-radius: 0 0 15px 15px;
+    border-top: 1px solid #D2B48C;
+}
 
 /* ==========================================
    UTILIDADES
    ========================================== */
-.text-panaderia { color: var(--color-primary-dark) !important; }
-.text-panaderia-secondary { color: var(--color-secondary) !important; }
-.bg-panaderia-light { background: var(--color-bg-light) !important; }
-.bg-panaderia-lighter { background: var(--color-bg-lighter) !important; }
-.border-panaderia { border: 2px solid var(--color-accent) !important; border-radius: 10px !important; }
+
+.text-panaderia { color: #5D3A1A !important; }
+.text-panaderia-secondary { color: #A0522D !important; }
+.text-panaderia-accent { color: #D2B48C !important; }
+.bg-panaderia-light { background: #FFF9F0 !important; }
+.bg-panaderia-lighter { background: #FFF5E6 !important; }
+.border-panaderia { border: 2px solid #D2B48C !important; border-radius: 10px !important; }
 
 /* ==========================================
    ANIMACIONES
    ========================================== */
+
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+.animate-fade-in-up { animation: fadeInUp 0.4s ease-out; }
 
 /* ==========================================
-   MODALES ANIDADOS
+   RESPONSIVE
    ========================================== */
-.modal-backdrop {
-    z-index: 1040 !important;
+
+@media (max-width: 768px) {
+    .main-sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .main-sidebar.sidebar-open {
+        transform: translateX(0);
+    }
+    
+    .btn {
+        padding: 0.4rem 1rem !important;
+        font-size: 0.9rem;
+    }
 }
 
-.modal {
-    z-index: 1050 !important;
+/* ==========================================
+   SOBRESCRITURA FORZADA DEL SIDEBAR
+   Manteniendo tus colores originales
+   ========================================== */
+
+/* Fuerza los colores del sidebar - usando tus variables */
+.main-sidebar,
+.main-sidebar::before {
+    background: linear-gradient(180deg, var(--color-primary-dark) 0%, #3E2510 100%) !important;
 }
 
-.modal .modal {
-    z-index: 1060 !important;
+/* Brand logo */
+.main-sidebar .brand-link {
+    background: linear-gradient(135deg, var(--color-primary-medium) 0%, var(--color-primary-dark) 100%) !important;
+    border-bottom: 3px solid var(--color-accent) !important;
 }
 
-.modal .modal .modal-backdrop {
-    z-index: 1055 !important;
+.main-sidebar .brand-link .brand-text {
+    color: white !important;
 }
 
-/* Asegurar que el modal anidado esté por encima */
-.modal.show .modal.show {
-    background: rgba(0, 0, 0, 0.3);
+.main-sidebar .brand-link i {
+    color: var(--color-accent) !important;
+}
+
+/* User panel */
+.main-sidebar .user-panel .info a {
+    color: white !important;
+}
+
+.main-sidebar .user-panel .info a:hover {
+    color: var(--color-accent) !important;
+}
+
+/* Navegación - fuerza hover y active */
+.main-sidebar .nav-sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.main-sidebar .nav-sidebar .nav-link:hover {
+    background: rgba(139, 69, 19, 0.6) !important;
+    color: white !important;
+}
+
+.main-sidebar .nav-sidebar .nav-link.active {
+    background: linear-gradient(90deg, var(--color-primary-medium) 0%, var(--color-primary-light) 100%) !important;
+    color: white !important;
+    border-left: 4px solid var(--color-accent) !important;
+}
+
+/* Iconos */
+.main-sidebar .nav-sidebar .nav-icon {
+    color: var(--color-accent) !important;
+}
+
+.main-sidebar .nav-sidebar .nav-link.active .nav-icon {
+    color: white !important;
+}
+
+.main-sidebar .nav-sidebar .nav-link:hover .nav-icon {
+    color: white !important;
+}
+
+/* Submenús */
+.main-sidebar .nav-sidebar .nav-treeview {
+    background: rgba(0, 0, 0, 0.2) !important;
+}
+
+.main-sidebar .nav-sidebar .nav-treeview .nav-link {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.main-sidebar .nav-sidebar .nav-treeview .nav-link:hover {
+    background: rgba(210, 180, 140, 0.15) !important;
+    color: var(--color-accent) !important;
+}
+
+.main-sidebar .nav-sidebar .nav-treeview .nav-link.active {
+    background: rgba(210, 180, 140, 0.2) !important;
+    color: var(--color-accent) !important;
+    border-left: 3px solid var(--color-accent) !important;
+}
+
+/* Footer del sidebar */
+.sidebar-footer {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-top: 1px solid rgba(210, 180, 140, 0.2) !important;
+}
+
+.sidebar-footer a {
+    color: var(--color-accent) !important;
+}
+
+.sidebar-footer a:hover {
+    color: white !important;
+}
+
+/* Scrollbar */
+.sidebar::-webkit-scrollbar-track {
+    background: #3E2510;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--color-accent);
 }
