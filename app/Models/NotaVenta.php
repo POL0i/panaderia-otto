@@ -49,15 +49,4 @@ class NotaVenta extends Model
     /**
      * Get all productos through detalles.
      */
-    public function productos()
-    {
-        return $this->hasManyThrough(
-            Producto::class,
-            DetalleVenta::class,
-            'id_nota_venta',
-            'id_producto',
-            'id_nota_venta',
-            'id_producto'
-        );
-    }
 }

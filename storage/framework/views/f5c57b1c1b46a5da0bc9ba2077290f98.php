@@ -474,12 +474,27 @@
 
                     <!-- MÓDULO: GESTIÓN COMERCIAL -->
                     <?php if(in_array('gestion_comercial_ver', $userPermissions) || $isAdmin): ?>
-                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('notas-venta.*') || Request::routeIs('detalles-venta.*') || Request::routeIs('notas-compra.*') || Request::routeIs('detalles-compra.*') || Request::routeIs('proveedores.*') || Request::routeIs('ppersona.*') || Request::routeIs('pempresa.*') ? 'menu-open' : ''); ?>">
+                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('notas-venta.*') || Request::routeIs('detalles-venta.*') || Request::routeIs('notas-compra.*') || Request::routeIs('detalles-compra.*') || Request::routeIs('proveedores.*') || Request::routeIs('ppersona.*') || Request::routeIs('pempresa.*') || Request::routeIs('compras.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-exchange-alt"></i>
                             <p>Gestión Comercial <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
+                            <!-- NUEVA SECCIÓN DE COMPRAS - Panel Principal -->
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('compras.index')); ?>" class="nav-link nav-link-modulo-destacado <?php echo e(Request::routeIs('compras.index') ? 'active' : ''); ?>">
+                                    <i class="fas fa-shopping-cart nav-icon"></i>
+                                    <p><i class="fas fa-star-of-life" style="font-size: 10px;"></i> Panel de Compras</p>
+                                </a>
+                            </li>
+                            
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('ventas.index')); ?>" class="nav-link nav-link-modulo-destacado <?php echo e(Request::routeIs('ventas.index') ? 'active' : ''); ?>">
+                                    <i class="fas fa-cart-shopping nav-icon"></i>
+                                    <p><i class="fas fa-star-of-life" style="font-size: 10px;"></i> Panel de Ventas</p>
+                                </a>
+                            </li>
+                            
                             <li class="nav-item">
                                 <a href="<?php echo e(route('notas-venta.index')); ?>" class="nav-link <?php echo e(Request::routeIs('notas-venta.*') ? 'active' : ''); ?>">
                                     <i class="far fa-circle nav-icon"></i><p>Notas de Venta</p>

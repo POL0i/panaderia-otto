@@ -1,4 +1,5 @@
 <?php
+// database/migrations/xxxx_create_detalles_compra_table.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -6,34 +7,28 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('detalles_compra', function (Blueprint $table) {
-            // FK a nota_compra
+            // ID autoincremental como clave primaria
+            $table->id('id_detalle_compra');
+            
             $table->foreignId('id_nota_compra')
                   ->constrained('notas_compra', 'id_nota_compra')
                   ->onDelete('cascade');
-            
-            // FK a almacen (para saber a qué almacén ingresa)
             $table->foreignId('id_almacen')
                   ->constrained('almacenes', 'id_almacen')
                   ->onDelete('restrict');
-            
-            // FK a item (para conectar con almacen_item)
             $table->foreignId('id_item')
                   ->constrained('items', 'id_item')
                   ->onDelete('restrict');
-            
             $table->integer('cantidad');
-            $table->integer('precio'); // Precio unitario de compra
+            $table->decimal('precio', 10, 2);
             $table->decimal('subtotal', 12, 2)->storedAs('cantidad * precio');
             $table->timestamps();
             
-            // Primaria compuesta con las 3 llaves
-            $table->primary(['id_nota_compra', 'id_almacen', 'id_item']);
+            // Índice único para evitar duplicados (reemplaza la clave primaria compuesta)
+            $table->unique(['id_nota_compra', 'id_almacen', 'id_item'], 'detalles_compra_unique');
             
             // Foreign key compuesta hacia almacen_item
             $table->foreign(['id_almacen', 'id_item'])
@@ -43,9 +38,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('detalles_compra');

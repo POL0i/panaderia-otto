@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Almacen;
 use Illuminate\Http\Request;
+use App\Models\CategoriaInsumo;
+use App\Models\CategoriaProducto;
 
 class AlmacenController extends Controller
 {
@@ -16,7 +18,13 @@ class AlmacenController extends Controller
             ->orderBy('nombre')
             ->paginate(15);
         
-        return view('almacen.index', compact('almacenes'));
+        $categoriasInsumo = CategoriaInsumo::all(); // o el modelo que uses
+        $categoriasProducto = CategoriaProducto::all(); // o el modelo que uses
+        
+        return view('modulo-almacen.index', compact(
+            'totalAlmacenes', 'totalProductos', 'totalInsumos', 'totalItems',
+            'almacenes', 'items', 'categoriasInsumo', 'categoriasProducto'
+        ));
     }
 
     /**

@@ -688,3 +688,48 @@ label {
 .sidebar::-webkit-scrollbar-thumb {
     background: var(--color-accent);
 }
+
+/* Seccion del carrito y gesiton comercial  */
+
+ .cart-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-left: 4px solid #8B4513;
+    }
+    .cart-item:hover {
+        background: #FFF5E6;
+    }
+    .total-card {
+        background: linear-gradient(135deg, #8B4513 0%, #5D3A1A 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+    }
+    .btn-add-item {
+        background: #D2B48C;
+        color: #5D3A1A;
+        border: none;
+    }
+    .btn-add-item:hover {
+        background: #C4A47A;
+        color: white;
+    }
+    .table-detalles {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .proveedor-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    .proveedor-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .proveedor-card.selected {
+        border-color: #8B4513;
+        background: #FFF5E6;
+    }

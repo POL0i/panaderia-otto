@@ -40,6 +40,37 @@ use App\Http\Controllers\DetalleCompraController;
 use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\PPesonaController;
 use App\Http\Controllers\PempresaController;
+use App\Http\Controllers\CompraController;
+use App\Http\Controllers\VentaController;
+
+Route::prefix('ventas')->name('ventas.')->group(function () {
+    Route::get('/', [VentaController::class, 'index'])->name('index');
+    Route::post('/store', [VentaController::class, 'store'])->name('store'); 
+    Route::get('/nota/{id}', [VentaController::class, 'getNotaVenta'])->name('nota');
+    Route::get('/clientes', [VentaController::class, 'getClientes'])->name('clientes');
+    Route::get('/almacenes', [VentaController::class, 'getAlmacenes'])->name('almacenes');
+    Route::get('/items', [VentaController::class, 'getItems'])->name('items');
+    Route::get('/stock/{idAlmacen}/{idItem}', [VentaController::class, 'getStock'])->name('stock');
+    Route::post('/enviar-correo', [VentaController::class, 'enviarCorreo'])->name('enviar-correo'); 
+});
+
+// Sección de Compras
+Route::prefix('compras')->name('compras.')->group(function () {
+    Route::get('/', [CompraController::class, 'index'])->name('index');
+    Route::post('/store', [CompraController::class, 'store'])->name('store');
+    Route::get('/nota/{id}', [CompraController::class, 'getNotaCompra'])->name('nota');
+    Route::get('/detalles', [CompraController::class, 'getDetallesCompra'])->name('detalles');
+    Route::get('/items-almacen/{id}', [CompraController::class, 'getItemsByAlmacen'])->name('items.almacen');
+    
+    // APIs para modales
+    Route::post('/proveedor', [CompraController::class, 'storeProveedor'])->name('proveedor.store');
+    Route::post('/almacen', [CompraController::class, 'storeAlmacen'])->name('almacen.store');
+    Route::post('/insumo', [CompraController::class, 'storeInsumo'])->name('insumo.store');
+    Route::get('/proveedores', [CompraController::class, 'getProveedores'])->name('proveedores');
+    Route::get('/almacenes', [CompraController::class, 'getAlmacenes'])->name('almacenes');
+    Route::get('/items', [CompraController::class, 'getItems'])->name('items');
+      Route::post('/enviar-correo', [CompraController::class, 'enviarCorreoCompra'])->name('enviar-correo');
+});
 
 /*
 |--------------------------------------------------------------------------

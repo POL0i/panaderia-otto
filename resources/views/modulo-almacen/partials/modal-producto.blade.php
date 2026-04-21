@@ -75,6 +75,7 @@
     </div>
 </div>
 
+@push('scripts')
 <script>
 $(document).ready(function() {
     $('#formCreateProducto').on('submit', function(e) {
@@ -139,3 +140,4 @@ $(document).ready(function() {
     });
 });
 </script>
+@endpush

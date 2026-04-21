@@ -22,6 +22,11 @@ class NotaCompra extends Model
         'fecha_compra',
     ];
 
+    protected $casts = [
+        'fecha_compra' => 'datetime',  // <-- Agregar esta línea
+        'monto_total' => 'decimal:2',
+    ];
+
     /**
      * Get the empleado for this nota de compra.
      */
