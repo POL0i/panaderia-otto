@@ -18,7 +18,11 @@ class ProductoController extends Controller
             ->orderBy('nombre')
             ->paginate(15);
         
-        return view('producto.index', compact('productos'));
+        $categorias = CategoriaProducto::with('productos')
+            ->orderBy('nombre')
+            ->paginate(10);
+        
+        return view('producto.index', compact('productos', 'categorias'));
     }
 
     /**
@@ -39,7 +43,7 @@ class ProductoController extends Controller
     {
         $validated = $request->validate([
             'id_item' => 'required|exists:items,id_item',
-            'id_cat_producto' => 'required|exists:categorias_producto,id_cat_producto',
+            'id_cat_producto' => 'required|exists:categoria_producto,id_cat_producto',
             'nombre' => 'required|string|max:255',
             'precio' => 'required|numeric|min:0',
         ]);
@@ -77,7 +81,7 @@ class ProductoController extends Controller
     public function update(Request $request, Producto $producto)
     {
         $validated = $request->validate([
-            'id_cat_producto' => 'required|exists:categorias_producto,id_cat_producto',
+            'id_cat_producto' => 'required|exists:categoria_producto,id_cat_producto',
             'nombre' => 'required|string|max:255',
             'precio' => 'required|numeric|min:0',
         ]);
@@ -97,5 +101,73 @@ class ProductoController extends Controller
 
         return redirect()->route('productos.index')
             ->with('success', 'Producto eliminado exitosamente');
+    }
+
+    // ========== MÉTODOS PARA CATEGORÍAS DE PRODUCTOS ==========
+
+    /**
+     * Store a newly created category in storage.
+     */
+    public function storeCategoria(Request $request)
+    {
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:255|unique:categoria_producto,nombre',
+            'descripcion' => 'nullable|string|max:500',
+        ]);
+
+        CategoriaProducto::create($validated);
+
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Categoría creada exitosamente']);
+        }
+
+        return redirect()->route('productos.index')
+            ->with('success', 'Categoría creada exitosamente');
+    }
+
+    /**
+     * Update the specified category in storage.
+     */
+    public function updateCategoria(Request $request, $id)
+    {
+        $categoria = CategoriaProducto::findOrFail($id);
+        
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:255|unique:categoria_producto,nombre,' . $id . ',id_cat_producto',
+            'descripcion' => 'nullable|string|max:500',
+        ]);
+
+        $categoria->update($validated);
+
+        return redirect()->route('productos.index')
+            ->with('success', 'Categoría actualizada exitosamente');
+    }
+
+    /**
+     * Remove the specified category from storage.
+     */
+    public function destroyCategoria($id)
+    {
+        $categoria = CategoriaProducto::findOrFail($id);
+        
+        // Verificar si tiene productos asociados
+        if ($categoria->productos()->count() > 0) {
+            return redirect()->route('productos.index')
+                ->with('error', 'No se puede eliminar la categoría porque tiene productos asociados');
+        }
+        
+        $categoria->delete();
+
+        return redirect()->route('productos.index')
+            ->with('success', 'Categoría eliminada exitosamente');
+    }
+
+    /**
+     * Show form for editing category.
+     */
+    public function editCategoria($id)
+    {
+        $categoria = CategoriaProducto::findOrFail($id);
+        return response()->json($categoria);
     }
 }

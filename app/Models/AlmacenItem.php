@@ -49,6 +49,18 @@ class AlmacenItem extends Model
     }
 
     /**
+     * Relación con detalles de producción
+     */
+    public function detallesProduccion(): HasMany
+    {
+        return $this->hasMany(
+            DetalleProduccion::class,
+            ['id_almacen', 'id_item'],
+            ['id_almacen', 'id_item']
+        );
+    }
+
+    /**
      * Acceso al producto si el item es de tipo producto
      */
     public function producto()

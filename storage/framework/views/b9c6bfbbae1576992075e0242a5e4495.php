@@ -52,6 +52,7 @@
     </div>
 </div>
 
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
     $('#formCrearPermiso').on('submit', function(e) {
@@ -88,4 +89,5 @@ $(document).ready(function() {
         });
     });
 });
-</script><?php /**PATH C:\xampp\htdocs\panaderia-otto\resources\views/usuarios/partials/modal-create-permiso.blade.php ENDPATH**/ ?>
+</script>
+<?php $__env->stopPush(); ?><?php /**PATH C:\xampp\htdocs\panaderia-otto\resources\views/usuarios/partials/modal-create-permiso.blade.php ENDPATH**/ ?>

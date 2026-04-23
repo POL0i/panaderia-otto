@@ -147,40 +147,82 @@
             100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
         }
         
-        /* Footer del sidebar - CORREGIDO para no solaparse */
-        .sidebar-wrapper {
-            position: relative;
-            min-height: 100%;
-            padding-bottom: 80px;
+                /* Footer del sidebar - CORREGIDO para no solaparse */
+        .sidebar {
+            display: flex !important;
+            flex-direction: column !important;
+            height: calc(100vh - 57px) !important; /* 57px es la altura del brand-link */
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            padding-right: 0 !important;
+        }
+        
+        .sidebar nav {
+            flex: 1 0 auto !important;
         }
         
         .sidebar-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            width: 250px;
-            padding: 0.8rem;
-            background: rgba(0, 0, 0, 0.3);
-            border-top: 1px solid rgba(210, 180, 140, 0.2);
-            font-size: 0.7rem;
-            text-align: center;
-            color: rgba(255, 255, 255, 0.6);
-            z-index: 99;
-        }
-        
-        /* Cuando el sidebar está colapsado */
-        .sidebar-mini.sidebar-collapse .sidebar-footer {
-            width: 4.6rem;
+            position: sticky !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            padding: 0.8rem 0.5rem !important;
+            margin-top: auto !important;
+            background: rgba(0, 0, 0, 0.35) !important;
+            backdrop-filter: blur(5px) !important;
+            -webkit-backdrop-filter: blur(5px) !important;
+            border-top: 1px solid rgba(210, 180, 140, 0.3) !important;
+            font-size: 0.7rem !important;
+            text-align: center !important;
+            color: rgba(255, 255, 255, 0.7) !important;
+            flex-shrink: 0 !important;
+            z-index: 10 !important;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2) !important;
         }
         
         .sidebar-footer a {
-            color: #D2B48C;
-            text-decoration: none;
+            color: #D2B48C !important;
+            text-decoration: none !important;
+            transition: all 0.3s ease !important;
         }
         
         .sidebar-footer a:hover {
-            color: white;
+            color: white !important;
+            text-shadow: 0 0 5px rgba(210, 180, 140, 0.5) !important;
+        }
+        
+        /* Cuando el sidebar está colapsado */
+        .sidebar-mini.sidebar-collapse .sidebar {
+            overflow-y: auto !important;
+        }
+        
+        .sidebar-mini.sidebar-collapse .sidebar-footer {
+            width: 100% !important;
+            padding: 0.5rem 0.2rem !important;
+        }
+        
+        .sidebar-mini.sidebar-collapse .sidebar-footer br {
+            display: none !important;
+        }
+        
+        .sidebar-mini.sidebar-collapse .sidebar-footer {
+            font-size: 0.55rem !important;
+            line-height: 1.4 !important;
+        }
+        
+        .sidebar-mini.sidebar-collapse .sidebar-footer .fa-store,
+        .sidebar-mini.sidebar-collapse .sidebar-footer .fa-clock,
+        .sidebar-mini.sidebar-collapse .sidebar-footer .fa-info-circle {
+            font-size: 0.8rem !important;
+            display: block !important;
+            margin: 2px 0 !important;
+        }
+        
+        /* Ajuste para navegadores que no soportan backdrop-filter */
+        @supports not (backdrop-filter: blur(5px)) {
+            .sidebar-footer {
+                background: rgba(0, 0, 0, 0.5) !important;
+            }
         }
         
         /* Navbar superior */
@@ -250,16 +292,43 @@
         
         /* Scrollbar personalizada para el sidebar */
         .sidebar::-webkit-scrollbar {
-            width: 6px;
+            width: 5px !important;
         }
         
         .sidebar::-webkit-scrollbar-track {
-            background: #3E2510;
+            background: #3E2510 !important;
         }
         
         .sidebar::-webkit-scrollbar-thumb {
-            background: #D2B48C;
-            border-radius: 3px;
+            background: #D2B48C !important;
+            border-radius: 3px !important;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #E8C9A0 !important;
+        }
+        
+        /* Estilo para el módulo de acceso destacado */
+        .nav-link-acceso {
+            background-color: rgba(76, 175, 80, 0.15) !important;
+            border-left: 3px solid #4caf50 !important;
+        }
+        
+        .nav-link-acceso:hover {
+            background-color: rgba(76, 175, 80, 0.25) !important;
+        }
+        
+        /* Iconos del sidebar */
+        .nav-sidebar .nav-icon {
+            color: #D2B48C;
+        }
+        
+        .nav-sidebar .nav-link.active .nav-icon {
+            color: white;
+        }
+        
+        .nav-sidebar .nav-link:hover .nav-icon {
+            color: #D2B48C;
         }
         
         /* Estilo para el módulo de acceso destacado */
@@ -422,6 +491,13 @@
 
                     <!-- MÓDULO: USUARIOS (Solo Admin) -->
                     @if($isAdmin)
+                    <!-- Clientes -->
+                    <li class="nav-item">
+                        <a href="{{ route('clientes.index') }}" class="nav-link {{ Request::routeIs('clientes.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-users"></i>
+                            <p>Clientes</p>
+                        </a>
+                    </li>
                     <li class="nav-item has-treeview {{ Request::routeIs('usuarios.*') || Request::routeIs('empleados.*') || Request::routeIs('roles.*') || Request::routeIs('permisos.*') || Request::routeIs('rol-permisos.*') || Request::routeIs('rol-permiso-usuarios.*') ? 'menu-open' : '' }}">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-user-tie"></i>
@@ -463,13 +539,6 @@
                     </li>
                     @endif
 
-                    <!-- Clientes -->
-                    <li class="nav-item">
-                        <a href="{{ route('clientes.index') }}" class="nav-link {{ Request::routeIs('clientes.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-users"></i>
-                            <p>Clientes</p>
-                        </a>
-                    </li>
 
                     <!-- MÓDULO: GESTIÓN COMERCIAL -->
                     @if(in_array('gestion_comercial_ver', $userPermissions) || $isAdmin)
@@ -578,6 +647,7 @@
                     </li>
                     @endif
 
+                    @if(in_array('reportes_ver', $userPermissions) || $isAdmin)
                     <!-- Reportes -->
                     <li class="nav-item">
                         <a href="#" class="nav-link">
@@ -585,7 +655,8 @@
                             <p>Reportes</p>
                         </a>
                     </li>
-
+                    @endif
+                    
                     <!-- MÓDULO: INVENTARIO -->
                     @if(in_array('inventario_ver', $userPermissions) || $isAdmin)
                     <li class="nav-item has-treeview {{ Request::routeIs('movimientos.*') || Request::routeIs('traspasos.*') || Request::routeIs('lotes.*') || Request::routeIs('configuracion.*') ? 'menu-open' : '' }}">
@@ -681,7 +752,7 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1 class="m-0" style="color: #5D3A1A;">@yield('page-title', 'Dashboard')</h1>
+                        
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">

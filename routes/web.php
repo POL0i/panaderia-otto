@@ -161,7 +161,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('pempresa', PempresaController::class);
     });
 
-    /*
+   /*
     |--------------------------------------------------------------------------
     | MÓDULO: ALMACÉN (permiso: almacen_ver)
     |--------------------------------------------------------------------------
@@ -191,11 +191,36 @@ Route::middleware(['auth'])->group(function () {
         // Recursos tradicionales
         Route::resource('almacenes', AlmacenController::class);
         Route::resource('productos', ProductoController::class);
+        
+        // Rutas adicionales para categorías de productos dentro de producto
+        Route::prefix('productos')->group(function () {
+            Route::post('/categorias', [ProductoController::class, 'storeCategoria'])
+                ->name('productos.categorias.store');
+            Route::put('/categorias/{id}', [ProductoController::class, 'updateCategoria'])
+                ->name('productos.categorias.update');
+            Route::delete('/categorias/{id}', [ProductoController::class, 'destroyCategoria'])
+                ->name('productos.categorias.destroy');
+            Route::get('/categorias/{id}/edit', [ProductoController::class, 'editCategoria'])
+                ->name('productos.categorias.edit');
+        });
+        
         Route::resource('items', ItemController::class);
         Route::resource('insumos', InsumoController::class);
+        
+        // Rutas adicionales para categorías de insumos dentro de insumo
+        Route::prefix('insumos')->group(function () {
+            Route::post('/categorias', [InsumoController::class, 'storeCategoria'])
+                ->name('insumos.categorias.store');
+            Route::put('/categorias/{id}', [InsumoController::class, 'updateCategoria'])
+                ->name('insumos.categorias.update');
+            Route::delete('/categorias/{id}', [InsumoController::class, 'destroyCategoria'])
+                ->name('insumos.categorias.destroy');
+            Route::get('/categorias/{id}/edit', [InsumoController::class, 'editCategoria'])
+                ->name('insumos.categorias.edit');
+        });
+        
         Route::resource('almacen-items', AlmacenItemController::class);
-    });
-
+    }); 
     /*
     |--------------------------------------------------------------------------
     | MÓDULO: INVENTARIO (permiso: inventario_ver)
@@ -230,12 +255,12 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware(['permiso:produccion_ver'])->group(function () {
-        // Panel destacado del módulo
+        // Panel destacado (mantenido)
         Route::get('/produccion', [ProduccionModuleController::class, 'index'])
             ->name('produccion.index')
             ->middleware('permiso:panel_produccion_ver');
 
-        // Endpoints AJAX del panel
+        // Endpoints AJAX del panel (mantenidos)
         Route::post('/produccion/categorias', [ProduccionModuleController::class, 'storeCategoria'])
             ->name('produccion.categorias.store');
         Route::post('/produccion/insumos', [ProduccionModuleController::class, 'storeInsumo'])
@@ -243,25 +268,35 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/produccion/recetas', [ProduccionModuleController::class, 'storeReceta'])
             ->name('produccion.recetas.store');
 
-        // Detalles de receta
         Route::get('/produccion/recetas/{receta}/detalles', [ProduccionModuleController::class, 'detallesReceta'])
             ->name('produccion.recetas.detalles');
         Route::post('/produccion/recetas/{receta}/detalles', [ProduccionModuleController::class, 'storeDetallesReceta'])
             ->name('produccion.recetas.detalles.store');
 
-        // Recursos tradicionales
+        // Recursos tradicionales (mantenidos)
         Route::resource('recetas', RecetaController::class);
         Route::resource('detalles-receta', DetalleRecetaController::class);
         Route::get('detalles-receta/por-receta/{id_receta}', [DetalleRecetaController::class, 'porReceta'])
             ->name('detalles-receta.por-receta');
 
+        // NUEVAS rutas para ProduccionController
         Route::resource('producciones', ProduccionController::class);
-        Route::post('producciones/filtrar', [ProduccionController::class, 'filtrar'])
-            ->name('producciones.filtrar');
+        Route::post('producciones/{produccion}/aprobar', [ProduccionController::class, 'aprobar'])
+            ->name('producciones.aprobar');
+        Route::post('producciones/{produccion}/rechazar', [ProduccionController::class, 'rechazar'])
+            ->name('producciones.rechazar');
+        Route::post('producciones/{produccion}/cancelar', [ProduccionController::class, 'cancelar'])
+            ->name('producciones.cancelar');
 
+        // Elimina las rutas de produccion-items
+        Route::get('producciones', [ProduccionController::class, 'indexProducciones'])->name('producciones.index');
+        Route::post('producciones/calcular-insumos', [ProduccionController::class, 'calcularInsumos'])->name('producciones.calcular-insumos');
+        Route::post('producciones/store', [ProduccionController::class, 'storeProduccion'])->name('producciones.store');
+        
         Route::resource('produccion-items', ProduccionItemAlmacenController::class);
         Route::get('produccion-items/por-produccion/{id_produccion}', [ProduccionItemAlmacenController::class, 'porProduccion'])
             ->name('produccion-items.por-produccion');
-    });
+
+        });
 
 });

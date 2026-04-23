@@ -1,7 +1,7 @@
 
 
 <?php $__env->startSection('title', 'Usuarios con Rol-Permiso'); ?>
-<?php $__env->startSection('page-title', 'Gestión de Asignaci\u00f3n de Rol-Permisos a Usuarios'); ?>
+<?php $__env->startSection('page-title', 'Gestión de Asignacion de Rol-Permisos a Usuarios'); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="container-fluid">

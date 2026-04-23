@@ -1,7 +1,7 @@
 @extends('layouts.adminlte')
 
 @section('title', 'Usuarios con Rol-Permiso')
-@section('page-title', 'Gestión de Asignaci\u00f3n de Rol-Permisos a Usuarios')
+@section('page-title', 'Gestión de Asignacion de Rol-Permisos a Usuarios')
 
 @section('content')
 <div class="container-fluid">

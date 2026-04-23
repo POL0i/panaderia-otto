@@ -113,70 +113,97 @@
     
     <div class="row mt-4">
         <div class="col-12">
-            <h4 class="mb-3" style="color: #5D3A1A;">
-                <i class="fas fa-cubes"></i> Módulos de Producción
-            </h4>
-        </div>
-    </div>
+            <div class="card">
+                <div class="card-header" style="background: #FFF5E6; border-bottom: 2px solid #D2B48C;">
+                    <h5 class="mb-0" style="color: #5D3A1A;">
+                        <i class="fas fa-industry"></i> Nueva Orden de Producción
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="formNuevaProduccion" action="<?php echo e(route('producciones.store')); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Receta a producir <span class="text-danger">*</span></label>
+                                    <select name="id_receta" id="produccion_receta" class="form-control" required>
+                                        <option value="">Seleccione receta...</option>
+                                        <?php $__currentLoopData = \App\Models\Receta::with('producto')->get(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $receta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e($receta->id_receta); ?>" 
+                                                    data-producto-id="<?php echo e($receta->producto->id_producto ?? ''); ?>"
+                                                    data-producto-item="<?php echo e($receta->producto->item->id_item ?? ''); ?>">
+                                                <?php echo e($receta->nombre); ?>
 
-    <div class="row">
-        
-        <div class="col-md-4 mb-4">
-            <div class="card module-card" onclick="window.location='<?php echo e(route('recetas.index')); ?>'">
-                <div class="card-body text-center p-4">
-                    <div class="module-icon">
-                        <i class="fas fa-book-open"></i>
-                    </div>
-                    <div class="module-title">Recetas</div>
-                    <p class="text-muted">
-                        Gestiona las recetas y fórmulas de tus productos.
-                    </p>
-                    <hr>
-                    <small class="text-muted">
-                        <i class="fas fa-list"></i> <?php echo e($totalRecetas ?? 0); ?> recetas registradas
-                    </small>
+                                                <?php if($receta->producto): ?>
+                                                    (Producto: <?php echo e($receta->producto->nombre); ?>)
+                                                <?php else: ?>
+                                                    (Sin producto asignado)
+                                                <?php endif; ?>
+                                            </option>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Cantidad a producir <span class="text-danger">*</span></label>
+                                    <input type="number" name="cantidad_producida" id="produccion_cantidad" 
+                                        class="form-control" step="0.1" min="0.1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Almacén destino (producto final) <span class="text-danger">*</span></label>
+                                    <select name="almacen_destino" id="produccion_almacen_destino" class="form-control" required>
+                                        <option value="">Seleccione almacén...</option>
+                                        <?php $__currentLoopData = \App\Models\Almacen::all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $almacen): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e($almacen->id_almacen); ?>"><?php echo e($almacen->nombre); ?></option>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Notificar a empleado (opcional)</label>
+                                    <select name="notificar_empleado" class="form-control">
+                                        <option value="">No notificar</option>
+                                        <?php $__currentLoopData = \App\Models\Empleado::all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $emp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e($emp->id_empleado); ?>"><?php echo e($emp->nombre); ?></option>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Observaciones</label>
+                                    <textarea name="observaciones" class="form-control" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>Insumos requeridos:</h6>
+                                <div id="preview-insumos" class="table-responsive">
+                                    <p class="text-muted">Seleccione receta y cantidad para calcular.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-right">
+                            <button type="submit" class="btn btn-primary" id="btnCrearProduccion">
+                                <i class="fas fa-play"></i> Solicitar Producción
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-
-        
-        <div class="col-md-4 mb-4">
-            <div class="card module-card" onclick="$('#createCategoriaModal').modal('show')">
-                <div class="card-body text-center p-4">
-                    <div class="module-icon">
-                        <i class="fas fa-folder-tree"></i>
-                    </div>
-                    <div class="module-title">Categorías</div>
-                    <p class="text-muted">
-                        Organiza tus insumos por categorías.
-                    </p>
-                    <hr>
-                    <small class="text-muted">
-                        <i class="fas fa-folder"></i> <?php echo e($totalCategorias ?? 0); ?> categorías
-                    </small>
-                </div>
-            </div>
-        </div>
-
-        
-        <div class="col-md-4 mb-4">
-            <div class="card module-card" onclick="$('#createInsumoModal').modal('show')">
-                <div class="card-body text-center p-4">
-                    <div class="module-icon">
-                        <i class="fas fa-boxes"></i>
-                    </div>
-                    <div class="module-title">Insumos</div>
-                    <p class="text-muted">
-                        Administra los ingredientes y materias primas.
-                    </p>
-                    <hr>
-                    <small class="text-muted">
-                        <i class="fas fa-box"></i> <?php echo e($totalInsumos ?? 0); ?> insumos
-                    </small>
-                </div>
-            </div>
-        </div>
-    </div>
+    </div>  
 
     
     <?php if(isset($ultimasRecetas) && count($ultimasRecetas) > 0): ?>
@@ -332,7 +359,6 @@
     </div>
 
 
-
 <div class="modal fade" id="createRecetaModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -347,13 +373,28 @@
                 <div class="modal-body">
                     
                     <div class="row">
-                        <div class="col-md-12">
+                        <div class="col-md-6">
                             <div class="form-group">
                                 <label>Nombre de la Receta <span class="text-danger">*</span></label>
                                 <input type="text" name="nombre" id="recetaNombre" class="form-control" 
                                        placeholder="Ej: Pan Francés, Tarta de Manzana..." required>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Producto Final <span class="text-danger">*</span></label>
+                                <select name="id_producto" id="recetaProducto" class="form-control" required>
+                                    <option value="">Seleccione producto...</option>
+                                    <?php $__currentLoopData = \App\Models\Producto::with('item')->get(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $producto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($producto->id_producto); ?>">
+                                            <?php echo e($producto->nombre); ?> (<?php echo e($producto->item->unidad_medida ?? 'unidad'); ?>)
+                                        </option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Descripción</label>
@@ -426,7 +467,7 @@
 
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle"></i> 
-                        Selecciona los insumos y especifica la cantidad para cada uno.
+                        Selecciona los insumos, especifica la cantidad y el producto final.
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -474,9 +515,14 @@ $(document).ready(function() {
         
         var nombre = $('#recetaNombre').val();
         var descripcion = $('#recetaDescripcion').val();
+        var id_producto = $('#recetaProducto').val();
         
         if (!nombre) {
             toastr.error('El nombre de la receta es requerido');
+            return;
+        }
+        if (!id_producto) {
+            toastr.error('Debe seleccionar un producto final para la receta');
             return;
         }
         
@@ -500,14 +546,15 @@ $(document).ready(function() {
             }
         });
         
-        // Crear receta primero
+        // Crear receta primero (ahora con id_producto)
         $.ajax({
             url: '<?php echo e(route("produccion.recetas.store")); ?>',
             method: 'POST',
             data: {
                 _token: '<?php echo e(csrf_token()); ?>',
                 nombre: nombre,
-                descripcion: descripcion
+                descripcion: descripcion,
+                id_producto: id_producto
             },
             success: function(response) {
                 if (response.success && response.receta) {
@@ -528,7 +575,6 @@ $(document).ready(function() {
                                 $('#formCreateRecetaCompleta')[0].reset();
                                 $('.insumo-checkbox').prop('checked', false).trigger('change');
                                 
-                                // Redirigir a los detalles de la receta
                                 setTimeout(() => {
                                     window.location.href = '/produccion/recetas/' + recetaId + '/detalles';
                                 }, 1000);
@@ -620,6 +666,42 @@ $(document).ready(function() {
                 alert(message);
             }
         });
+    });
+
+    $('#produccion_receta, #produccion_cantidad').on('change keyup', function() {
+        var recetaId = $('#produccion_receta').val();
+        var cantidad = parseFloat($('#produccion_cantidad').val());
+
+        if (recetaId && cantidad && cantidad > 0) {
+            $.ajax({
+                url: '<?php echo e(route("producciones.calcular-insumos")); ?>',
+                method: 'POST',
+                data: {
+                    _token: '<?php echo e(csrf_token()); ?>',
+                    id_receta: recetaId,
+                    cantidad: cantidad
+                },
+                success: function(response) {
+                    var html = '<table class="table table-sm table-bordered">';
+                    html += '<thead><tr><th>Insumo</th><th>Cantidad teórica (base)</th><th>Cantidad requerida</th><th>Unidad</th></tr></thead><tbody>';
+                    response.insumos.forEach(function(ins) {
+                        html += '<tr>';
+                        html += '<td>' + ins.insumo + '</td>';
+                        html += '<td>' + ins.cantidad_teorica + '</td>';
+                        html += '<td><strong>' + ins.cantidad_requerida.toFixed(3) + '</strong></td>';
+                        html += '<td>' + ins.unidad + '</td>';
+                        html += '</tr>';
+                    });
+                    html += '</tbody></table>';
+                    $('#preview-insumos').html(html);
+                },
+                error: function() {
+                    $('#preview-insumos').html('<p class="text-danger">Error al calcular insumos.</p>');
+                }
+            });
+        } else {
+            $('#preview-insumos').html('<p class="text-muted">Seleccione receta y cantidad para calcular.</p>');
+        }
     });
     
 });

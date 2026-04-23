@@ -67,6 +67,7 @@ class UsuarioController extends Controller
     /**
      * Store a newly created user with access
      */
+
     public function storeAccess(Request $request)
     {
         $validated = $request->validate([
@@ -105,16 +106,34 @@ class UsuarioController extends Controller
             }
 
             DB::commit();
+            
+            // Verificar si es petición AJAX
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Usuario creado exitosamente con sus permisos.',
+                    'usuario' => $usuario
+                ]);
+            }
+            
             return redirect()->route('usuarios.create-access')
                 ->with('success', 'Usuario creado exitosamente con sus permisos.');
-                
+                    
         } catch (\Exception $e) {
             DB::rollBack();
+            
+            // Verificar si es petición AJAX
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al crear usuario: ' . $e->getMessage()
+                ], 500);
+            }
+            
             return back()->with('error', 'Error al crear usuario: ' . $e->getMessage())
                 ->withInput();
         }
     }
-
     /**
      * Obtener permisos de un usuario específico (para el modal)
      */

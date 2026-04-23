@@ -40,10 +40,10 @@ class Item extends Model
     }
 
     /**
-     * Get all producciones movimientos for this item.
+     * Get all detalles de producción for this item.
      */
-    public function produccionMovimientos()
+    public function detallesProduccion()
     {
-        return $this->hasMany(ProduccionItemAlmacen::class, 'id_item', 'id_item');
+        return $this->hasMany(DetalleProduccion::class, 'id_item', 'id_item');
     }
 }

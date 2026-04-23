@@ -12,20 +12,22 @@ class AlmacenController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $almacenes = Almacen::with('items')
-            ->orderBy('nombre')
-            ->paginate(15);
-        
-        $categoriasInsumo = CategoriaInsumo::all(); // o el modelo que uses
-        $categoriasProducto = CategoriaProducto::all(); // o el modelo que uses
-        
-        return view('modulo-almacen.index', compact(
-            'totalAlmacenes', 'totalProductos', 'totalInsumos', 'totalItems',
-            'almacenes', 'items', 'categoriasInsumo', 'categoriasProducto'
-        ));
-    }
+public function index()
+{
+    $almacenes = Almacen::with('items')
+        ->orderBy('nombre')
+        ->paginate(15);
+    
+    $categoriasInsumo = CategoriaInsumo::all();
+    $categoriasProducto = CategoriaProducto::all();
+
+    // Definir $items - por ejemplo, todos los items de todos los almacenes
+    $items = \App\Models\AlmacenItem::with(['item', 'almacen'])->get();
+    
+    return view('almacen.index', compact(
+        'almacenes', 'categoriasInsumo', 'categoriasProducto', 'items'
+    ));
+}
 
     /**
      * Show the form for creating a new resource.

@@ -40,4 +40,9 @@ class Producto extends Model
     {
         return $this->hasMany(DetalleVenta::class, 'id_producto', 'id_producto');
     }
+
+    public function recetas()
+    {
+        return $this->hasMany(Receta::class, 'id_producto', 'id_producto');
+    }
 }

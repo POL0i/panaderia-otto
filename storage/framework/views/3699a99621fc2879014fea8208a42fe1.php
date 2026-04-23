@@ -1,26 +1,27 @@
-@extends('layouts.adminlte')
 
-@section('title', 'Ver Producción')
 
-@section('content')
+<?php $__env->startSection('title', 'Ver Producción'); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid">
     <div class="row mb-3 animate-fade-in-up">
         <div class="col-md-8">
-            <h1 class="h3 mb-0"><i class="fas fa-eye icon-panaderia"></i> Producción #{{ $produccion->id_produccion }}</h1>
+            <h1 class="h3 mb-0"><i class="fas fa-eye icon-panaderia"></i> Producción #<?php echo e($produccion->id_produccion); ?></h1>
         </div>
         <div class="col-md-4 text-right">
-            <a href="{{ route('producciones.index') }}" class="btn btn-back btn-sm">
+            <a href="<?php echo e(route('producciones.index')); ?>" class="btn btn-back btn-sm">
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
         </div>
     </div>
 
-    @if(session('success'))
+    <?php if(session('success')): ?>
         <div class="alert alert-success alert-dismissible fade show animate-fade-in">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
-            <i class="fas fa-check-circle"></i> {{ session('success') }}
+            <i class="fas fa-check-circle"></i> <?php echo e(session('success')); ?>
+
         </div>
-    @endif
+    <?php endif; ?>
 
     <div class="card shadow-sm animate-fade-in-up">
         <div class="card-header">
@@ -31,29 +32,29 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="font-weight-bold">ID Producción:</label>
-                        <p>{{ $produccion->id_produccion }}</p>
+                        <p><?php echo e($produccion->id_produccion); ?></p>
                     </div>
                     <div class="form-group">
                         <label class="font-weight-bold"><i class="fas fa-calendar"></i> Fecha de Producción:</label>
-                        <p>{{ $produccion->fecha_produccion->format('d/m/Y') }}</p>
+                        <p><?php echo e($produccion->fecha_produccion->format('d/m/Y')); ?></p>
                     </div>
                     <div class="form-group">
                         <label class="font-weight-bold"><i class="fas fa-book"></i> Receta:</label>
-                        <p>{{ $produccion->receta->nombre ?? 'N/A' }}</p>
+                        <p><?php echo e($produccion->receta->nombre ?? 'N/A'); ?></p>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="font-weight-bold"><i class="fas fa-cubes"></i> Cantidad Producida:</label>
-                        <p>{{ $produccion->cantidad_producida }}</p>
+                        <p><?php echo e($produccion->cantidad_producida); ?></p>
                     </div>
                     <div class="form-group">
                         <label class="font-weight-bold"><i class="fas fa-user"></i> Empleado:</label>
-                        <p>{{ $produccion->empleado->nombre ?? 'N/A' }}</p>
+                        <p><?php echo e($produccion->empleado->nombre ?? 'N/A'); ?></p>
                     </div>
                     <div class="form-group">
                         <label class="font-weight-bold"><i class="fas fa-clock"></i> Creado:</label>
-                        <p>{{ $produccion->created_at->format('d/m/Y H:i') }}</p>
+                        <p><?php echo e($produccion->created_at->format('d/m/Y H:i')); ?></p>
                     </div>
                 </div>
             </div>
@@ -65,7 +66,7 @@
             <h5 class="mb-0"><i class="fas fa-cubes"></i> Insumos Requeridos de la Receta</h5>
         </div>
         <div class="card-body">
-            @if($produccion->receta && $produccion->receta->detalles->count() > 0)
+            <?php if($produccion->receta && $produccion->receta->detalles->count() > 0): ?>
                 <div class="table-responsive">
                     <table class="table table-hover table-sm">
                         <thead>
@@ -76,34 +77,34 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($produccion->receta->detalles as $detalle)
+                            <?php $__currentLoopData = $produccion->receta->detalles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $detalle): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
-                                    <td>{{ $detalle->insumo->nombre ?? 'N/A' }}</td>
-                                    <td>{{ $detalle->cantidad_requerida }}</td>
-                                    <td>{{ $detalle->cantidad_requerida * $produccion->cantidad_producida }}</td>
+                                    <td><?php echo e($detalle->insumo->nombre ?? 'N/A'); ?></td>
+                                    <td><?php echo e($detalle->cantidad_requerida); ?></td>
+                                    <td><?php echo e($detalle->cantidad_requerida * $produccion->cantidad_producida); ?></td>
                                 </tr>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </tbody>
                     </table>
                 </div>
-            @else
+            <?php else: ?>
                 <p class="text-muted text-center"><i class="fas fa-inbox"></i> No hay insumos asignados a esta receta</p>
-            @endif
+            <?php endif; ?>
         </div>
     </div>
 
     <div class="card-footer mt-3">
         <div class="d-flex justify-content-between">
-            <a href="{{ route('producciones.index') }}" class="btn btn-cancel">
+            <a href="<?php echo e(route('producciones.index')); ?>" class="btn btn-cancel">
                 <i class="fas fa-times"></i> Cancelar
             </a>
             <div>
-                <a href="{{ route('producciones.edit', $produccion) }}" class="btn btn-warning">
+                <a href="<?php echo e(route('producciones.edit', $produccion)); ?>" class="btn btn-warning">
                     <i class="fas fa-edit"></i> Editar
                 </a>
-                <form action="{{ route('producciones.destroy', $produccion) }}" method="POST" style="display:inline;">
-                    @csrf
-                    @method('DELETE')
+                <form action="<?php echo e(route('producciones.destroy', $produccion)); ?>" method="POST" style="display:inline;">
+                    <?php echo csrf_field(); ?>
+                    <?php echo method_field('DELETE'); ?>
                     <button type="submit" class="btn btn-danger" onclick="return confirm('¿Está seguro de eliminar esta producción?')">
                         <i class="fas fa-trash"></i> Eliminar
                     </button>
@@ -112,4 +113,6 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.adminlte', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\panaderia-otto\resources\views/produccion/producciones/show.blade.php ENDPATH**/ ?>

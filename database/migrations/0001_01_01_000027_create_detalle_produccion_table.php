@@ -12,13 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('detalle_produccion', function (Blueprint $table) {
+            $table->id('id_detalle_produccion');
             $table->foreignId('id_produccion')->constrained('producciones', 'id_produccion')->onDelete('cascade');
-            $table->foreignId('id_detalle_receta')->constrained('detalle_receta', 'id_detalle_receta')->onDelete('cascade');
-            $table->integer('cantidad_usada');
+            $table->foreignId('id_detalle_receta')->constrained('detalle_receta', 'id_detalle_receta');
+            $table->foreignId('id_almacen');
+            $table->foreignId('id_item');
+            $table->integer('cantidad');
+            $table->enum('tipo_movimiento', ['ingreso', 'egreso']);
             $table->timestamps();
-            
-            // Primaria compuesta
-            $table->primary(['id_produccion', 'id_detalle_receta']);
+
+            $table->foreign(['id_almacen', 'id_item'])
+                ->references(['id_almacen', 'id_item'])
+                ->on('almacen_item')
+                ->onDelete('restrict');
+
+            $table->index(['id_produccion', 'tipo_movimiento']);
         });
     }
 

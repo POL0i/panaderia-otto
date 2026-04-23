@@ -1,9 +1,9 @@
-@extends('layouts.adminlte')
 
-@section('title', 'Gestión de Insumos')
-@section('page-title', 'Gestión de Insumos')
 
-@section('content')
+<?php $__env->startSection('title', 'Gestión de Insumos'); ?>
+<?php $__env->startSection('page-title', 'Gestión de Insumos'); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="row">
     <div class="col-md-12">
         <div class="card">
@@ -22,25 +22,27 @@
                 </ul>
             </div>
             <div class="card-body">
-                @if ($message = Session::get('success'))
+                <?php if($message = Session::get('success')): ?>
                     <div class="alert alert-success alert-dismissible fade show">
                         <button type="button" class="close" data-dismiss="alert">&times;</button>
-                        <strong>Éxito!</strong> {{ $message }}
-                    </div>
-                @endif
+                        <strong>Éxito!</strong> <?php echo e($message); ?>
 
-                @if ($message = Session::get('error'))
+                    </div>
+                <?php endif; ?>
+
+                <?php if($message = Session::get('error')): ?>
                     <div class="alert alert-danger alert-dismissible fade show">
                         <button type="button" class="close" data-dismiss="alert">&times;</button>
-                        <strong>Error!</strong> {{ $message }}
+                        <strong>Error!</strong> <?php echo e($message); ?>
+
                     </div>
-                @endif
+                <?php endif; ?>
 
                 <div class="tab-content">
                     <!-- Tab de Insumos -->
                     <div class="tab-pane fade show active" id="insumos" role="tabpanel" aria-labelledby="insumos-tab">
                         <div class="mb-3">
-                            <a href="{{ route('insumos.create') }}" class="btn btn-primary btn-sm">
+                            <a href="<?php echo e(route('insumos.create')); ?>" class="btn btn-primary btn-sm">
                                 <i class="fas fa-plus"></i> Crear Insumo
                             </a>
                         </div>
@@ -57,34 +59,35 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($insumos as $insumo)
+                                <?php $__currentLoopData = $insumos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $insumo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
-                                    <td>{{ $insumo->id_insumo }}</td>
-                                    <td>{{ $insumo->nombre }}</td>
-                                    <td><span class="badge badge-primary">{{ $insumo->categoria->nombre ?? 'N/A' }}</span></td>
-                                    <td>{{ $insumo->item->id_item ?? 'N/A' }}</td>
-                                    <td>${{ number_format($insumo->precio_compra, 2) }}</td>
+                                    <td><?php echo e($insumo->id_insumo); ?></td>
+                                    <td><?php echo e($insumo->nombre); ?></td>
+                                    <td><span class="badge badge-primary"><?php echo e($insumo->categoria->nombre ?? 'N/A'); ?></span></td>
+                                    <td><?php echo e($insumo->item->id_item ?? 'N/A'); ?></td>
+                                    <td>$<?php echo e(number_format($insumo->precio_compra, 2)); ?></td>
                                     <td>
-                                        <a href="{{ route('insumos.show', $insumo->id_insumo) }}" class="btn btn-info btn-sm">
+                                        <a href="<?php echo e(route('insumos.show', $insumo->id_insumo)); ?>" class="btn btn-info btn-sm">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('insumos.edit', $insumo->id_insumo) }}" class="btn btn-warning btn-sm">
+                                        <a href="<?php echo e(route('insumos.edit', $insumo->id_insumo)); ?>" class="btn btn-warning btn-sm">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <form action="{{ route('insumos.destroy', $insumo->id_insumo) }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            @method('DELETE')
+                                        <form action="<?php echo e(route('insumos.destroy', $insumo->id_insumo)); ?>" method="POST" style="display:inline;">
+                                            <?php echo csrf_field(); ?>
+                                            <?php echo method_field('DELETE'); ?>
                                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Está seguro de eliminar este insumo?')">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
                                     </td>
                                 </tr>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </tbody>
                         </table>
                         <div class="card-footer">
-                            {{ $insumos->links() }}
+                            <?php echo e($insumos->links()); ?>
+
                         </div>
                     </div>
 
@@ -107,33 +110,34 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($categorias as $categoria)
+                                <?php $__currentLoopData = $categorias; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $categoria): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
-                                    <td>{{ $categoria->id_cat_insumo }}</td>
-                                    <td>{{ $categoria->nombre }}</td>
-                                    <td>{{ $categoria->descripcion ?? 'Sin descripción' }}</td>
-                                    <td><span class="badge badge-info">{{ $categoria->insumos->count() }}</span></td>
+                                    <td><?php echo e($categoria->id_cat_insumo); ?></td>
+                                    <td><?php echo e($categoria->nombre); ?></td>
+                                    <td><?php echo e($categoria->descripcion ?? 'Sin descripción'); ?></td>
+                                    <td><span class="badge badge-info"><?php echo e($categoria->insumos->count()); ?></span></td>
                                     <td>
                                         <button type="button" class="btn btn-warning btn-sm btn-edit-categoria" 
-                                                data-id="{{ $categoria->id_cat_insumo }}"
-                                                data-nombre="{{ $categoria->nombre }}"
-                                                data-descripcion="{{ $categoria->descripcion }}">
+                                                data-id="<?php echo e($categoria->id_cat_insumo); ?>"
+                                                data-nombre="<?php echo e($categoria->nombre); ?>"
+                                                data-descripcion="<?php echo e($categoria->descripcion); ?>">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('insumos.categorias.destroy', $categoria->id_cat_insumo) }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            @method('DELETE')
+                                        <form action="<?php echo e(route('insumos.categorias.destroy', $categoria->id_cat_insumo)); ?>" method="POST" style="display:inline;">
+                                            <?php echo csrf_field(); ?>
+                                            <?php echo method_field('DELETE'); ?>
                                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Está seguro de eliminar esta categoría?')">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
                                     </td>
                                 </tr>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </tbody>
                         </table>
                         <div class="card-footer">
-                            {{ $categorias->links() }}
+                            <?php echo e($categorias->links()); ?>
+
                         </div>
                     </div>
                 </div>
@@ -152,8 +156,8 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form id="formCategoria" action="{{ route('insumos.categorias.store') }}" method="POST">
-                @csrf
+            <form id="formCategoria" action="<?php echo e(route('insumos.categorias.store')); ?>" method="POST">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="_method" id="formMethod" value="POST">
                 <input type="hidden" name="id" id="categoriaId">
                 <div class="modal-body">
@@ -175,9 +179,9 @@
     </div>
 </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
 <script>
     $(document).ready(function() {
         // Editar categoría
@@ -201,8 +205,9 @@
             $('#formCategoria')[0].reset();
             $('#formMethod').val('POST');
             $('#categoriaId').val('');
-            $('#formCategoria').attr('action', '{{ route("insumos.categorias.store") }}');
+            $('#formCategoria').attr('action', '<?php echo e(route("insumos.categorias.store")); ?>');
         });
     });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.adminlte', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\panaderia-otto\resources\views/insumo/index.blade.php ENDPATH**/ ?>

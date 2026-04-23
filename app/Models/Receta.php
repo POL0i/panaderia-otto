@@ -14,10 +14,19 @@ class Receta extends Model
         'nombre',
         'descripcion',
         'cantidad_requerida',
+        'id_producto',          // ← nuevo
     ];
 
     /**
-     * Get all detalles de receta for this receta.
+     * Producto que se obtiene al seguir esta receta.
+     */
+    public function producto()
+    {
+        return $this->belongsTo(Producto::class, 'id_producto', 'id_producto');
+    }
+
+    /**
+     * Detalles de la receta (ingredientes).
      */
     public function detalles()
     {
@@ -25,7 +34,7 @@ class Receta extends Model
     }
 
     /**
-     * Get all producciones for this receta.
+     * Producciones realizadas con esta receta.
      */
     public function producciones()
     {
@@ -33,7 +42,7 @@ class Receta extends Model
     }
 
     /**
-     * Get all insumos through detalles.
+     * Insumos a través de los detalles.
      */
     public function insumos()
     {

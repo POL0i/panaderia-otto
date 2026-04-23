@@ -8,48 +8,42 @@ class Produccion extends Model
 {
     protected $table = 'producciones';
     protected $primaryKey = 'id_produccion';
-    public $timestamps = true;
-
     protected $fillable = [
-        'fecha_produccion',
-        'cantidad_producida',
-        'id_receta',
-        'id_empleado',
+        'fecha_produccion', 'cantidad_producida', 'id_empleado_solicita',
+        'id_empleado_autoriza', 'estado', 'fecha_solicitud', 'fecha_autorizacion', 'observaciones'
     ];
 
-    protected $dates = [
-        'fecha_produccion',
+    protected $casts = [
+        'fecha_produccion' => 'date',
+        'fecha_solicitud' => 'datetime',
+        'fecha_autorizacion' => 'datetime',
     ];
 
-    /**
-     * Get the receta for this produccion.
-     */
-    public function receta()
+    public function empleadoSolicita()
     {
-        return $this->belongsTo(Receta::class, 'id_receta', 'id_receta');
+        return $this->belongsTo(Empleado::class, 'id_empleado_solicita');
     }
 
-    /**
-     * Get the empleado for this produccion.
-     */
-    public function empleado()
+    public function empleadoAutoriza()
     {
-        return $this->belongsTo(Empleado::class, 'id_empleado', 'id_empleado');
+        return $this->belongsTo(Empleado::class, 'id_empleado_autoriza');
     }
 
-    /**
-     * Get all detalles de produccion for this produccion.
-     */
     public function detalles()
     {
-        return $this->hasMany(DetalleProduccion::class, 'id_produccion', 'id_produccion');
+        return $this->hasMany(DetalleProduccion::class, 'id_produccion');
     }
 
-    /**
-     * Get all movimientos de inventario for this produccion.
-     */
-    public function movimientos()
+   public function receta()
     {
-        return $this->hasMany(ProduccionItemAlmacen::class, 'id_produccion', 'id_produccion');
+        return $this->hasOneThrough(
+            Receta::class,
+            DetalleProduccion::class,
+            'id_produccion',           // FK en DetalleProduccion
+            'id_receta',               // PK en Receta (a través de detalle_receta)
+            'id_produccion',           // Local key en Produccion
+            'id_receta'                // FK en detalle_receta (necesita join)
+        )->join('detalle_receta', 'detalle_receta.id_detalle_receta', '=', 'detalle_produccion.id_detalle_receta')
+         ->whereNotNull('detalle_produccion.id_detalle_receta');
     }
 }

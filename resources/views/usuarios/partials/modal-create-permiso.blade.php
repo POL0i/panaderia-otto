@@ -52,6 +52,7 @@
     </div>
 </div>
 
+@push('scripts')
 <script>
 $(document).ready(function() {
     $('#formCrearPermiso').on('submit', function(e) {
@@ -89,3 +90,4 @@ $(document).ready(function() {
     });
 });
 </script>
+@endpush

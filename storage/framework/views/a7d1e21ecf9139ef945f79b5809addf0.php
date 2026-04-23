@@ -189,80 +189,116 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="row" id="usuariosContainer">
-                        <?php $__empty_1 = true; $__currentLoopData = $usuarios; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $usuario): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                            <div class="col-md-6 col-lg-4 mb-3 usuario-card-container">
-                                <div class="card usuario-card h-100">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0 text-white">
-                                            <i class="fas fa-user-circle mr-2"></i>
-                                            <?php echo e($usuario->empleado ? $usuario->empleado->nombre . ' ' . $usuario->empleado->apellido : ($usuario->cliente ? $usuario->cliente->nombre : 'Usuario')); ?>
+    <?php if($message = Session::get('success')): ?>
+        <div class="alert alert-success alert-dismissible fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <strong>Éxito!</strong> <?php echo e($message); ?>
 
-                                        </h6>
-                                        <span class="badge <?php echo e($usuario->estado == 'activo' ? 'badge-success' : 'badge-danger'); ?>">
-                                            <?php echo e(ucfirst($usuario->estado)); ?>
+        </div>
+    <?php endif; ?>
 
-                                        </span>
-                                    </div>
-                                    <div class="card-body">
-                                        <p class="mb-2">
-                                            <i class="fas fa-envelope text-panaderia-secondary mr-2"></i>
-                                            <strong><?php echo e($usuario->correo); ?></strong>
-                                        </p>
-                                        <p class="mb-2">
-                                            <i class="fas fa-tag text-panaderia-secondary mr-2"></i>
-                                            <span class="badge badge-info"><?php echo e(ucfirst($usuario->tipo_usuario)); ?></span>
-                                        </p>
-                                        <p class="mb-3">
-                                            <i class="fas fa-shield-alt text-panaderia-secondary mr-2"></i>
-                                            <?php $rolesUsuario = $usuario->obtenerRoles(); ?>
-                                            <?php if(count($rolesUsuario) > 0): ?>
-                                                <?php $__currentLoopData = array_slice($rolesUsuario, 0, 3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $rol): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                    <span class="badge badge-primary mr-1"><?php echo e($rol); ?></span>
-                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                                <?php if(count($rolesUsuario) > 3): ?>
-                                                    <span class="badge badge-secondary">+<?php echo e(count($rolesUsuario) - 3); ?></span>
-                                                <?php endif; ?>
-                                            <?php else: ?>
-                                                <span class="text-muted">Sin roles</span>
-                                            <?php endif; ?>
-                                        </p>
-                                        <div>
-                                            <i class="fas fa-key text-panaderia-secondary mr-2"></i>
-                                            <?php $totalPermisos = count($usuario->obtenerPermisos()); ?>
-                                            <span class="badge badge-secondary"><?php echo e($totalPermisos); ?> permisos</span>
-                                        </div>
-                                    </div>
-                                    <div class="card-footer">
-                                        <div class="btn-group w-100" role="group">
-                                            <button class="btn btn-sm btn-outline-warning btn-edit-usuario" 
-                                                    data-id="<?php echo e($usuario->id_usuario); ?>"
-                                                    data-correo="<?php echo e($usuario->correo); ?>"
-                                                    data-tipo="<?php echo e($usuario->tipo_usuario); ?>"
-                                                    data-estado="<?php echo e($usuario->estado); ?>"
-                                                    data-id-empleado="<?php echo e($usuario->id_empleado); ?>"
-                                                    data-id-cliente="<?php echo e($usuario->id_cliente); ?>">
-                                                <i class="fas fa-edit mr-1"></i> Editar
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-primary btn-gestionar-permisos" 
-                                                    data-id="<?php echo e($usuario->id_usuario); ?>"
-                                                    data-nombre="<?php echo e($usuario->empleado ? $usuario->empleado->nombre : ($usuario->cliente ? $usuario->cliente->nombre : $usuario->correo)); ?>">
-                                                <i class="fas fa-lock mr-1"></i> Permisos
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+    <?php if($message = Session::get('error')): ?>
+        <div class="alert alert-danger alert-dismissible fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <strong>Error!</strong> <?php echo e($message); ?>
+
+        </div>
+    <?php endif; ?>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped table-hover" id="usuariosTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Correo</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                    <th>Roles</th>
+                    <th>Permisos</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="usuariosContainer">
+                <?php $__empty_1 = true; $__currentLoopData = $usuarios; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $usuario): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                    <tr class="usuario-row">
+                        <td><?php echo e($usuario->id_usuario); ?></td>
+                        <td>
+                            <strong><?php echo e($usuario->empleado ? $usuario->empleado->nombre . ' ' . $usuario->empleado->apellido : ($usuario->cliente ? $usuario->cliente->nombre : 'Usuario')); ?></strong>
+                        </td>
+                        <td><?php echo e($usuario->correo); ?></td>
+                        <td>
+                            <span class="badge badge-info"><?php echo e(ucfirst($usuario->tipo_usuario)); ?></span>
+                        </td>
+                        <td>
+                            <span class="badge <?php echo e($usuario->estado == 'activo' ? 'badge-success' : 'badge-danger'); ?>">
+                                <?php echo e(ucfirst($usuario->estado)); ?>
+
+                            </span>
+                        </td>
+                        <td>
+                            <?php $rolesUsuario = $usuario->obtenerRoles(); ?>
+                            <?php if(count($rolesUsuario) > 0): ?>
+                                <?php $__currentLoopData = array_slice($rolesUsuario, 0, 2); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $rol): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <span class="badge badge-primary mr-1"><?php echo e($rol); ?></span>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php if(count($rolesUsuario) > 2): ?>
+                                    <span class="badge badge-secondary">+<?php echo e(count($rolesUsuario) - 2); ?></span>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <span class="text-muted">Sin roles</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <?php $totalPermisos = count($usuario->obtenerPermisos()); ?>
+                            <span class="badge badge-secondary"><?php echo e($totalPermisos); ?> permisos</span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1" style="gap: 4px;">
+                                <button class="btn btn-warning btn-xs btn-edit-usuario" 
+                                        style="padding: 2px 6px; font-size: 11px;"
+                                        data-id="<?php echo e($usuario->id_usuario); ?>"
+                                        data-correo="<?php echo e($usuario->correo); ?>"
+                                        data-tipo="<?php echo e($usuario->tipo_usuario); ?>"
+                                        data-estado="<?php echo e($usuario->estado); ?>"
+                                        data-id-empleado="<?php echo e($usuario->id_empleado); ?>"
+                                        data-id-cliente="<?php echo e($usuario->id_cliente); ?>"
+                                        title="Editar usuario">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                
+                                <?php if($usuario->tipo_usuario !== 'cliente'): ?>
+                                    <button class="btn btn-primary btn-xs btn-gestionar-permisos" 
+                                            style="padding: 2px 6px; font-size: 11px;"
+                                            data-id="<?php echo e($usuario->id_usuario); ?>"
+                                            data-nombre="<?php echo e($usuario->empleado ? $usuario->empleado->nombre : ($usuario->cliente ? $usuario->cliente->nombre : $usuario->correo)); ?>"
+                                            title="Gestionar permisos">
+                                        <i class="fas fa-lock"></i>
+                                    </button>
+                                <?php else: ?>
+                                    <button class="btn btn-secondary btn-xs" disabled 
+                                            style="padding: 2px 6px; font-size: 11px;"
+                                            title="Los clientes no tienen permisos asignables">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                <?php endif; ?>
                             </div>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                            <div class="col-12">
-                                <div class="alert alert-info text-center py-4">
-                                    <i class="fas fa-info-circle fa-2x mb-3"></i>
-                                    <p>No hay usuarios registrados. Crea uno nuevo usando el botón "Nuevo Usuario".</p>
-                                </div>
+                        </td>
+                    </tr>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                    <tr>
+                        <td colspan="8" class="text-center">
+                            <div class="alert alert-info text-center py-4 mb-0">
+                                <i class="fas fa-info-circle fa-2x mb-3"></i>
+                                <p>No hay usuarios registrados. Crea uno nuevo usando el botón "Nuevo Usuario".</p>
                             </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
             </div>
         </div>
     </div>
@@ -294,10 +330,8 @@
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
-<script>
+<script>  // Búsqueda de usuarios
 $(document).ready(function() {
-    
-    // Búsqueda de usuarios
     $('#searchUsuario').on('keyup', function() {
         var value = $(this).val().toLowerCase();
         $('.usuario-card-container').filter(function() {
@@ -306,7 +340,7 @@ $(document).ready(function() {
     });
 
     // ============================================
-    // CREAR USUARIO
+    // CREAR USUARIO (CORREGIDO)
     // ============================================
     $('#tipo_usuario').on('change', function() {
         var tipo = $(this).val();
@@ -322,9 +356,25 @@ $(document).ready(function() {
         }
     });
 
+    // Prevenir envíos múltiples
+    var isSubmitting = false;
+    
     $('#formCrearUsuario').on('submit', function(e) {
         e.preventDefault();
+        
+        // Evitar envíos múltiples
+        if (isSubmitting) {
+            toastr.warning('Espere, ya se está procesando la solicitud');
+            return false;
+        }
+        
         var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var originalBtnText = submitBtn.html();
+        
+        // Deshabilitar botón y mostrar loading
+        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
+        isSubmitting = true;
         
         $.ajax({
             url: form.attr('action'),
@@ -332,39 +382,88 @@ $(document).ready(function() {
             data: form.serialize(),
             success: function(response) {
                 if (response.success) {
+                    // Limpiar formulario
+                    form[0].reset();
+                    $('#empleado_container, #cliente_container').hide();
+                    
+                    // Cerrar modal
                     $('#createUsuarioModal').modal('hide');
+                    
+                    // Mostrar mensaje de éxito
                     toastr.success(response.message || 'Usuario creado exitosamente');
-                    setTimeout(() => location.reload(), 1500);
+                    
+                    // Recargar la página después de un breve delay
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    toastr.error(response.message || 'Error al crear usuario');
                 }
             },
             error: function(xhr) {
                 var message = 'Error al crear usuario';
                 if (xhr.responseJSON?.errors) {
-                    message = Object.values(xhr.responseJSON.errors).flat().join('\n');
+                    var errors = xhr.responseJSON.errors;
+                    message = Object.values(errors).flat().join('\n');
+                } else if (xhr.responseJSON?.message) {
+                    message = xhr.responseJSON.message;
                 }
                 toastr.error(message);
+            },
+            complete: function() {
+                // Restaurar botón
+                submitBtn.html(originalBtnText).prop('disabled', false);
+                isSubmitting = false;
             }
         });
     });
 
+    // Limpiar formulario cuando se cierra el modal
+    $('#createUsuarioModal').on('hidden.bs.modal', function() {
+        $('#formCrearUsuario')[0].reset();
+        $('#empleado_container, #cliente_container').hide();
+        $('#id_empleado, #id_cliente').prop('required', false);
+        isSubmitting = false;
+    });
+
     // ============================================
-    // CREAR EMPLEADO (desde modal usuario)
+    // CREAR EMPLEADO (desde modal usuario) - CORREGIDO
     // ============================================
     $(document).on('click', '[data-target="#createEmpleadoModal"]', function(e) {
         e.preventDefault();
-        var currentModal = $(this).closest('.modal').attr('id');
-        openNestedModal('#' + currentModal, '#createEmpleadoModal');
+        var currentModal = $(this).closest('.modal');
+        if (currentModal.length) {
+            var currentModalId = currentModal.attr('id');
+            openNestedModal('#' + currentModalId, '#createEmpleadoModal');
+        } else {
+            $('#createEmpleadoModal').modal('show');
+        }
     });
 
     $(document).on('click', '[data-target="#createClienteModal"]', function(e) {
         e.preventDefault();
-        var currentModal = $(this).closest('.modal').attr('id');
-        openNestedModal('#' + currentModal, '#createClienteModal');
+        var currentModal = $(this).closest('.modal');
+        if (currentModal.length) {
+            var currentModalId = currentModal.attr('id');
+            openNestedModal('#' + currentModalId, '#createClienteModal');
+        } else {
+            $('#createClienteModal').modal('show');
+        }
     });
 
+    var isSubmittingEmpleado = false;
+    
     $('#formCrearEmpleado').on('submit', function(e) {
         e.preventDefault();
+        
+        if (isSubmittingEmpleado) return false;
+        
         var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        
+        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
+        isSubmittingEmpleado = true;
         
         $.ajax({
             url: form.attr('action'),
@@ -378,19 +477,32 @@ $(document).ready(function() {
                     
                     // Agregar al select
                     var newOption = new Option(
-                        `${response.empleado.nombre} ${response.empleado.apellido}`, 
-                        response.empleado.id_empleado, 
-                        true, 
+                        response.empleado.nombre + ' ' + response.empleado.apellido,
+                        response.empleado.id_empleado,
+                        true,
                         true
                     );
-                    $('#id_empleado, #edit_id_empleado').append(newOption.clone());
+                    $('#id_empleado, #edit_id_empleado').append(newOption);
+                    
+                    // CORREGIDO: $id('#id_empleado') -> $('#id_empleado')
+                    $('#id_empleado').val(response.empleado.id_empleado).trigger('change');
                     
                     // Volver al modal anterior
                     returnToPreviousModal();
+                } else {
+                    toastr.error(response.message || 'Error al crear empleado');
                 }
             },
             error: function(xhr) {
-                toastr.error('Error al crear empleado');
+                var message = 'Error al crear empleado';
+                if (xhr.responseJSON?.message) {
+                    message = xhr.responseJSON.message;
+                }
+                toastr.error(message);
+            },
+            complete: function() {
+                submitBtn.html(originalText).prop('disabled', false);
+                isSubmittingEmpleado = false;
             }
         });
     });
@@ -459,12 +571,22 @@ $(document).ready(function() {
         });
     });
 
+  // ============================================
+    // CREAR CLIENTE (desde modal usuario) - CORREGIDO
     // ============================================
-    // CREAR CLIENTE (desde modal usuario)
-    // ============================================
+    var isSubmittingCliente = false;
+    
     $('#formCrearCliente').on('submit', function(e) {
         e.preventDefault();
+        
+        if (isSubmittingCliente) return false;
+        
         var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        
+        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
+        isSubmittingCliente = true;
         
         $.ajax({
             url: form.attr('action'),
@@ -476,23 +598,39 @@ $(document).ready(function() {
                     toastr.success(response.message);
                     form[0].reset();
                     
+                    // Crear opción nativa
                     var newOption = new Option(
-                        response.cliente.nombre, 
-                        response.cliente.id_cliente, 
-                        true, 
+                        response.cliente.nombre + ' ' + (response.cliente.apellido || ''),
+                        response.cliente.id_cliente,
+                        true,
                         true
                     );
-                    $('#id_cliente, #edit_id_cliente').append(newOption.clone());
+                    // Agregar a los selects
+                    $('#id_cliente, #edit_id_cliente').append(newOption);
+                    
+                    // Seleccionar automáticamente la nueva opción
+                    $('#id_cliente').val(response.cliente.id_cliente).trigger('change');
                     
                     // Volver al modal anterior
                     returnToPreviousModal();
+                } else {
+                    toastr.error(response.message || 'Error al crear cliente');
                 }
             },
-            error: function() {
-                toastr.error('Error al crear cliente');
+            error: function(xhr) {
+                var message = 'Error al crear cliente';
+                if (xhr.responseJSON?.message) {
+                    message = xhr.responseJSON.message;
+                }
+                toastr.error(message);
+            },
+            complete: function() {
+                submitBtn.html(originalText).prop('disabled', false);
+                isSubmittingCliente = false;
             }
         });
     });
+
 
     // Si se cancela el modal de empleado/cliente, volver al anterior
     $('#createEmpleadoModal, #createClienteModal').on('hidden.bs.modal', function() {
@@ -580,8 +718,8 @@ $(document).ready(function() {
         });
     });
 
-    // ============================================
-    // VARIABLES PARA MANEJAR MODALES ANIDADOS
+  // ============================================
+    // VARIABLES PARA MANEJAR MODALES ANIDADOS (MEJORADO)
     // ============================================
     var previousModal = null;
 
@@ -594,11 +732,25 @@ $(document).ready(function() {
 
     // Función para volver al modal anterior
     function returnToPreviousModal() {
-        if (previousModal) {
-            $(previousModal).modal('show');
-            previousModal = null;
+        if (previousModal && $(previousModal).length) {
+            // Pequeño delay para asegurar que el modal anterior está listo
+            setTimeout(function() {
+                $(previousModal).modal('show');
+                previousModal = null;
+            }, 300);
         }
     }
+
+    // Si se cancela el modal de empleado/cliente, volver al anterior
+    $('#createEmpleadoModal, #createClienteModal').on('hidden.bs.modal', function() {
+        returnToPreviousModal();
+    });
+
+    // Limpiar previousModal cuando se cierra el modal principal
+    $('#createUsuarioModal').on('hidden.bs.modal', function() {
+        previousModal = null;
+    });
+
 
     // ============================================
     // GESTIONAR PERMISOS DE USUARIO
