@@ -52,7 +52,19 @@ Route::prefix('ventas')->name('ventas.')->group(function () {
     Route::get('/items', [VentaController::class, 'getItems'])->name('items');
     Route::get('/stock/{idAlmacen}/{idItem}', [VentaController::class, 'getStock'])->name('stock');
     Route::post('/enviar-correo', [VentaController::class, 'enviarCorreo'])->name('enviar-correo'); 
+    Route::get('/productos-con-stock', [VentaController::class, 'getProductosConStock'])
+    ->name('getProductosConStock');
 });
+
+Route::get('/', [VentaController::class, 'landingPage'])->name('landing');
+Route::post('/carrito/agregar', [VentaController::class, 'agregarAlCarrito'])->name('carrito.agregar');
+Route::post('/carrito/actualizar', [VentaController::class, 'actualizarCarrito'])->name('carrito.actualizar');
+Route::post('/carrito/eliminar', [VentaController::class, 'eliminarDelCarrito'])->name('carrito.eliminar');
+Route::get('/carrito', [VentaController::class, 'verCarrito'])->name('carrito.ver');
+Route::post('/procesar-pedido', [VentaController::class, 'procesarPedido'])->name('procesar.pedido');
+Route::get('/carrito/count', [VentaController::class, 'carritoCount'])->name('carrito.count');
+
+Route::get('/debug-productos', [VentaController::class, 'debugProductos']);
 
 // Sección de Compras
 Route::prefix('compras')->name('compras.')->group(function () {
@@ -77,10 +89,6 @@ Route::prefix('compras')->name('compras.')->group(function () {
 | Rutas Públicas
 |--------------------------------------------------------------------------
 */
-
-Route::get('/', function () {
-    return view('PanaderiaOtto');
-});
 
 Auth::routes();
 
@@ -220,6 +228,9 @@ Route::middleware(['auth'])->group(function () {
         });
         
         Route::resource('almacen-items', AlmacenItemController::class);
+
+        Route::post('/modulo-almacen/search-images', [AlmacenModuleController::class, 'searchImages'])
+        ->name('modulo-almacen.search-images');
     }); 
     /*
     |--------------------------------------------------------------------------
@@ -298,5 +309,4 @@ Route::middleware(['auth'])->group(function () {
             ->name('produccion-items.por-produccion');
 
         });
-
 });

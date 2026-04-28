@@ -10,16 +10,16 @@
     <div class="row">
         <div class="col-md-7">
             <!-- Selección de Proveedor -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-truck"></i> Seleccionar Proveedor
-                        <button type="button" class="btn btn-sm btn-success float-right" data-toggle="modal" data-target="#modalProveedor">
-                            <i class="fas fa-plus"></i> Nuevo Proveedor
-                        </button>
-                    </h5>
-                </div>
-                <div class="card-body">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-truck"></i> Seleccionar Proveedor
+                            <button type="button" class="btn btn-sm btn-success float-right" data-toggle="modal" data-target="#modalProveedor">
+                                <i class="fas fa-plus"></i> Nuevo Proveedor
+                            </button>
+                        </h5>
+                    </div>
+                    <div class="card-body">
                     <div class="row" id="proveedoresList">
                         <?php $__currentLoopData = $proveedores; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $proveedor): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <?php
@@ -70,9 +70,12 @@
                             <label>Almacén</label>
                             <select class="form-control" id="itemAlmacen" required>
                                 <option value="">Seleccionar Almacén</option>
-                                <?php $__currentLoopData = $almacenes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $almacen): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($almacen->id_almacen); ?>"><?php echo e($almacen->nombre); ?></option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    <?php $__currentLoopData = $almacenes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $almacen): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($almacen->id_almacen); ?>" data-tipo="<?php echo e($almacen->tipo_almacen); ?>">
+                                            <?php echo e($almacen->nombre); ?> 
+                                            (<?php echo e($almacen->tipo_almacen === 'insumo' ? 'Solo Insumos' : 'Mixto'); ?>)
+                                        </option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                             <button type="button" class="btn btn-sm btn-link mt-1" data-toggle="modal" data-target="#createAlmacenModal">
                                 <i class="fas fa-plus"></i> Nuevo Almacén

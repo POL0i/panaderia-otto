@@ -57,6 +57,7 @@ class AlmacenModuleController extends Controller
     {
         $validated = $request->validate([
             'nombre' => 'required|string|max:100|unique:almacenes,nombre',
+            'tipo_almacen' => 'required|in:insumo,producto,mixto',
             'ubicacion' => 'nullable|string|max:255',
             'capacidad' => 'nullable|numeric|min:0',
         ]);
@@ -160,6 +161,8 @@ class AlmacenModuleController extends Controller
             'id_cat_producto' => 'required|exists:categoria_producto,id_cat_producto',
             'unidad_medida' => 'required|string|in:kg,g,lb,oz,L,mL,unidad',
             'precio' => 'nullable|numeric|min:0',
+            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'imagen_url' => 'nullable|url',
         ]);
 
         DB::beginTransaction();
@@ -169,11 +172,20 @@ class AlmacenModuleController extends Controller
                 'unidad_medida' => $validated['unidad_medida'],
             ]);
 
+            // Manejar la imagen
+            $imagenPath = null;
+            if ($request->hasFile('imagen')) {
+                $imagenPath = $request->file('imagen')->store('productos', 'public');
+            } elseif ($request->filled('imagen_url')) {
+                $imagenPath = $request->imagen_url;
+            }
+
             $producto = Producto::create([
                 'id_item' => $item->id_item,
                 'id_cat_producto' => $validated['id_cat_producto'],
                 'nombre' => $validated['nombre'],
                 'precio' => $validated['precio'] ?? null,
+                'imagen' => $imagenPath,
             ]);
 
             DB::commit();
@@ -250,5 +262,50 @@ class AlmacenModuleController extends Controller
             'almacen' => $almacen->nombre,
             'items' => $items
         ]);
+    }
+    
+    public function searchImages(Request $request)
+    {
+        $request->validate([
+            'query' => 'required|string|min:2'
+        ]);
+        
+        $apiKey = env('PIXABAY_API_KEY'); // Necesitarás registrarte en Pixabay
+        
+        if (!$apiKey) {
+            return response()->json([
+                'success' => false,
+                'message' => 'API key de Pixabay no configurada'
+            ]);
+        }
+        
+        try {
+            $response = Http::get('https://pixabay.com/api/', [
+                'key' => $apiKey,
+                'q' => urlencode($request->query),
+                'image_type' => 'photo',
+                'category' => 'food',
+                'per_page' => 12,
+                'safesearch' => true
+            ]);
+            
+            if ($response->successful()) {
+                $data = $response->json();
+                return response()->json([
+                    'success' => true,
+                    'images' => $data['hits'] ?? []
+                ]);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al buscar imágenes'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 }

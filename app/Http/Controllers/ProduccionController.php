@@ -14,6 +14,12 @@ use Illuminate\Support\Facades\Auth;
 
 class ProduccionController extends Controller
 {
+
+    public function indexProducciones()
+    {
+        return $this->index();
+    }
+
     public function index()
     {
         $producciones = Produccion::with(['empleadoSolicita', 'empleadoAutoriza'])

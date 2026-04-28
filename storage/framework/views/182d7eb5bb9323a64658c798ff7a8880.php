@@ -266,11 +266,46 @@
                 height: 180px;
             }
         }
+
+         /* Estilos adicionales para el carrito */
+        .cart-badge {
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+        
+        .modal-cart-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        
+        .cart-quantity-input {
+            width: 70px;
+            text-align: center;
+        }
+        
+        .btn-cart {
+            background: #D2B48C;
+            color: #5D3A1A !important;
+            border-radius: 50px;
+            padding: 8px 25px !important;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .btn-cart:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
 
-    <!-- Navbar -->
+      <!-- Navbar - Modificado para incluir carrito -->
     <nav class="navbar navbar-expand-lg navbar-panaderia sticky-top">
         <div class="container">
             <a class="navbar-brand" href="<?php echo e(url('/')); ?>">
@@ -291,7 +326,13 @@
                         <a class="nav-link" href="#nosotros">Nosotros</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link btn-login ms-3" href="/login">
+                        <button class="btn-cart ms-3" onclick="verCarrito()">
+                            <i class="fas fa-shopping-cart"></i> Carrito 
+                            <span id="cartCount" class="cart-badge">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn-login ms-2" href="/login">
                             <i class="fas fa-user"></i> Iniciar Sesión
                         </a>
                     </li>
@@ -299,6 +340,7 @@
             </div>
         </div>
     </nav>
+
 
     <!-- Hero Section -->
     <section class="hero text-white text-center">
@@ -325,95 +367,53 @@
         </div>
 
         <!-- Título de Productos -->
+          <!-- Título de Productos -->
         <div class="text-center mb-5" id="productos">
             <h2 style="color: #5D3A1A; font-weight: 700;">Nuestros Productos</h2>
             <p style="color: #A0522D;">Los más deliciosos productos recién horneados</p>
             <div class="divider" style="width: 80px; height: 3px; background: #D2B48C; margin: 15px auto;"></div>
         </div>
 
-        <!-- Grid de Productos -->
+        <!-- Debug: Mostrar cantidad de productos -->
+<div class="alert alert-info">
+    Productos encontrados: <?php echo e(isset($productosConStock) ? count($productosConStock) : 0); ?>
+
+</div>
+
+<?php if(isset($productosConStock) && count($productosConStock) > 0): ?>
+    <?php $__currentLoopData = $productosConStock; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $producto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <pre><?php echo e(json_encode($producto)); ?></pre>
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+<?php endif; ?>
+
+        <!-- Grid de Productos - MODIFICADO para usar datos reales -->
         <div class="row">
-            <?php $__empty_1 = true; $__currentLoopData = $productos ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $producto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            <?php $__empty_1 = true; $__currentLoopData = $productosConStock ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $producto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
             <div class="col-lg-3 col-md-6">
                 <div class="product-card">
-                    <div class="product-img" style="background-image: url('<?php echo e($producto->imagen ?? 'https://via.placeholder.com/300x220?text=Pan+Otto'); ?>');">
-                        <span class="product-badge"><?php echo e($producto->categoria ?? 'Destacado'); ?></span>
+                    <div class="product-img" style="background-image: url('<?php echo e($producto->imagen ? asset('storage/' . $producto->imagen) : 'https://placehold.co/300x220/8B4513/white?text=Pan+Otto'); ?>');">
+                        <span class="product-badge"><?php echo e($producto->categoria); ?></span>
                     </div>
                     <div class="product-body">
-                        <h3 class="product-title"><?php echo e($producto->nombre ?? 'Pan Artesanal'); ?></h3>
-                        <p class="product-desc"><?php echo e(Str::limit($producto->descripcion ?? 'Delicioso pan horneado con ingredientes naturales y receta tradicional.', 80)); ?></p>
+                        <h3 class="product-title"><?php echo e($producto->nombre); ?></h3>
+                        <p class="product-desc"><?php echo e(Str::limit($producto->descripcion ?? 'Delicioso producto artesanal', 80)); ?></p>
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="product-price">
-                                $<?php echo e(number_format($producto->precio ?? 0, 2)); ?> <small>c/u</small>
+                                Bs. <?php echo e(number_format($producto->precio, 2)); ?>
+
                             </div>
-                            <button class="btn btn-sm" style="background: #D2B48C; color: #5D3A1A; border-radius: 50px;">
-                                <i class="fas fa-shopping-cart"></i>
+                            <button class="btn btn-sm" style="background: #D2B48C; color: #5D3A1A; border-radius: 50px;" 
+                                    onclick="agregarAlCarrito(<?php echo e(json_encode($producto)); ?>)">
+                                <i class="fas fa-shopping-cart"></i> Agregar
                             </button>
                         </div>
+                        <small class="text-muted d-block mt-2">Stock: <?php echo e($producto->stock); ?> unidades</small>
                     </div>
                 </div>
             </div>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-            <!-- Productos por defecto si no hay datos -->
-            <div class="col-lg-3 col-md-6">
-                <div class="product-card">
-                    <div class="product-img" style="background-image: url('https://images.unsplash.com/photo-1509440159596-0249088772ff?w=300&h=220&fit=crop');">
-                        <span class="product-badge">Panadería</span>
-                    </div>
-                    <div class="product-body">
-                        <h3 class="product-title">Pan Francés</h3>
-                        <p class="product-desc">Crujiente por fuera, suave por dentro. El clásico de nuestra panadería.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="product-price">$15.00 <small>c/u</small></div>
-                            <button class="btn btn-sm" style="background: #D2B48C; color: #5D3A1A; border-radius: 50px;"><i class="fas fa-shopping-cart"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="product-card">
-                    <div class="product-img" style="background-image: url('https://images.unsplash.com/photo-1585478259715-1e7f7f2adc5d?w=300&h=220&fit=crop');">
-                        <span class="product-badge">Pastelería</span>
-                    </div>
-                    <div class="product-body">
-                        <h3 class="product-title">Croissant de Mantequilla</h3>
-                        <p class="product-desc">Hojaldre artesanal con mantequilla francesa.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="product-price">$25.00 <small>c/u</small></div>
-                            <button class="btn btn-sm" style="background: #D2B48C; color: #5D3A1A; border-radius: 50px;"><i class="fas fa-shopping-cart"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="product-card">
-                    <div class="product-img" style="background-image: url('https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=300&h=220&fit=crop');">
-                        <span class="product-badge">Pan Integral</span>
-                    </div>
-                    <div class="product-body">
-                        <h3 class="product-title">Pan Integral</h3>
-                        <p class="product-desc">100% harina integral, semillas de girasol y linaza.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="product-price">$20.00 <small>c/u</small></div>
-                            <button class="btn btn-sm" style="background: #D2B48C; color: #5D3A1A; border-radius: 50px;"><i class="fas fa-shopping-cart"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="product-card">
-                    <div class="product-img" style="background-image: url('https://images.unsplash.com/photo-1608198093002-ad4e005484ec?w=300&h=220&fit=crop');">
-                        <span class="product-badge">Repostería</span>
-                    </div>
-                    <div class="product-body">
-                        <h3 class="product-title">Pastel de Chocolate</h3>
-                        <p class="product-desc">Bizcocho de chocolate con cobertura cremosa.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="product-price">$280.00 <small>mediano</small></div>
-                            <button class="btn btn-sm" style="background: #D2B48C; color: #5D3A1A; border-radius: 50px;"><i class="fas fa-shopping-cart"></i></button>
-                        </div>
-                    </div>
-                </div>
+            <div class="col-12 text-center">
+                <p>No hay productos disponibles en este momento</p>
             </div>
             <?php endif; ?>
         </div>
@@ -435,6 +435,32 @@
                 </div>
             </div>
         </div>
+
+         <!-- Modal del Carrito -->
+    <div class="modal fade" id="cartModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #5D3A1A 0%, #8B4513 100%);">
+                    <h5 class="modal-title text-white">
+                        <i class="fas fa-shopping-cart"></i> Mi Carrito
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="cartContent">
+                    <div class="text-center py-5">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p class="mt-2">Cargando carrito...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Seguir Comprando</button>
+                    <button type="button" class="btn" id="btnProcesarPedido" style="background: #8B4513; color: white;">
+                        <i class="fas fa-check-circle"></i> Procesar Pedido
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
         <!-- Sección de Promociones -->
         <div class="promo-section" id="ofertas">
@@ -546,6 +572,150 @@
     </a>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    
+    <script>
+        let cartModal = null;
+        
+        $(document).ready(function() {
+            cartModal = new bootstrap.Modal(document.getElementById('cartModal'));
+            actualizarContadorCarrito();
+            
+            // Configurar Toastr
+            toastr.options = {
+                "positionClass": "toast-bottom-right",
+                "closeButton": true,
+                "progressBar": true,
+                "timeOut": "3000"
+            };
+            
+            // Evento para procesar pedido
+            $('#btnProcesarPedido').on('click', function() {
+                procesarPedido();
+            });
+        });
+        
+        function agregarAlCarrito(producto) {
+            const cantidad = prompt('¿Cuántas unidades deseas?', 1);
+            
+            if (!cantidad || isNaN(cantidad) || cantidad <= 0) {
+                toastr.warning('Por favor ingresa una cantidad válida');
+                return;
+            }
+            
+            if (cantidad > producto.stock) {
+                toastr.error(`Stock insuficiente. Solo hay ${producto.stock} unidades disponibles`);
+                return;
+            }
+            
+            $.ajax({
+                url: '<?php echo e(route("carrito.agregar")); ?>',
+                method: 'POST',
+                data: {
+                    _token: '<?php echo e(csrf_token()); ?>',
+                    id_almacen: producto.id_almacen,
+                    id_item: producto.id_item,
+                    nombre: producto.nombre,
+                    precio: producto.precio,
+                    cantidad: parseInt(cantidad),
+                    almacen_nombre: producto.almacen_nombre,
+                    imagen: producto.imagen
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        actualizarContadorCarrito();
+                    }
+                },
+                error: function(xhr) {
+                    let message = 'Error al agregar al carrito';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    toastr.error(message);
+                }
+            });
+        }
+        
+        function verCarrito() {
+            $.ajax({
+                url: '<?php echo e(route("carrito.ver")); ?>',
+                method: 'GET',
+                success: function(html) {
+                    $('#cartContent').html(html);
+                    cartModal.show();
+                },
+                error: function() {
+                    toastr.error('Error al cargar el carrito');
+                }
+            });
+        }
+        
+        function actualizarCantidad(key, nuevaCantidad) {
+            if (nuevaCantidad <= 0) {
+                eliminarProducto(key);
+                return;
+            }
+            
+            $.ajax({
+                url: '<?php echo e(route("carrito.actualizar")); ?>',
+                method: 'POST',
+                data: {
+                    _token: '<?php echo e(csrf_token()); ?>',
+                    key: key,
+                    cantidad: nuevaCantidad
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        verCarrito(); // Recargar el modal
+                        actualizarContadorCarrito();
+                    }
+                },
+                error: function() {
+                    toastr.error('Error al actualizar cantidad');
+                }
+            });
+        }
+        
+        function eliminarProducto(key) {
+            if (!confirm('¿Eliminar este producto del carrito?')) return;
+            
+            $.ajax({
+                url: '<?php echo e(route("carrito.eliminar")); ?>',
+                method: 'POST',
+                data: {
+                    _token: '<?php echo e(csrf_token()); ?>',
+                    key: key
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        verCarrito(); // Recargar el modal
+                        actualizarContadorCarrito();
+                    }
+                },
+                error: function() {
+                    toastr.error('Error al eliminar producto');
+                }
+            });
+        }
+        
+        function actualizarContadorCarrito() {
+            $.ajax({
+                url: '<?php echo e(route("carrito.count")); ?>',
+                method: 'GET',
+                success: function(response) {
+                    $('#cartCount').text(response.count);
+                }
+            });
+        }
+        
+        function procesarPedido() {
+            window.location.href = '<?php echo e(route("procesar.pedido")); ?>';
+        }
+    </script>
 </body>
 </html><?php /**PATH C:\xampp\htdocs\panaderia-otto\resources\views/PanaderiaOtto.blade.php ENDPATH**/ ?>

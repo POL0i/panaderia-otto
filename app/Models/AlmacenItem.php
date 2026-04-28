@@ -37,6 +37,42 @@ class AlmacenItem extends Model
     }
 
     /**
+     * ✅ Relación con LOTES INVENTARIO (UNO a MUCHOS)
+     * Un AlmacenItem tiene muchos lotes
+     */
+    public function lotes(): HasMany
+    {
+        return $this->hasMany(
+            LoteInventario::class,
+            ['id_almacen', 'id_item'],
+            ['id_almacen', 'id_item']
+        );
+    }
+
+    /**
+     * ✅ Relación con MOVIMIENTOS INVENTARIO (UNO a MUCHOS)
+     * Un AlmacenItem tiene muchos movimientos
+     */
+    public function movimientos(): HasMany
+    {
+        return $this->hasMany(
+            MovimientoInventario::class,
+            ['id_almacen', 'id_item'],
+            ['id_almacen', 'id_item']
+        );
+    }
+
+    /**
+     * ✅ Relación con LOTES ACTIVOS (disponibles)
+     */
+    public function lotesDisponibles(): HasMany
+    {
+        return $this->lotes()
+            ->where('estado', 'disponible')
+            ->where('cantidad_disponible', '>', 0);
+    }
+
+    /**
      * Relación con detalles de venta
      */
     public function detallesVenta(): HasMany
@@ -68,10 +104,43 @@ class AlmacenItem extends Model
         return $this->hasOneThrough(
             Producto::class,
             Item::class,
-            'id_item', // Foreign key en items
-            'id_item', // Foreign key en productos
-            'id_item', // Local key en almacen_item
-            'id_item'  // Local key en items
+            'id_item',
+            'id_item',
+            'id_item',
+            'id_item'
         );
+    }
+
+    /**
+     * Obtener stock actual desde los lotes (más preciso)
+     */
+    public function getStockDesdeLotesAttribute()
+    {
+        return $this->lotes()
+            ->where('estado', 'disponible')
+            ->sum('cantidad_disponible');
+    }
+
+    /**
+     * Calcular costo promedio ponderado
+     */
+    public function getCostoPromedioAttribute()
+    {
+        $lotes = $this->lotes()
+            ->where('estado', 'disponible')
+            ->where('cantidad_disponible', '>', 0)
+            ->get();
+            
+        if ($lotes->isEmpty()) {
+            return 0;
+        }
+        
+        $costoTotal = $lotes->sum(function($lote) {
+            return $lote->cantidad_disponible * $lote->precio_unitario;
+        });
+        
+        $cantidadTotal = $lotes->sum('cantidad_disponible');
+        
+        return $cantidadTotal > 0 ? $costoTotal / $cantidadTotal : 0;
     }
 }

@@ -10,16 +10,16 @@
     <div class="row">
         <div class="col-md-7">
             <!-- Selección de Proveedor -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-truck"></i> Seleccionar Proveedor
-                        <button type="button" class="btn btn-sm btn-success float-right" data-toggle="modal" data-target="#modalProveedor">
-                            <i class="fas fa-plus"></i> Nuevo Proveedor
-                        </button>
-                    </h5>
-                </div>
-                <div class="card-body">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-truck"></i> Seleccionar Proveedor
+                            <button type="button" class="btn btn-sm btn-success float-right" data-toggle="modal" data-target="#modalProveedor">
+                                <i class="fas fa-plus"></i> Nuevo Proveedor
+                            </button>
+                        </h5>
+                    </div>
+                    <div class="card-body">
                     <div class="row" id="proveedoresList">
                         @foreach($proveedores as $proveedor)
                             @php
@@ -69,9 +69,12 @@
                             <label>Almacén</label>
                             <select class="form-control" id="itemAlmacen" required>
                                 <option value="">Seleccionar Almacén</option>
-                                @foreach($almacenes as $almacen)
-                                    <option value="{{ $almacen->id_almacen }}">{{ $almacen->nombre }}</option>
-                                @endforeach
+                                    @foreach($almacenes as $almacen)
+                                        <option value="{{ $almacen->id_almacen }}" data-tipo="{{ $almacen->tipo_almacen }}">
+                                            {{ $almacen->nombre }} 
+                                            ({{ $almacen->tipo_almacen === 'insumo' ? 'Solo Insumos' : 'Mixto' }})
+                                        </option>
+                                    @endforeach
                             </select>
                             <button type="button" class="btn btn-sm btn-link mt-1" data-toggle="modal" data-target="#createAlmacenModal">
                                 <i class="fas fa-plus"></i> Nuevo Almacén

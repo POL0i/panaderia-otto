@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nombre', 25);
             $table->string('ubicacion', 35);
             $table->integer('capacidad');
+            $table->enum('tipo_almacen', ['insumo', 'producto', 'mixto'])->default('mixto');
             $table->timestamps();
         });
     }

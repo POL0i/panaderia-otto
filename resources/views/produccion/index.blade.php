@@ -102,6 +102,9 @@
                     <button class="btn btn-primary quick-action-btn" data-toggle="modal" data-target="#createRecetaModal">
                         <i class="fas fa-book-medical"></i> Nueva Receta
                     </button>
+                    <a href="{{ route('producciones.index') }}" class="btn btn-warning quick-action-btn">
+                        <i class="fas fa-list-alt"></i> Ver Órdenes de Producción
+                    </a>
                     <a href="{{ route('recetas.index') }}" class="btn btn-secondary quick-action-btn">
                         <i class="fas fa-list"></i> Ver Todas las Recetas
                     </a>

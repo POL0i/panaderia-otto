@@ -169,71 +169,311 @@ $(document).ready(function() {
     $('.almacen-item').on('click', function(e) {
         e.preventDefault();
         var almacenId = $(this).data('id');
-        var almacenNombre = $(this).text().trim();
         
         $('.almacen-item').removeClass('active');
         $(this).addClass('active');
         
         $.get('/modulo-almacen/' + almacenId + '/items', function(response) {
             var html = '';
-            if (response.items.length > 0) {
+            if (response.items && response.items.length > 0) {
                 response.items.forEach(function(item) {
                     html += '<tr>';
-                    html += '<td>' + item.nombre + '</td>';
-                    html += '<td><span class="badge badge-' + (item.tipo === 'producto' ? 'success' : 'warning') + '">' + item.tipo + '</span></td>';
-                    html += '<td>' + item.stock + '</td>';
-                    html += '<td>' + item.unidad + '</td>';
+                    html += '<td>' + (item.nombre || item.item_nombre || 'N/A') + '</td>';
+                    html += '<td><span class="badge badge-' + (item.tipo === 'producto' ? 'success' : 'warning') + '">' + (item.tipo || 'N/A') + '</span></td>';
+                    html += '<td>' + (item.stock || 0) + '</td>';
+                    html += '<td>' + (item.unidad_medida || 'unidad') + '</td>';
                     html += '</tr>';
                 });
             } else {
                 html = '<tr><td colspan="4" class="text-center text-muted">Este almacén no tiene items</td></tr>';
             }
             $('#itemsAlmacenBody').html(html);
+        }).fail(function() {
+            $('#itemsAlmacenBody').html('<tr><td colspan="4" class="text-center text-danger">Error al cargar items</td></tr>');
         });
     });
     
-    // Funciones genéricas para enviar formularios modales
-    function submitModalForm(formId, successCallback) {
-        $('#' + formId).on('submit', function(e) {
-            e.preventDefault();
-            var form = $(this);
-            $.ajax({
-                url: form.attr('action'),
-                method: 'POST',
-                data: form.serialize(),
-                success: function(response) {
-                    if (response.success) {
-                        $('.modal').modal('hide');
-                        alert(response.message);
-                        form[0].reset();
-                        setTimeout(() => location.reload(), 1000);
-                    }
-                },
-                error: function(xhr) {
-                    var msg = 'Error';
-                    if (xhr.responseJSON?.errors) {
-                        msg = Object.values(xhr.responseJSON.errors).flat().join('\n');
-                    } else if (xhr.responseJSON?.message) {
-                        msg = xhr.responseJSON.message;
-                    }
-                    alert(msg);
+    // ============================================
+    // MANEJO CENTRALIZADO DE FORMULARIOS MODALES
+    // ============================================
+    
+    // Evitar envíos múltiples
+    var isSubmitting = false;
+    
+    // Formulario: Crear Almacén
+    $('#formCreateAlmacen').off('submit').on('submit', function(e) {
+        e.preventDefault();
+        if (isSubmitting) return;
+        isSubmitting = true;
+        
+        var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        
+        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
+        
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                if (response.success) {
+                    $('#createAlmacenModal').modal('hide');
+                    toastr.success(response.message);
+                    form[0].reset();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    toastr.error(response.message || 'Error al crear');
+                    submitBtn.html(originalText).prop('disabled', false);
+                    isSubmitting = false;
                 }
-            });
+            },
+            error: function(xhr) {
+                var message = 'Error al crear el almacén';
+                if (xhr.responseJSON?.errors) {
+                    message = Object.values(xhr.responseJSON.errors).flat().join('\n');
+                } else if (xhr.responseJSON?.message) {
+                    message = xhr.responseJSON.message;
+                }
+                toastr.error(message);
+                submitBtn.html(originalText).prop('disabled', false);
+                isSubmitting = false;
+            }
         });
-    }
+    });
     
-    submitModalForm('formCreateAlmacen');
-    submitModalForm('formCreateCategoriaInsumo');
-    submitModalForm('formCreateInsumo');
-    submitModalForm('formCreateCategoriaProducto');
-    submitModalForm('formCreateProducto');
-    submitModalForm('formManageStock');
+    // Formulario: Crear Categoría Insumo
+    $('#formCreateCategoriaInsumo').off('submit').on('submit', function(e) {
+        e.preventDefault();
+        if (isSubmitting) return;
+        isSubmitting = true;
+        
+        var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        
+        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
+        
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                if (response.success) {
+                    $('#createCategoriaInsumoModal').modal('hide');
+                    toastr.success(response.message);
+                    form[0].reset();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    toastr.error(response.message || 'Error al crear');
+                    submitBtn.html(originalText).prop('disabled', false);
+                    isSubmitting = false;
+                }
+            },
+            error: function(xhr) {
+                var message = 'Error al crear la categoría';
+                if (xhr.responseJSON?.errors) {
+                    message = Object.values(xhr.responseJSON.errors).flat().join('\n');
+                } else if (xhr.responseJSON?.message) {
+                    message = xhr.responseJSON.message;
+                }
+                toastr.error(message);
+                submitBtn.html(originalText).prop('disabled', false);
+                isSubmitting = false;
+            }
+        });
+    });
     
-    // Auto-recargar categorías en select al crear una nueva (usando los modales de categoría)
-    // Se puede implementar con un callback que refresque los <select> vía AJAX, 
-    // pero por simplicidad recargamos la página después de crear categoría.
+    // Formulario: Crear Insumo
+    $('#formCreateInsumo').off('submit').on('submit', function(e) {
+        e.preventDefault();
+        if (isSubmitting) return;
+        isSubmitting = true;
+        
+        var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        
+        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
+        
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                if (response.success) {
+                    $('#createInsumoModal').modal('hide');
+                    toastr.success(response.message);
+                    form[0].reset();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    toastr.error(response.message || 'Error al crear');
+                    submitBtn.html(originalText).prop('disabled', false);
+                    isSubmitting = false;
+                }
+            },
+            error: function(xhr) {
+                var message = 'Error al crear el insumo';
+                if (xhr.responseJSON?.errors) {
+                    message = Object.values(xhr.responseJSON.errors).flat().join('\n');
+                } else if (xhr.responseJSON?.message) {
+                    message = xhr.responseJSON.message;
+                }
+                toastr.error(message);
+                submitBtn.html(originalText).prop('disabled', false);
+                isSubmitting = false;
+            }
+        });
+    });
+    
+    // Formulario: Crear Categoría Producto
+    $('#formCreateCategoriaProducto').off('submit').on('submit', function(e) {
+        e.preventDefault();
+        if (isSubmitting) return;
+        isSubmitting = true;
+        
+        var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        
+        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
+        
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                if (response.success) {
+                    $('#createCategoriaProductoModal').modal('hide');
+                    toastr.success(response.message);
+                    form[0].reset();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    toastr.error(response.message || 'Error al crear');
+                    submitBtn.html(originalText).prop('disabled', false);
+                    isSubmitting = false;
+                }
+            },
+            error: function(xhr) {
+                var message = 'Error al crear la categoría';
+                if (xhr.responseJSON?.errors) {
+                    message = Object.values(xhr.responseJSON.errors).flat().join('\n');
+                } else if (xhr.responseJSON?.message) {
+                    message = xhr.responseJSON.message;
+                }
+                toastr.error(message);
+                submitBtn.html(originalText).prop('disabled', false);
+                isSubmitting = false;
+            }
+        });
+    });
+    
+    // Formulario: Crear Producto
+    $('#formCreateProducto').off('submit').on('submit', function(e) {
+        e.preventDefault();
+        if (isSubmitting) return;
+        isSubmitting = true;
+        
+        var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        
+        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
+        
+        var formData = new FormData(this);
+        
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    $('#createProductoModal').modal('hide');
+                    toastr.success(response.message);
+                    form[0].reset();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    toastr.error(response.message || 'Error al crear');
+                    submitBtn.html(originalText).prop('disabled', false);
+                    isSubmitting = false;
+                }
+            },
+            error: function(xhr) {
+                var message = 'Error al crear el producto';
+                if (xhr.responseJSON?.errors) {
+                    message = Object.values(xhr.responseJSON.errors).flat().join('\n');
+                } else if (xhr.responseJSON?.message) {
+                    message = xhr.responseJSON.message;
+                }
+                toastr.error(message);
+                submitBtn.html(originalText).prop('disabled', false);
+                isSubmitting = false;
+            }
+        });
+    });
+    
+    // Formulario: Gestionar Stock
+    $('#formManageStock').off('submit').on('submit', function(e) {
+        e.preventDefault();
+        if (isSubmitting) return;
+        isSubmitting = true;
+        
+        var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        
+        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Procesando...').prop('disabled', true);
+        
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                if (response.success) {
+                    $('#manageStockModal').modal('hide');
+                    toastr.success(response.message);
+                    form[0].reset();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    toastr.error(response.message || 'Error al procesar');
+                    submitBtn.html(originalText).prop('disabled', false);
+                    isSubmitting = false;
+                }
+            },
+            error: function(xhr) {
+                var message = 'Error al gestionar stock';
+                if (xhr.responseJSON?.errors) {
+                    message = Object.values(xhr.responseJSON.errors).flat().join('\n');
+                } else if (xhr.responseJSON?.message) {
+                    message = xhr.responseJSON.message;
+                }
+                toastr.error(message);
+                submitBtn.html(originalText).prop('disabled', false);
+                isSubmitting = false;
+            }
+        });
+    });
+    
+    // Resetear flag al cerrar modales
+    $('.modal').on('hidden.bs.modal', function() {
+        isSubmitting = false;
+        // Resetear botones si es necesario
+        $(this).find('button[type="submit"]').html(function() {
+            var originalText = $(this).data('original-text');
+            if (originalText) {
+                return originalText;
+            }
+            return $(this).html();
+        }).prop('disabled', false);
+    });
+    
+    // Guardar texto original de botones
+    $('form button[type="submit"]').each(function() {
+        $(this).data('original-text', $(this).html());
+    });
 });
 </script>
 <?php $__env->stopPush(); ?>
-
 <?php echo $__env->make('layouts.adminlte', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\panaderia-otto\resources\views/modulo-almacen/index.blade.php ENDPATH**/ ?>

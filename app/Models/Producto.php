@@ -15,6 +15,7 @@ class Producto extends Model
         'id_cat_producto',
         'nombre',
         'precio',
+        'imagen',
     ];
 
     /**

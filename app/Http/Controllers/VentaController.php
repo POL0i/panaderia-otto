@@ -16,6 +16,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class VentaController extends Controller
 {
@@ -255,5 +257,197 @@ class VentaController extends Controller
                 'message' => 'Error al enviar el correo: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function getProductosConStock()
+    {
+        $almacenesItems = AlmacenItem::with(['almacen', 'item.producto'])
+            ->whereHas('item', function($query) {
+                $query->where('tipo_item', 'producto');
+            })
+            ->get();
+        
+        $productos = [];
+        
+        foreach ($almacenesItems as $ai) {
+            if ($ai->item && $ai->item->producto) {
+                // Procesar imagen correctamente
+                $imagen = null;
+                if ($ai->item->producto->imagen) {
+                    // Si es URL externa
+                    if (filter_var($ai->item->producto->imagen, FILTER_VALIDATE_URL)) {
+                        $imagen = $ai->item->producto->imagen;
+                    } 
+                    // Si es ruta de storage
+                    else {
+                        $imagen = Storage::url($ai->item->producto->imagen);
+                    }
+                }
+                
+                $productos[] = [
+                    'id_almacen' => $ai->id_almacen,
+                    'almacen_nombre' => $ai->almacen->nombre,
+                    'id_item' => $ai->id_item,
+                    'producto_nombre' => $ai->item->producto->nombre,
+                    'stock' => $ai->stock,
+                    'precio' => $ai->item->producto->precio,
+                    'imagen' => $imagen,
+                    'unidad_medida' => $ai->item->unidad_medida
+                ];
+            }
+        }
+        
+        return response()->json([
+            'success' => true,
+            'productos' => $productos
+        ]);
+    }
+
+    //-- Seccion para clientes --//
+    public function landingPage()
+{
+    // Datos estáticos de prueba
+    $productosConStock = collect([
+        (object)[
+            'id_almacen' => 1,
+            'id_item' => 1,
+            'nombre' => 'Pastel de Queso',
+            'precio' => 222.00,
+            'stock' => 222,
+            'imagen' => 'productos/GE0tW0EWBWB05jT5lHx1SziAAFQEBgcjLD2BCETh.jpg',
+            'almacen_nombre' => 'Almacén Principal',
+            'categoria' => 'Pastelería',
+            'descripcion' => 'Delicioso pastel de queso artesanal'
+        ],
+        (object)[
+            'id_almacen' => 4,
+            'id_item' => 3,
+            'nombre' => 'Dona',
+            'precio' => 21.00,
+            'stock' => 2100,
+            'imagen' => 'productos/1nPgCUdttWG1YKgrlyLXsgWlnG9W2QWCC1LCUg9g.jpg',
+            'almacen_nombre' => 'Almacén de Todo',
+            'categoria' => 'Panadería',
+            'descripcion' => 'Dona esponjosa y deliciosa'
+        ]
+    ]);
+    
+    return view('PanaderiaOtto', compact('productosConStock'));
+    dd($productosConStock);
+}
+
+        
+    public function agregarAlCarrito(Request $request)
+    {
+        $cart = session()->get('cart', []);
+        $key = $request->id_almacen . '_' . $request->id_item;
+        
+        if(isset($cart[$key])) {
+            $cart[$key]['cantidad'] += $request->cantidad;
+        } else {
+            $cart[$key] = [
+                'id_almacen' => $request->id_almacen,
+                'id_item' => $request->id_item,
+                'nombre' => $request->nombre,
+                'precio' => $request->precio,
+                'cantidad' => $request->cantidad,
+                'almacen_nombre' => $request->almacen_nombre,
+                'imagen' => $request->imagen
+            ];
+        }
+        
+        session()->put('cart', $cart);
+        
+        return response()->json([
+            'success' => true,
+            'cart_count' => count($cart),
+            'message' => 'Producto agregado al carrito'
+        ]);
+    }
+
+    public function actualizarCarrito(Request $request)
+    {
+        $cart = session()->get('cart', []);
+        $key = $request->key;
+        
+        if(isset($cart[$key])) {
+            $cart[$key]['cantidad'] = $request->cantidad;
+            session()->put('cart', $cart);
+            
+            $subtotal = $cart[$key]['precio'] * $cart[$key]['cantidad'];
+            $total = array_sum(array_map(function($item) {
+                return $item['precio'] * $item['cantidad'];
+            }, $cart));
+            
+            return response()->json([
+                'success' => true,
+                'subtotal' => number_format($subtotal, 2),
+                'total' => number_format($total, 2),
+                'message' => 'Cantidad actualizada'
+            ]);
+        }
+        
+        return response()->json(['success' => false, 'message' => 'Producto no encontrado']);
+    }
+
+    public function eliminarDelCarrito(Request $request)
+    {
+        $cart = session()->get('cart', []);
+        $key = $request->key;
+        
+        if(isset($cart[$key])) {
+            unset($cart[$key]);
+            session()->put('cart', $cart);
+            
+            $total = array_sum(array_map(function($item) {
+                return $item['precio'] * $item['cantidad'];
+            }, $cart));
+            
+            return response()->json([
+                'success' => true,
+                'cart_count' => count($cart),
+                'total' => number_format($total, 2),
+                'message' => 'Producto eliminado'
+            ]);
+        }
+        
+        return response()->json(['success' => false, 'message' => 'Producto no encontrado']);
+    }
+
+    public function verCarrito()
+    {
+        $cart = session()->get('cart', []);
+        $total = array_sum(array_map(function($item) {
+            return $item['precio'] * $item['cantidad'];
+        }, $cart));
+        
+        return view('carrito', compact('cart', 'total'));
+    }
+
+    public function carritoCount()
+    {
+        $cart = session()->get('cart', []);
+        return response()->json(['count' => count($cart)]);
+    }
+
+    public function debugProductos()
+    {
+        // 1. Verificar productos en la tabla productos
+        $productos = Producto::with('item')->get();
+        
+        // 2. Verificar items
+        $items = Item::where('tipo_item', 'producto')->get();
+        
+        // 3. Verificar almacen_item
+        $almacenItems = AlmacenItem::with(['item.producto', 'almacen'])->get();
+        
+        return response()->json([
+            'productos' => $productos,
+            'items' => $items,
+            'almacen_items' => $almacenItems,
+            'total_productos' => $productos->count(),
+            'total_items' => $items->count(),
+            'total_almacen_items' => $almacenItems->count()
+        ]);
     }
 }

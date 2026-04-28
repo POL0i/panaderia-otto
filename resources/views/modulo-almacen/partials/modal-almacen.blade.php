@@ -22,6 +22,18 @@
                     </div>
                     
                     <div class="form-group">
+                        <label>Tipo de Almacén <span class="text-danger">*</span></label>
+                        <select name="tipo_almacen" class="form-control" required>
+                            <option value="mixto">🌐 Mixto (Insumos y Productos)</option>
+                            <option value="insumo">📦 Solo Insumos</option>
+                            <option value="producto">📦 Solo Productos</option>
+                        </select>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> Define qué tipo de items podrás almacenar aquí.
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
                         <label>Ubicación</label>
                         <input type="text" name="ubicacion" class="form-control" 
                                placeholder="Ej: Calle Principal #123, Planta Baja...">

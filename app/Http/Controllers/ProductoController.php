@@ -42,14 +42,28 @@ class ProductoController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'id_item' => 'required|exists:items,id_item',
-            'id_cat_producto' => 'required|exists:categoria_producto,id_cat_producto',
-            'nombre' => 'required|string|max:255',
+            'nombre' => 'required|string|max:25',
             'precio' => 'required|numeric|min:0',
+            'id_item' => 'required|exists:items,id_item',
+            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'imagen_url' => 'nullable|url',
         ]);
-
-        Producto::create($validated);
-
+        
+        $data = [
+            'nombre' => $validated['nombre'],
+            'precio' => $validated['precio'],
+            'id_item' => $validated['id_item'],
+        ];
+        
+        // Priorizar archivo subido sobre URL
+        if ($request->hasFile('imagen')) {
+            $data['imagen'] = ImageHelper::upload($request->file('imagen'), 'products');
+        } elseif ($request->filled('imagen_url')) {
+            $data['imagen'] = $request->imagen_url;
+        }
+        
+        $producto = Producto::create($data);
+        
         return redirect()->route('productos.index')
             ->with('success', 'Producto creado exitosamente');
     }
@@ -84,6 +98,8 @@ class ProductoController extends Controller
             'id_cat_producto' => 'required|exists:categoria_producto,id_cat_producto',
             'nombre' => 'required|string|max:255',
             'precio' => 'required|numeric|min:0',
+            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'imagen_url' => 'nullable|url',
         ]);
 
         $producto->update($validated);

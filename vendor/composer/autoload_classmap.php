@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App\\Helpers\\ImageHelper' => $baseDir . '/app/Helpers/ImageHelper.php',
     'App\\Helpers\\PermisoHelper' => $baseDir . '/app/Helpers/PermisoHelper.php',
     'App\\Http\\Controllers\\AlmacenController' => $baseDir . '/app/Http/Controllers/AlmacenController.php',
     'App\\Http\\Controllers\\AlmacenItemController' => $baseDir . '/app/Http/Controllers/AlmacenItemController.php',
@@ -36,7 +37,6 @@ return array(
     'App\\Http\\Controllers\\PempresaController' => $baseDir . '/app/Http/Controllers/PempresaController.php',
     'App\\Http\\Controllers\\PermisoController' => $baseDir . '/app/Http/Controllers/PermisoController.php',
     'App\\Http\\Controllers\\ProduccionController' => $baseDir . '/app/Http/Controllers/ProduccionController.php',
-    'App\\Http\\Controllers\\ProduccionItemAlmacenController' => $baseDir . '/app/Http/Controllers/ProduccionItemAlmacenController.php',
     'App\\Http\\Controllers\\ProduccionModuleController' => $baseDir . '/app/Http/Controllers/ProduccionModuleController.php',
     'App\\Http\\Controllers\\ProductoController' => $baseDir . '/app/Http/Controllers/ProductoController.php',
     'App\\Http\\Controllers\\ProveedorController' => $baseDir . '/app/Http/Controllers/ProveedorController.php',
@@ -83,6 +83,7 @@ return array(
     'App\\Models\\Usuario' => $baseDir . '/app/Models/Usuario.php',
     'App\\Providers\\AppServiceProvider' => $baseDir . '/app/Providers/AppServiceProvider.php',
     'App\\Providers\\ViewServiceProvider' => $baseDir . '/app/Providers/ViewServiceProvider.php',
+    'App\\Services\\MailService' => $baseDir . '/app/Services/MailService.php',
     'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
     'Brick\\Math\\BigDecimal' => $vendorDir . '/brick/math/src/BigDecimal.php',
     'Brick\\Math\\BigInteger' => $vendorDir . '/brick/math/src/BigInteger.php',

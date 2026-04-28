@@ -4,6 +4,42 @@
 @section('page-title', 'Ventas')
 @section('page-description', 'Registro de ventas a clientes')
 
+@push('styles')
+<style>
+    .producto-card-modal {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 15px;
+        border: 1px solid #e0e0e0;
+    }
+    .producto-card-modal:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-color: #8B4513;
+    }
+    .producto-card-modal.selected {
+        border: 2px solid #28a745;
+        background-color: #f0fff0;
+    }
+    .producto-imagen-modal {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    .stock-badge {
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 20px;
+    }
+    .stock-suficiente { background: #d4edda; color: #155724; }
+    .stock-bajo { background: #fff3cd; color: #856404; }
+    .stock-agotado { background: #f8d7da; color: #721c24; }
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid">
     <div class="row">
@@ -53,53 +89,54 @@
                     <h5 class="mb-0"><i class="fas fa-cart-plus"></i> Agregar Productos</h5>
                 </div>
                 <div class="card-body">
+                    <!-- Botón para abrir el modal de selección -->
                     <div class="row">
-                        <div class="col-md-5">
-                            <label>Almacén</label>
-                            <select class="form-control" id="itemAlmacen" required>
-                                <option value="">Seleccionar Almacén</option>
-                                @foreach($almacenes as $almacen)
-                                    <option value="{{ $almacen->id_almacen }}">{{ $almacen->nombre }}</option>
-                                @endforeach
-                            </select>
-                            <button type="button" class="btn btn-sm btn-link mt-1" data-toggle="modal" data-target="#createAlmacenModal">
-                                <i class="fas fa-plus"></i> Nuevo Almacén
+                        <div class="col-12">
+                            <button type="button" class="btn btn-primary btn-block" id="btnSeleccionarProducto">
+                                <i class="fas fa-search"></i> Seleccionar Producto por Almacén
                             </button>
-                        </div>
-                        <div class="col-md-5">
-                            <label>Producto</label>
-                            <select class="form-control" id="itemSelect" required>
-                                <option value="">Seleccionar Producto</option>
-                                @foreach($items as $item)
-                                    @php
-                                        // Obtener stock total del producto en todos los almacenes (para mostrar)
-                                        $stockTotal = $item->almacenItems->sum('stock');
-                                    @endphp
-                                    <option value="{{ $item->id_item }}" 
-                                            data-nombre="{{ $item->producto->nombre ?? 'Producto' }}"
-                                            data-stock-total="{{ $stockTotal }}">
-                                        {{ $item->producto->nombre ?? 'Producto' }} (Stock: {{ $stockTotal }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            <button type="button" class="btn btn-sm btn-link mt-1" data-toggle="modal" data-target="#createProductoModal">
-                                <i class="fas fa-plus"></i> Nuevo Producto
-                            </button>
-                        </div>
-                        <div class="col-md-2">
-                            <label>Cantidad</label>
-                            <input type="number" class="form-control" id="itemCantidad" placeholder="Cantidad" required>
                         </div>
                     </div>
-                    <div class="row mt-2">
-                        <div class="col-md-12">
-                            <label>Precio Unitario (Bs.)</label>
+                    
+                    <!-- Información del producto seleccionado -->
+                    <div class="row mt-3" id="productoSeleccionadoInfo" style="display: none;">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <div class="d-flex align-items-center">
+                                    <img id="productoSeleccionadoImg" src="" alt="" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-right: 15px;">
+                                    <div class="flex-grow-1">
+                                        <strong id="productoSeleccionadoNombre"></strong><br>
+                                        <small>Almacén: <span id="productoSeleccionadoAlmacen"></span></small><br>
+                                        <small>Stock disponible: <span id="productoSeleccionadoStock"></span></small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-danger" id="btnLimpiarSeleccion">
+                                        <i class="fas fa-times"></i> Cambiar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Campos ocultos para almacenar IDs seleccionados -->
+                    <input type="hidden" id="selectedAlmacenId" value="">
+                    <input type="hidden" id="selectedItemId" value="">
+                    <input type="hidden" id="selectedStock" value="0">
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label>Cantidad <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="itemCantidad" placeholder="Cantidad" min="1" required>
+                            <small class="text-muted" id="maxStockMsg"></small>
+                        </div>
+                        <div class="col-md-6">
+                            <label>Precio Unitario (Bs.) <span class="text-danger">*</span></label>
                             <input type="number" step="0.01" class="form-control" id="itemPrecio" placeholder="Precio unitario" required>
                         </div>
                     </div>
+                    
                     <div class="row mt-3">
                         <div class="col-12">
-                            <button type="button" class="btn btn-add-item btn-block" onclick="addItemToCart()">
+                            <button type="button" class="btn btn-add-item btn-block" onclick="addItemToCart()" id="btnAgregarCarrito" disabled>
                                 <i class="fas fa-plus-circle"></i> Agregar a la Venta
                             </button>
                         </div>
@@ -188,6 +225,60 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal de Selección de Producto por Almacén --}}
+    <div class="modal fade" id="seleccionProductoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-boxes"></i> Seleccionar Producto por Almacén
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Filtrar por Almacén</label>
+                                <select id="filtroAlmacenModal" class="form-control">
+                                    <option value="">Todos los almacenes</option>
+                                    @foreach($almacenes as $almacen)
+                                        <option value="{{ $almacen->id_almacen }}">{{ $almacen->nombre }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Buscar Producto</label>
+                                <input type="text" id="buscarProductoModal" class="form-control" placeholder="Nombre del producto...">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <button type="button" class="btn btn-secondary btn-block" id="btnLimpiarFiltros">
+                                    <i class="fas fa-eraser"></i> Limpiar Filtros
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row" id="productosGrid" style="max-height: 400px; overflow-y: auto;">
+                        <!-- Los productos se cargarán aquí dinámicamente -->
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-spinner fa-spin fa-2x"></i>
+                            <p>Cargando productos...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                 </div>
             </div>
         </div>
@@ -336,6 +427,194 @@
 
 @push('scripts')
 <script>
+
+    $(document).ready(function() {
+        // Variables globales
+        let productosData = [];
+        
+        // Cargar productos al abrir el modal
+        $('#btnSeleccionarProducto').on('click', function() {
+            cargarProductosParaModal();
+            $('#seleccionProductoModal').modal('show');
+        });
+        
+        // Función para cargar productos
+        function cargarProductosParaModal() {
+            $('#productosGrid').html('<div class="col-12 text-center py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Cargando productos...</p></div>');
+            
+            $.ajax({
+                url: '{{ route("ventas.getProductosConStock") }}',
+                method: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        productosData = response.productos;
+                        renderProductosGrid(productosData);
+                    } else {
+                        $('#productosGrid').html('<div class="col-12 text-center text-danger">Error al cargar productos</div>');
+                    }
+                },
+                error: function() {
+                    $('#productosGrid').html('<div class="col-12 text-center text-danger">Error al cargar productos</div>');
+                }
+            });
+        }
+        
+        // Renderizar productos en grid
+        function renderProductosGrid(productos) {
+            if (productos.length === 0) {
+                $('#productosGrid').html('<div class="col-12 text-center text-muted py-5">No hay productos disponibles</div>');
+                return;
+            }
+            
+            let html = '';
+            productos.forEach(function(producto) {
+                const stockClass = producto.stock > 10 ? 'stock-suficiente' : (producto.stock > 0 ? 'stock-bajo' : 'stock-agotado');
+                const stockText = producto.stock > 0 ? `${producto.stock} unidades` : 'Agotado';
+                
+                // Usar imagen o placeholder
+                const imagenUrl = producto.imagen && producto.imagen !== '' 
+                    ? producto.imagen 
+                    : 'https://placehold.co/80x80/8B4513/white?text=Producto';
+                
+                html += `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="producto-card-modal p-2" 
+                            data-almacen-id="${producto.id_almacen}"
+                            data-almacen-nombre="${producto.almacen_nombre}"
+                            data-item-id="${producto.id_item}"
+                            data-producto-nombre="${producto.producto_nombre}"
+                            data-stock="${producto.stock}"
+                            data-precio="${producto.precio}"
+                            data-imagen="${imagenUrl}">
+                            <div class="d-flex">
+                                <div class="mr-3">
+                                    <img src="${imagenUrl}" 
+                                        alt="${producto.producto_nombre}" 
+                                        class="producto-imagen-modal"
+                                        style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;"
+                                        onerror="this.src='https://placehold.co/80x80/8B4513/white?text=Producto'">
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1"><strong>${producto.producto_nombre}</strong></h6>
+                                    <small class="text-muted d-block">📦 ${producto.almacen_nombre}</small>
+                                    <small class="text-muted d-block">💰 Bs. ${parseFloat(producto.precio).toFixed(2)}</small>
+                                    <span class="stock-badge ${stockClass} mt-1 d-inline-block">
+                                        📊 Stock: ${stockText}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            $('#productosGrid').html(html);
+            
+            // Agregar evento de clic a las tarjetas
+            $('.producto-card-modal').on('click', function() {
+                $('.producto-card-modal').removeClass('selected');
+                $(this).addClass('selected');
+                
+                // Guardar selección
+                const almacenId = $(this).data('almacen-id');
+                const almacenNombre = $(this).data('almacen-nombre');
+                const itemId = $(this).data('item-id');
+                const productoNombre = $(this).data('producto-nombre');
+                const stock = $(this).data('stock');
+                const precio = $(this).data('precio');
+                const imagen = $(this).data('imagen');
+                
+                // Actualizar campos ocultos
+                $('#selectedAlmacenId').val(almacenId);
+                $('#selectedItemId').val(itemId);
+                $('#selectedStock').val(stock);
+                
+                // Mostrar información seleccionada
+                $('#productoSeleccionadoImg').attr('src', imagen || '/images/default-product.png');
+                $('#productoSeleccionadoNombre').text(productoNombre);
+                $('#productoSeleccionadoAlmacen').text(almacenNombre);
+                $('#productoSeleccionadoStock').text(stock + ' unidades');
+                
+                // Setear precio
+                $('#itemPrecio').val(precio);
+                
+                // Habilitar cantidad y botón
+                $('#itemCantidad').prop('disabled', false);
+                $('#itemCantidad').attr('max', stock);
+                $('#maxStockMsg').text(`Máximo disponible: ${stock} unidades`);
+                
+                // Mostrar la información y habilitar botón
+                $('#productoSeleccionadoInfo').show();
+                $('#btnAgregarCarrito').prop('disabled', false);
+                
+                // Cerrar modal después de seleccionar
+                $('#seleccionProductoModal').modal('hide');
+            });
+        }
+        
+        // Filtros
+        $('#filtroAlmacenModal').on('change', aplicarFiltros);
+        $('#buscarProductoModal').on('keyup', aplicarFiltros);
+        $('#btnLimpiarFiltros').on('click', function() {
+            $('#filtroAlmacenModal').val('');
+            $('#buscarProductoModal').val('');
+            aplicarFiltros();
+        });
+        
+        function aplicarFiltros() {
+            const almacenFiltro = $('#filtroAlmacenModal').val();
+            const busqueda = $('#buscarProductoModal').val().toLowerCase();
+            
+            let productosFiltrados = productosData;
+            
+            if (almacenFiltro) {
+                productosFiltrados = productosFiltrados.filter(p => p.id_almacen == almacenFiltro);
+            }
+            
+            if (busqueda) {
+                productosFiltrados = productosFiltrados.filter(p => 
+                    p.producto_nombre.toLowerCase().includes(busqueda) ||
+                    p.almacen_nombre.toLowerCase().includes(busqueda)
+                );
+            }
+            
+            renderProductosGrid(productosFiltrados);
+        }
+        
+        // Validar cantidad
+        $('#itemCantidad').on('input', function() {
+            const cantidad = parseInt($(this).val());
+            const stock = parseInt($('#selectedStock').val());
+            const maxStockMsg = $('#maxStockMsg');
+            
+            if (cantidad > stock) {
+                $(this).addClass('is-invalid');
+                maxStockMsg.html(`<span class="text-danger">⚠️ La cantidad excede el stock disponible (${stock} unidades)</span>`);
+                $('#btnAgregarCarrito').prop('disabled', true);
+            } else if (cantidad <= 0 || isNaN(cantidad)) {
+                $(this).addClass('is-invalid');
+                maxStockMsg.html(`<span class="text-danger">⚠️ Ingrese una cantidad válida</span>`);
+                $('#btnAgregarCarrito').prop('disabled', true);
+            } else {
+                $(this).removeClass('is-invalid');
+                maxStockMsg.html(`✅ Stock disponible: ${stock} unidades`);
+                $('#btnAgregarCarrito').prop('disabled', false);
+            }
+        });
+        
+        // Limpiar selección
+        $('#btnLimpiarSeleccion').on('click', function() {
+            $('#selectedAlmacenId').val('');
+            $('#selectedItemId').val('');
+            $('#selectedStock').val('');
+            $('#itemCantidad').val('').prop('disabled', true);
+            $('#itemPrecio').val('');
+            $('#productoSeleccionadoInfo').hide();
+            $('#btnAgregarCarrito').prop('disabled', true);
+            $('#maxStockMsg').empty();
+        });
+    });
+
     window.routes = {
         ventasStore: '{{ route("ventas.store") }}',
         ventasClientes: '{{ route("ventas.clientes") }}',

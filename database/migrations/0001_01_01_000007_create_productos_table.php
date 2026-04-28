@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('id_item')->constrained('items', 'id_item')->onDelete('cascade');
             $table->string('nombre', 25);
             $table->integer('precio');
+            $table->string('imagen')->nullable(); 
             $table->timestamps();
         });
     }

@@ -1,6 +1,6 @@
 {{-- resources/views/modulo-almacen/partials/modal-producto.blade.php --}}
 <div class="modal fade" id="createProductoModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary">
                 <h5 class="modal-title">
@@ -8,55 +8,87 @@
                 </h5>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
-            <form id="formCreateProducto" action="{{ route('modulo-almacen.productos.store') }}" method="POST">
+            <form id="formCreateProducto" action="{{ route('modulo-almacen.productos.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label>Nombre del Producto <span class="text-danger">*</span></label>
-                        <input type="text" name="nombre" id="productoNombre" class="form-control" 
-                               placeholder="Ej: Pan Francés, Tarta de Manzana..." required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Categoría <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <select name="id_cat_producto" id="productoCategoria" class="form-control" required>
-                                <option value="">Seleccionar categoría...</option>
-                                @foreach($categorias ?? [] as $categoria)
-                                    <option value="{{ $categoria->id_cat_producto }}">{{ $categoria->nombre }}</option>
-                                @endforeach
-                            </select>
-                            <div class="input-group-append">
-                                <button type="button" class="btn btn-info" 
-                                        data-toggle="modal" 
-                                        data-target="#createCategoriaProductoModal"
-                                        data-dismiss="modal">
-                                    <i class="fas fa-plus"></i> Nueva
-                                </button>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label>Nombre del Producto <span class="text-danger">*</span></label>
+                                <input type="text" name="nombre" id="productoNombre" class="form-control" 
+                                       placeholder="Ej: Pan Francés, Tarta de Manzana..." required>
                             </div>
                         </div>
-                        <small class="text-muted">
-                            Si no encuentras la categoría, crea una nueva.
-                        </small>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Precio de Venta</label>
+                                <input type="number" name="precio" id="productoPrecio" class="form-control" 
+                                       step="0.01" min="0" placeholder="0.00">
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label>Unidad de Medida <span class="text-danger">*</span></label>
-                        <select name="unidad_medida" id="productoUnidad" class="form-control" required>
-                            <option value="kg">Kilogramos (kg)</option>
-                            <option value="g">Gramos (g)</option>
-                            <option value="lb">Libras (lb)</option>
-                            <option value="oz">Onzas (oz)</option>
-                            <option value="L">Litros (L)</option>
-                            <option value="mL">Mililitros (mL)</option>
-                            <option value="unidad">Unidad</option>
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Categoría <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <select name="id_cat_producto" id="productoCategoria" class="form-control" required>
+                                        <option value="">Seleccionar categoría...</option>
+                                        @foreach($categorias ?? [] as $categoria)
+                                            <option value="{{ $categoria->id_cat_producto }}">{{ $categoria->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-info" 
+                                                data-toggle="modal" 
+                                                data-target="#createCategoriaProductoModal"
+                                                data-dismiss="modal">
+                                            <i class="fas fa-plus"></i> Nueva
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Unidad de Medida <span class="text-danger">*</span></label>
+                                <select name="unidad_medida" id="productoUnidad" class="form-control" required>
+                                    <option value="kg">Kilogramos (kg)</option>
+                                    <option value="g">Gramos (g)</option>
+                                    <option value="lb">Libras (lb)</option>
+                                    <option value="oz">Onzas (oz)</option>
+                                    <option value="L">Litros (L)</option>
+                                    <option value="mL">Mililitros (mL)</option>
+                                    <option value="unidad">Unidad</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     
+                    {{-- IMAGEN LOCAL --}}
                     <div class="form-group">
-                        <label>Precio de Venta</label>
-                        <input type="number" name="precio" id="productoPrecio" class="form-control" 
-                               step="0.01" min="0" placeholder="0.00">
+                        <label>Imagen del Producto</label>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="image-preview mb-2 text-center" id="localImagePreview" style="display: none;">
+                                    <img id="localPreviewImg" src="" alt="Vista previa" style="max-width: 150px; max-height: 150px; border-radius: 5px;">
+                                </div>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="productoImagen" name="imagen" accept="image/*">
+                                    <label class="custom-file-label" for="productoImagen">
+                                        <i class="fas fa-upload"></i> Seleccionar imagen
+                                    </label>
+                                </div>
+                                <small class="text-muted">
+                                    Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 2MB.<br>
+                                    También puedes pegar una URL de imagen externa.
+                                </small>
+                                <input type="url" name="imagen_url" id="productoImagenUrl" class="form-control mt-2" 
+                                       placeholder="O pega una URL de imagen aquí (ej: https://ejemplo.com/imagen.jpg)">
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="alert alert-info">
@@ -75,68 +107,50 @@
     </div>
 </div>
 
+<style>
+.image-preview {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+.custom-file-label::after {
+    content: "Examinar";
+}
+</style>
+
 @push('scripts')
 <script>
 $(document).ready(function() {
-    $('#formCreateProducto').on('submit', function(e) {
-        e.preventDefault();
-        var form = $(this);
-        
-        $.ajax({
-            url: form.attr('action'),
-            method: 'POST',
-            data: form.serialize(),
-            success: function(response) {
-                if (response.success) {
-                    $('#createProductoModal').modal('hide');
-                    alert(response.message);
-                    form[0].reset();
-                    setTimeout(() => location.reload(), 1000);
-                }
-            },
-            error: function(xhr) {
-                var message = 'Error al crear el producto';
-                if (xhr.responseJSON?.errors) {
-                    message = Object.values(xhr.responseJSON.errors).flat().join('\n');
-                } else if (xhr.responseJSON?.message) {
-                    message = xhr.responseJSON.message;
-                }
-                alert(message);
+    // Previsualización de imagen local
+    $('#productoImagen').on('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#localPreviewImg').attr('src', e.target.result);
+                $('#localImagePreview').show();
             }
-        });
+            reader.readAsDataURL(file);
+            // Limpiar URL si hay
+            $('#productoImagenUrl').val('');
+        } else {
+            $('#localImagePreview').hide();
+        }
     });
     
-    // Recargar categorías después de crear una nueva
-    $('#formCreateCategoriaProducto').on('submit', function(e) {
-        e.preventDefault();
-        var form = $(this);
-        
-        $.ajax({
-            url: form.attr('action'),
-            method: 'POST',
-            data: form.serialize(),
-            success: function(response) {
-                if (response.success) {
-                    $('#createCategoriaProductoModal').modal('hide');
-                    alert(response.message);
-                    
-                    // Agregar la nueva categoría al select
-                    var newOption = new Option(response.categoria.nombre, response.categoria.id_cat_producto);
-                    $('#productoCategoria').append(newOption).val(response.categoria.id_cat_producto);
-                    
-                    // Volver a abrir el modal de producto
-                    $('#createProductoModal').modal('show');
-                    form[0].reset();
-                }
-            },
-            error: function(xhr) {
-                var message = 'Error al crear la categoría';
-                if (xhr.responseJSON?.errors) {
-                    message = Object.values(xhr.responseJSON.errors).flat().join('\n');
-                }
-                alert(message);
-            }
-        });
+    // Si pegan URL, limpiar archivo local
+    $('#productoImagenUrl').on('input', function() {
+        if ($(this).val()) {
+            $('#productoImagen').val('');
+            $('#localImagePreview').hide();
+        }
+    });
+    
+    // Actualizar label del file input
+    $('.custom-file-input').on('change', function() {
+        const fileName = $(this).val().split('\\').pop();
+        $(this).next('.custom-file-label').html(fileName);
     });
 });
 </script>

@@ -546,6 +546,7 @@ class ComposerStaticInit53b5d56b3b7e3cbac1713e68c8850f6c
     );
 
     public static $classMap = array (
+        'App\\Helpers\\ImageHelper' => __DIR__ . '/../..' . '/app/Helpers/ImageHelper.php',
         'App\\Helpers\\PermisoHelper' => __DIR__ . '/../..' . '/app/Helpers/PermisoHelper.php',
         'App\\Http\\Controllers\\AlmacenController' => __DIR__ . '/../..' . '/app/Http/Controllers/AlmacenController.php',
         'App\\Http\\Controllers\\AlmacenItemController' => __DIR__ . '/../..' . '/app/Http/Controllers/AlmacenItemController.php',
@@ -576,7 +577,6 @@ class ComposerStaticInit53b5d56b3b7e3cbac1713e68c8850f6c
         'App\\Http\\Controllers\\PempresaController' => __DIR__ . '/../..' . '/app/Http/Controllers/PempresaController.php',
         'App\\Http\\Controllers\\PermisoController' => __DIR__ . '/../..' . '/app/Http/Controllers/PermisoController.php',
         'App\\Http\\Controllers\\ProduccionController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProduccionController.php',
-        'App\\Http\\Controllers\\ProduccionItemAlmacenController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProduccionItemAlmacenController.php',
         'App\\Http\\Controllers\\ProduccionModuleController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProduccionModuleController.php',
         'App\\Http\\Controllers\\ProductoController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProductoController.php',
         'App\\Http\\Controllers\\ProveedorController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProveedorController.php',
@@ -623,6 +623,7 @@ class ComposerStaticInit53b5d56b3b7e3cbac1713e68c8850f6c
         'App\\Models\\Usuario' => __DIR__ . '/../..' . '/app/Models/Usuario.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
         'App\\Providers\\ViewServiceProvider' => __DIR__ . '/../..' . '/app/Providers/ViewServiceProvider.php',
+        'App\\Services\\MailService' => __DIR__ . '/../..' . '/app/Services/MailService.php',
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',
         'Brick\\Math\\BigInteger' => __DIR__ . '/..' . '/brick/math/src/BigInteger.php',

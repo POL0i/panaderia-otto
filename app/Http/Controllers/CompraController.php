@@ -393,7 +393,7 @@ class CompraController extends Controller
      */
     public function getAlmacenes()
     {
-        $almacenes = Almacen::all(['id_almacen', 'nombre']);
+        $almacenes = Almacen::whereIn('tipo_almacen', ['mixto', 'insumo'])->get();
         return response()->json(['almacenes' => $almacenes]);
     }
 

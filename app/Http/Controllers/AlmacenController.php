@@ -46,6 +46,7 @@ public function index()
             'nombre' => 'required|string|max:255',
             'ubicacion' => 'required|string|max:255',
             'capacidad' => 'required|numeric|min:1',
+            'tipo_almacen' => 'required|in:insumo,producto,mixto',
         ]);
 
         Almacen::create($validated);
@@ -81,6 +82,7 @@ public function index()
             'nombre' => 'required|string|max:255',
             'ubicacion' => 'required|string|max:255',
             'capacidad' => 'required|numeric|min:1',
+            'tipo_almacen' => 'required|in:insumo,producto,mixto',
         ]);
 
         $almacen->update($validated);
