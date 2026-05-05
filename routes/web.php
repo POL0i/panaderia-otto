@@ -61,10 +61,17 @@ Route::post('/carrito/agregar', [VentaController::class, 'agregarAlCarrito'])->n
 Route::post('/carrito/actualizar', [VentaController::class, 'actualizarCarrito'])->name('carrito.actualizar');
 Route::post('/carrito/eliminar', [VentaController::class, 'eliminarDelCarrito'])->name('carrito.eliminar');
 Route::get('/carrito', [VentaController::class, 'verCarrito'])->name('carrito.ver');
-Route::post('/procesar-pedido', [VentaController::class, 'procesarPedido'])->name('procesar.pedido');
+Route::get('/procesar-pedido', [VentaController::class, 'procesarPedido'])->name('procesar.pedido');
 Route::get('/carrito/count', [VentaController::class, 'carritoCount'])->name('carrito.count');
 
-Route::get('/debug-productos', [VentaController::class, 'debugProductos']);
+Route::post('/webhook/libelula/pago-exitoso', [VentaController::class, 'webhookPagoExitoso'])
+    ->name('webhook.libelula');
+
+// Registro rápido de clientes (público)
+Route::post('/registro/cliente/rapido', [UsuarioController::class, 'registroClienteRapido'])->name('registro.cliente.rapido');
+
+Route::get('/pago/verificar/{id}', [VentaController::class, 'verificarPago'])->name('pago.verificar');
+Route::get('/pago/exito/{id}', [VentaController::class, 'pagoExito'])->name('pago.exito');
 
 // Sección de Compras
 Route::prefix('compras')->name('compras.')->group(function () {
@@ -193,7 +200,7 @@ Route::middleware(['auth'])->group(function () {
             ->name('modulo-almacen.productos.store');
         Route::post('/modulo-almacen/stock', [AlmacenModuleController::class, 'storeStock'])
             ->name('modulo-almacen.stock.store');
-        Route::get('/modulo-almacen/{id}/items', [AlmacenModuleController::class, 'getItemsAlmacen'])
+        Route::get('/modulo-almacen/{idAlmacen}/items', [AlmacenModuleController::class, 'getItemsPorAlmacen'])
             ->name('modulo-almacen.items');
 
         // Recursos tradicionales
@@ -242,7 +249,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('movimientos/filtrar', [MovimientoInventarioController::class, 'filtrar'])
             ->name('movimientos.filtrar');
 
-        Route::resource('traspasos', TraspasoInventarioController::class);
+        Route::resource('traspasos', TraspasoInventarioController::class)->except(['edit', 'update']);
         Route::put('traspasos/{traspaso}/completar', [TraspasoInventarioController::class, 'completar'])
             ->name('traspasos.completar');
         Route::put('traspasos/{traspaso}/cancelar', [TraspasoInventarioController::class, 'cancelar'])
@@ -258,6 +265,9 @@ Route::middleware(['auth'])->group(function () {
             ->name('configuracion.edit');
         Route::put('configuracion-inventario/actualizar', [ConfiguracionInventarioController::class, 'update'])
             ->name('configuracion.update');
+
+        Route::get('movimientos/{referenciaId}', [MovimientoInventarioController::class, 'show'])
+    ->name('movimientos.show');
     });
 
     /*
@@ -266,47 +276,68 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware(['permiso:produccion_ver'])->group(function () {
-        // Panel destacado (mantenido)
+        
+        // =============================================
+        // PANEL PRINCIPAL Y GESTIÓN BÁSICA
+        // =============================================
+
+        Route::resource('producciones', ProduccionController::class)
+    ->except(['edit', 'update', 'destroy'])
+    ->parameters(['producciones' => 'produccion']);  // ← Agregar esta línea
+
+    
         Route::get('/produccion', [ProduccionModuleController::class, 'index'])
             ->name('produccion.index')
             ->middleware('permiso:panel_produccion_ver');
 
-        // Endpoints AJAX del panel (mantenidos)
+        // Categorías de insumos
         Route::post('/produccion/categorias', [ProduccionModuleController::class, 'storeCategoria'])
             ->name('produccion.categorias.store');
+
+        // Insumos
         Route::post('/produccion/insumos', [ProduccionModuleController::class, 'storeInsumo'])
             ->name('produccion.insumos.store');
+
+        // Recetas (creación desde el panel)
         Route::post('/produccion/recetas', [ProduccionModuleController::class, 'storeReceta'])
             ->name('produccion.recetas.store');
 
+        // Detalles de receta (agregar/ver insumos)
         Route::get('/produccion/recetas/{receta}/detalles', [ProduccionModuleController::class, 'detallesReceta'])
             ->name('produccion.recetas.detalles');
         Route::post('/produccion/recetas/{receta}/detalles', [ProduccionModuleController::class, 'storeDetallesReceta'])
             ->name('produccion.recetas.detalles.store');
+        Route::put('/produccion/detalles-receta/{detalle}', [ProduccionModuleController::class, 'updateDetalleReceta'])
+            ->name('produccion.detalles-receta.update');
+        Route::delete('/produccion/detalles-receta/{detalle}', [ProduccionModuleController::class, 'destroyDetalleReceta'])
+            ->name('produccion.detalles-receta.destroy');
 
-        // Recursos tradicionales (mantenidos)
+        // =============================================
+        // RECURSOS TRADICIONALES
+        // =============================================
         Route::resource('recetas', RecetaController::class);
         Route::resource('detalles-receta', DetalleRecetaController::class);
         Route::get('detalles-receta/por-receta/{id_receta}', [DetalleRecetaController::class, 'porReceta'])
             ->name('detalles-receta.por-receta');
 
-        // NUEVAS rutas para ProduccionController
-        Route::resource('producciones', ProduccionController::class);
-        Route::post('producciones/{produccion}/aprobar', [ProduccionController::class, 'aprobar'])
-            ->name('producciones.aprobar');
-        Route::post('producciones/{produccion}/rechazar', [ProduccionController::class, 'rechazar'])
-            ->name('producciones.rechazar');
-        Route::post('producciones/{produccion}/cancelar', [ProduccionController::class, 'cancelar'])
-            ->name('producciones.cancelar');
-
-        // Elimina las rutas de produccion-items
-        Route::get('producciones', [ProduccionController::class, 'indexProducciones'])->name('producciones.index');
-        Route::post('producciones/calcular-insumos', [ProduccionController::class, 'calcularInsumos'])->name('producciones.calcular-insumos');
-        Route::post('producciones/store', [ProduccionController::class, 'storeProduccion'])->name('producciones.store');
+        // =============================================
+        // PRODUCCIONES
+        // =============================================
         
-        Route::resource('produccion-items', ProduccionItemAlmacenController::class);
-        Route::get('produccion-items/por-produccion/{id_produccion}', [ProduccionItemAlmacenController::class, 'porProduccion'])
-            ->name('produccion-items.por-produccion');
+        // Cálculo de insumos (AJAX - debe ir ANTES del resource)
+ Route::post('producciones/calcular-insumos', [ProduccionController::class, 'calcularInsumos'])
+    ->name('producciones.calcular-insumos');
 
-        });
+Route::resource('producciones', ProduccionController::class)
+    ->except(['edit', 'update', 'destroy'])
+    ->parameters(['producciones' => 'produccion']);  // ← CORRECCIÓN
+
+Route::post('producciones/{produccion}/aprobar', [ProduccionController::class, 'aprobar'])
+    ->name('producciones.aprobar');
+Route::post('producciones/{produccion}/rechazar', [ProduccionController::class, 'rechazar'])
+    ->name('producciones.rechazar');
+Route::post('producciones/{produccion}/cancelar', [ProduccionController::class, 'cancelar'])
+    ->name('producciones.cancelar');
+
+    });
 });

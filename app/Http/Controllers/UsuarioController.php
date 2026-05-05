@@ -13,6 +13,7 @@ use App\Models\RolPermisoUsuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class UsuarioController extends Controller
 {
@@ -384,10 +385,6 @@ class UsuarioController extends Controller
             
             $usuario->update($updateData);
             
-            // Actualizar permisos
-            // Desactivar permisos actuales
-            $usuario->rolPermisoUsuarios()->update(['estado' => 'inactivo']);
-            
             // Asignar nuevos permisos
             if (!empty($validated['rol_permiso_ids'])) {
                 foreach ($validated['rol_permiso_ids'] as $rolPermisoId) {
@@ -453,4 +450,65 @@ class UsuarioController extends Controller
         ]);
     }
 
+    public function registroClienteRapido(Request $request)
+    {
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'apellido' => 'nullable|string|max:255',
+            'correo' => 'required|email|unique:usuarios,correo',
+            'contraseña' => 'required|min:8|confirmed',
+            'telefono' => 'nullable|string|max:20',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Crear el cliente
+            $cliente = Cliente::create([
+                'nombre' => $validated['nombre'],
+                'apellido' => $validated['apellido'] ?? '',
+                'telefono' => $validated['telefono'] ?? null,
+            ]);
+
+            // Crear el usuario asociado al cliente
+            $usuario = Usuario::create([
+                'correo' => $validated['correo'],
+                'contraseña' => Hash::make($validated['contraseña']),
+                'tipo_usuario' => 'cliente',
+                'estado' => 'activo',
+                'id_cliente' => $cliente->id_cliente,
+                'id_empleado' => null,
+            ]);
+
+            // Asignar permisos básicos para clientes (opcional)
+            // Puedes asignar un rol por defecto a los clientes si lo deseas
+            $rolCliente = Rol::where('nombre', 'cliente')->first();
+            if ($rolCliente) {
+                $permisosBasicos = Permiso::whereIn('nombre', ['productos_ver', 'ventas_crear'])->pluck('id_permiso');
+                foreach ($permisosBasicos as $permisoId) {
+                    $rolPermiso = RolPermiso::firstOrCreate([
+                        'id_rol' => $rolCliente->id_rol,
+                        'id_permiso' => $permisoId
+                    ]);
+                    
+                    RolPermisoUsuario::create([
+                        'id_rol_permiso' => $rolPermiso->id_rol_permiso,
+                        'id_usuario' => $usuario->id_usuario,
+                        'estado' => 'activo',
+                        'fecha_asignacion' => now(),
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            // Autenticar al usuario automáticamente después del registro
+            Auth::login($usuario);
+
+            return redirect()->route('landing')->with('success', '¡Registro exitoso! Bienvenido a Panadería Otto.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al registrar: ' . $e->getMessage())->withInput();
+        }
+    }
 }   

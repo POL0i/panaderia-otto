@@ -12,14 +12,13 @@ class LoteInventarioController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $lotes = LoteInventario::with('almacen', 'item')
-            ->orderBy('fecha_entrada', 'desc')
-            ->paginate(15);
+public function index()
+{
+    $lotes = LoteInventario::orderBy('fecha_entrada', 'desc')
+        ->paginate(15);
 
-        return view('inventario.lotes.index', compact('lotes'));
-    }
+    return view('inventario.lotes.index', compact('lotes'));
+}
 
     /**
      * Show the form for creating a new resource.
@@ -58,11 +57,11 @@ class LoteInventarioController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(LoteInventario $lote)
-    {
-        $lote->load('almacen', 'item');
-        return view('inventario.lotes.show', compact('lote'));
-    }
+public function show(LoteInventario $lote)
+{
+    return view('inventario.lotes.show', compact('lote'));
+}
+
 
     /**
      * Show the form for editing the specified resource.
@@ -117,30 +116,26 @@ class LoteInventarioController extends Controller
     /**
      * Filtrar lotes por almacén, item o método de valuación
      */
-    public function filtrar(Request $request)
-    {
-        $query = LoteInventario::with('almacen', 'item');
+  public function filtrar(Request $request)
+{
+    $query = LoteInventario::query();
 
-        if ($request->id_almacen) {
-            $query->where('id_almacen', $request->id_almacen);
-        }
-
-        if ($request->id_item) {
-            $query->where('id_item', $request->id_item);
-        }
-
-        if ($request->metodo_valuacion) {
-            $query->where('metodo_valuacion', $request->metodo_valuacion);
-        }
-
-        if ($request->estado) {
-            $query->where('estado', $request->estado);
-        }
-
-        $lotes = $query->orderBy('fecha_entrada', 'desc')->paginate(15);
-
-        return view('inventario.lotes.index', compact('lotes'));
+    if ($request->id_almacen) {
+        $query->where('id_almacen', $request->id_almacen);
     }
+    if ($request->id_item) {
+        $query->where('id_item', $request->id_item);
+    }
+    if ($request->metodo_valuacion) {
+        $query->where('metodo_valuacion', $request->metodo_valuacion);
+    }
+    if ($request->estado) {
+        $query->where('estado', $request->estado);
+    }
+
+    $lotes = $query->orderBy('fecha_entrada', 'desc')->paginate(15);
+    return view('inventario.lotes.index', compact('lotes'));
+}
 
     /**
      * Consumir cantidad del lote (PEPS o UEPS)
@@ -162,4 +157,13 @@ class LoteInventarioController extends Controller
 
         return back()->with('success', 'Cantidad consumida correctamente');
     }
+    public function getAlmacenNombreAttribute()
+{
+    return Almacen::find($this->id_almacen)?->nombre ?? 'N/A';
+}
+
+public function getItemNombreAttribute()
+{
+    return Item::find($this->id_item)?->nombre ?? 'N/A';
+}
 }

@@ -82,6 +82,41 @@ function mostrarProveedorSeleccionado(nombre) {
     }
 }
 
+// Agregar item al carrito de COMPRAS
+function addItemToCart() {
+    const almacenId = document.getElementById('itemAlmacen')?.value;
+    const itemId = document.getElementById('itemSelect')?.value;
+    const cantidad = parseInt(document.getElementById('itemCantidad')?.value);
+    const precio = parseFloat(document.getElementById('itemPrecio')?.value);
+    const itemSelect = document.getElementById('itemSelect');
+    const itemNombre = itemSelect?.options[itemSelect.selectedIndex]?.getAttribute('data-nombre') || '';
+    const almacenNombre = document.getElementById('itemAlmacen')?.options[document.getElementById('itemAlmacen')?.selectedIndex]?.text || '';
+    
+    if (!almacenId || !itemId || !cantidad || !precio) {
+        toastr.warning('Complete todos los campos');
+        return;
+    }
+    if (cantidad <= 0 || precio <= 0) {
+        toastr.warning('Cantidad y precio deben ser mayores a 0');
+        return;
+    }
+    
+    cart.push({
+        id_almacen: parseInt(almacenId),
+        id_item: parseInt(itemId),
+        cantidad: cantidad,
+        precio: precio,
+        nombre: itemNombre,
+        almacen_nombre: almacenNombre
+    });
+    
+    updateCartDisplay();
+    document.getElementById('itemCantidad').value = '';
+    document.getElementById('itemPrecio').value = '';
+    document.getElementById('itemSelect').value = '';
+    toastr.success('Item agregado');
+}
+
 function updateCartDisplay() {
     const cartDiv = document.getElementById('cartItems');
     if (!cartDiv) return;
@@ -219,7 +254,7 @@ function verDetalleNota(id) {
             
             if (nota.detalles && nota.detalles.length) {
                 nota.detalles.forEach(d => {
-                    const nombreItem = d.item?.insumo?.nombre || d.item?.nombre || 'Item';
+                    const nombreItem = d.item?.nombre || 'Item';  // ← CORREGIDO
                     const almacenNombre = d.almacen?.nombre || 'N/A';
                     const subtotal = d.cantidad * d.precio;
                     total += subtotal;

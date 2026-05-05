@@ -721,11 +721,7 @@
                                     <i class="far fa-circle nav-icon"></i><p>Producciones</p>
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a href="<?php echo e(route('produccion-items.index')); ?>" class="nav-link <?php echo e(Request::routeIs('produccion-items.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i><p>Items Almacén</p>
-                                </a>
-                            </li>
+     
                         </ul>
                     </li>
                     <?php endif; ?>

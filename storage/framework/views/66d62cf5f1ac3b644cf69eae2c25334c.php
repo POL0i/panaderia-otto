@@ -166,7 +166,7 @@
 <script>
 $(document).ready(function() {
     // Cargar items de almacén al hacer clic
-    $('.almacen-item').on('click', function(e) {
+      $('.almacen-item').on('click', function(e) {
         e.preventDefault();
         var almacenId = $(this).data('id');
         
@@ -177,9 +177,14 @@ $(document).ready(function() {
             var html = '';
             if (response.items && response.items.length > 0) {
                 response.items.forEach(function(item) {
+                    var nombreItem = item.item_nombre || item.nombre || 'N/A';
+                    var tipoItem = item.tipo_item || item.tipo || 'N/A';
+                    var tipoBadge = tipoItem === 'producto' ? 'success' : 'warning';
+                    var tipoTexto = tipoItem === 'producto' ? 'Producto' : (tipoItem === 'insumo' ? 'Insumo' : tipoItem);
+                    
                     html += '<tr>';
-                    html += '<td>' + (item.nombre || item.item_nombre || 'N/A') + '</td>';
-                    html += '<td><span class="badge badge-' + (item.tipo === 'producto' ? 'success' : 'warning') + '">' + (item.tipo || 'N/A') + '</span></td>';
+                    html += '<td>' + nombreItem + '</td>';
+                    html += '<td><span class="badge badge-' + tipoBadge + '">' + tipoTexto + '</span></td>';
                     html += '<td>' + (item.stock || 0) + '</td>';
                     html += '<td>' + (item.unidad_medida || 'unidad') + '</td>';
                     html += '</tr>';
@@ -188,7 +193,8 @@ $(document).ready(function() {
                 html = '<tr><td colspan="4" class="text-center text-muted">Este almacén no tiene items</td></tr>';
             }
             $('#itemsAlmacenBody').html(html);
-        }).fail(function() {
+        }).fail(function(xhr) {
+            console.error('Error:', xhr.responseText);
             $('#itemsAlmacenBody').html('<tr><td colspan="4" class="text-center text-danger">Error al cargar items</td></tr>');
         });
     });

@@ -374,48 +374,40 @@
             <div class="divider" style="width: 80px; height: 3px; background: #D2B48C; margin: 15px auto;"></div>
         </div>
 
-        <!-- Debug: Mostrar cantidad de productos -->
-<div class="alert alert-info">
-    Productos encontrados: {{ isset($productosConStock) ? count($productosConStock) : 0 }}
-</div>
-
-@if(isset($productosConStock) && count($productosConStock) > 0)
-    @foreach($productosConStock as $producto)
-        <pre>{{ json_encode($producto) }}</pre>
-    @endforeach
-@endif
-
         <!-- Grid de Productos - MODIFICADO para usar datos reales -->
         <div class="row">
             @forelse($productosConStock ?? [] as $producto)
-            <div class="col-lg-3 col-md-6">
-                <div class="product-card">
-                    <div class="product-img" style="background-image: url('{{ $producto->imagen ? asset('storage/' . $producto->imagen) : 'https://placehold.co/300x220/8B4513/white?text=Pan+Otto' }}');">
-                        <span class="product-badge">{{ $producto->categoria }}</span>
-                    </div>
-                    <div class="product-body">
-                        <h3 class="product-title">{{ $producto->nombre }}</h3>
-                        <p class="product-desc">{{ Str::limit($producto->descripcion ?? 'Delicioso producto artesanal', 80) }}</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="product-price">
-                                Bs. {{ number_format($producto->precio, 2) }}
-                            </div>
-                            <button class="btn btn-sm" style="background: #D2B48C; color: #5D3A1A; border-radius: 50px;" 
-                                    onclick="agregarAlCarrito({{ json_encode($producto) }})">
-                                <i class="fas fa-shopping-cart"></i> Agregar
-                            </button>
+                <div class="col-lg-3 col-md-6">
+                    <div class="product-card">
+                        <div class="product-img" style="background-image: url('{{ $producto->imagen ? asset('storage/' . $producto->imagen) : 'https://placehold.co/300x220/8B4513/white?text=Pan+Otto' }}');">
+                            <span class="product-badge">{{ $producto->categoria ?? 'Producto' }}</span>
                         </div>
-                        <small class="text-muted d-block mt-2">Stock: {{ $producto->stock }} unidades</small>
+                        <div class="product-body">
+                            <h3 class="product-title">{{ $producto->nombre }}</h3>
+                            <p class="product-desc">{{ Str::limit($producto->descripcion ?? 'Delicioso producto artesanal', 80) }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="product-price">
+                                    Bs. {{ number_format($producto->precio, 2) }}
+                                </div>
+                                <button class="btn btn-sm" style="background: #D2B48C; color: #5D3A1A; border-radius: 50px;" 
+                                        onclick='agregarAlCarrito(<?php echo json_encode($producto); ?>)'>
+                                    <i class="fas fa-shopping-cart"></i> Agregar
+                                </button>
+                            </div>
+                            <small class="text-muted d-block mt-2">Stock: {{ $producto->stock }} unidades</small>
+                        </div>
                     </div>
                 </div>
-            </div>
-            @empty
-            <div class="col-12 text-center">
-                <p>No hay productos disponibles en este momento</p>
-            </div>
-            @endforelse
+                @empty
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                    <h5>No hay productos disponibles en este momento</h5>
+                    <p class="text-muted">Vuelve pronto para ver nuestras delicias recién horneadas.</p>
+                </div>
+                @endforelse
         </div>
 
+        
         <!-- Segundo Anuncio -->
         <div class="row mt-4 mb-5">
             <div class="col-md-6">
@@ -596,46 +588,42 @@
         });
         
         function agregarAlCarrito(producto) {
-            const cantidad = prompt('¿Cuántas unidades deseas?', 1);
-            
-            if (!cantidad || isNaN(cantidad) || cantidad <= 0) {
-                toastr.warning('Por favor ingresa una cantidad válida');
-                return;
+    const cantidad = prompt('¿Cuántas unidades deseas?', 1);
+    
+    if (!cantidad || isNaN(cantidad) || cantidad <= 0) {
+        toastr.warning('Por favor ingresa una cantidad válida');
+        return;
+    }
+    
+    if (cantidad > producto.stock) {
+        toastr.error(`Stock insuficiente. Solo hay ${producto.stock} unidades disponibles`);
+        return;
+    }
+    
+    $.ajax({
+        url: '{{ route("carrito.agregar") }}',
+        method: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            id_almacen: producto.id_almacen,
+            id_item: producto.id_item,
+            nombre: producto.nombre,
+            precio: producto.precio,
+            cantidad: parseInt(cantidad),
+            almacen_nombre: producto.almacen_nombre,
+            imagen: producto.imagen
+        },
+        success: function(response) {
+            if (response.success) {
+                toastr.success(response.message);
+                actualizarContadorCarrito();
             }
-            
-            if (cantidad > producto.stock) {
-                toastr.error(`Stock insuficiente. Solo hay ${producto.stock} unidades disponibles`);
-                return;
-            }
-            
-            $.ajax({
-                url: '{{ route("carrito.agregar") }}',
-                method: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    id_almacen: producto.id_almacen,
-                    id_item: producto.id_item,
-                    nombre: producto.nombre,
-                    precio: producto.precio,
-                    cantidad: parseInt(cantidad),
-                    almacen_nombre: producto.almacen_nombre,
-                    imagen: producto.imagen
-                },
-                success: function(response) {
-                    if (response.success) {
-                        toastr.success(response.message);
-                        actualizarContadorCarrito();
-                    }
-                },
-                error: function(xhr) {
-                    let message = 'Error al agregar al carrito';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        message = xhr.responseJSON.message;
-                    }
-                    toastr.error(message);
-                }
-            });
+        },
+        error: function(xhr) {
+            toastr.error('Error al agregar al carrito');
         }
+    });
+}
         
         function verCarrito() {
             $.ajax({

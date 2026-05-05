@@ -4,105 +4,102 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="row mb-3 animate-fade-in-up">
+    <div class="row mb-3">
         <div class="col-md-6">
-            <h1 class="h3 mb-0"><i class="fas fa-arrows-alt-v icon-panaderia"></i> Movimientos de Inventario</h1>
+            <h1 class="h3 mb-0"><i class="fas fa-arrows-alt-v"></i> Movimientos de Inventario</h1>
         </div>
         <div class="col-md-6 text-right">
-            <a href="{{ route('movimientos.create') }}" class="btn btn-save btn-sm">
-                <i class="fas fa-plus"></i> Nuevo Movimiento
+            <a href="{{ route('produccion.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
             </a>
         </div>
     </div>
-    @if($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show animate-fade-in">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-            <h5><i class="fas fa-exclamation-circle"></i> Errores de validación</h5>
-            <ul class="mb-0">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
 
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show animate-fade-in">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-            <i class="fas fa-check-circle"></i> {{ session('success') }}
-        </div>
+        <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <div class="card shadow-sm animate-fade-in-up">
+    <div class="card">
         <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-list-check"></i> Listado de Movimientos</h5>
+            <h5 class="mb-0"><i class="fas fa-list"></i> Movimientos Agrupados</h5>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-            <table class="table table-hover table-sm">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Tipo</th>
-                        <th>Almacén</th>
-                        <th>Item</th>
-                        <th>Cantidad</th>
-                        <th>Precio Unitario</th>
-                        <th>Costo Total</th>
-                        <th>Fecha</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($movimientos as $movimiento)
+                <table class="table table-hover table-sm">
+                    <thead>
                         <tr>
-                            <td><span class="badge badge-info">{{ $movimiento->id_movimiento }}</span></td>
-                            <td>
-                                <span class="badge badge-{{ $movimiento->tipo_movimiento == 'ingreso' ? 'success' : ($movimiento->tipo_movimiento == 'egreso' ? 'danger' : 'info') }}">
-                                    {{ ucfirst($movimiento->tipo_movimiento) }}
-                                </span>
-                            </td>
-                            <td>{{ $movimiento->almacen->nombre ?? 'N/A' }}</td>
-                            <td>{{ $movimiento->item->nombre ?? 'N/A' }}</td>
-                            <td>{{ $movimiento->cantidad }}</td>
-                            <td>${{ number_format($movimiento->precio_unitario, 2) }}</td>
-                            <td>${{ number_format($movimiento->costo_total, 2) }}</td>
-                            <td>{{ $movimiento->fecha_movimiento->format('d/m/Y H:i') }}</td>
-                            <td>
-                                <span class="badge badge-{{ $movimiento->estado == 'completado' ? 'success' : ($movimiento->estado == 'pendiente' ? 'warning' : 'info') }}">
-                                    {{ ucfirst($movimiento->estado) }}
-                                </span>
-                            </td>
-                            <td>
-                                <a href="{{ route('movimientos.show', $movimiento) }}" class="btn btn-info btn-xs">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{{ route('movimientos.edit', $movimiento) }}" class="btn btn-warning btn-xs">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form action="{{ route('movimientos.destroy', $movimiento) }}" method="POST" style="display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-xs" onclick="return confirm('\u00bfEst\u00e1 seguro?')" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
+                            <th>Fecha</th>
+                            <th>Referencia</th>
+                            <th>Tipo(s)</th>
+                            <th>Ingresos</th>
+                            <th>Egresos</th>
+                            <th>Items</th>
+                            <th>Costo Total</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="10" class="text-center text-muted">No hay movimientos registrados</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @forelse($movimientos as $mov)
+                            @php
+                                $tipos = explode(',', $mov->tipos);
+                                $esIngreso = in_array('ingreso', $tipos);
+                                $esEgreso = in_array('egreso', $tipos);
+                                $esTraspaso = in_array('traspaso_origen', $tipos) || in_array('traspaso_destino', $tipos);
+                            @endphp
+                            <tr>
+                                <td>{{ \Carbon\Carbon::parse($mov->fecha_movimiento)->format('d/m/Y H:i') }}</td>
+                                <td>
+                                    <span class="badge badge-secondary">{{ ucfirst($mov->referencia_tipo) }} #{{ $mov->referencia_id }}</span>
+                                </td>
+                                <td>
+                                    @if($esTraspaso)
+                                        <span class="badge badge-info">🔄 Traspaso</span>
+                                    @elseif($esIngreso && !$esEgreso)
+                                        <span class="badge badge-success">📥 Ingreso</span>
+                                    @elseif($esEgreso && !$esIngreso)
+                                        <span class="badge badge-danger">📤 Egreso</span>
+                                    @else
+                                        <span class="badge badge-warning">📦 Mixto</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($mov->total_ingresos > 0)
+                                        <span class="text-success">+{{ $mov->total_ingresos }}</span>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($mov->total_egresos > 0)
+                                        <span class="text-danger">-{{ $mov->total_egresos }}</span>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td><span class="badge badge-pill badge-light">{{ $mov->items_count }}</span></td>
+                                <td>Bs. {{ number_format($mov->costo_total, 2) }}</td>
+                                <td>
+                                    <span class="badge badge-{{ $mov->estado == 'completado' ? 'success' : 'warning' }}">
+                                        {{ ucfirst($mov->estado) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ route('movimientos.show', $mov->referencia_id) }}?tipo={{ $mov->referencia_tipo }}" 
+                                       class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i> Ver
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="9" class="text-center text-muted">No hay movimientos registrados</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-        </div>
-        <div class="card-footer">
-            <div class="pagination justify-content-center">
-                {{ $movimientos->links() }}
-            </div>
+            {{ $movimientos->links() }}
         </div>
     </div>
 </div>

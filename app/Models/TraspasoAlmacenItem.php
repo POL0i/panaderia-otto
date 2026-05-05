@@ -20,72 +20,120 @@ class TraspasoAlmacenItem extends Model
         'cantidad',
     ];
 
-    protected $casts = [
-        'cantidad' => 'integer',
-    ];
-
-    /**
-     * Boot method para manejar el stock automáticamente
-     */
     protected static function booted()
     {
         static::creating(function ($traspasoItem) {
-            // Validar que los almacenes sean diferentes
             if ($traspasoItem->id_almacen_origen === $traspasoItem->id_almacen_destino) {
                 throw new \Exception('El almacén origen y destino no pueden ser el mismo');
             }
             
             DB::transaction(function () use ($traspasoItem) {
-                // Verificar stock en origen
-                $almacenItemOrigen = AlmacenItem::where('id_almacen', $traspasoItem->id_almacen_origen)
+                // Verificar stock en origen usando Query Builder
+                $almacenItemOrigen = DB::table('almacen_item')
+                    ->where('id_almacen', $traspasoItem->id_almacen_origen)
                     ->where('id_item', $traspasoItem->id_item)
                     ->lockForUpdate()
                     ->first();
                 
-                if (!$almacenItemOrigen || $almacenItemOrigen->stock < $traspasoItem->cantidad) {
-                    $stock = $almacenItemOrigen->stock ?? 0;
-                    throw new \Exception("Stock insuficiente en almacén origen. Disponible: {$stock}");
+                $stockActual = $almacenItemOrigen->stock ?? 0;
+                
+                if ($stockActual < $traspasoItem->cantidad) {
+                    throw new \Exception("Stock insuficiente en almacén origen. Disponible: {$stockActual}");
                 }
                 
-                // Descontar del origen
-                $almacenItemOrigen->decrement('stock', $traspasoItem->cantidad);
+                // ✅ Descontar del origen con Query Builder
+                DB::table('almacen_item')
+                    ->where('id_almacen', $traspasoItem->id_almacen_origen)
+                    ->where('id_item', $traspasoItem->id_item)
+                    ->decrement('stock', $traspasoItem->cantidad);
                 
-                // Agregar al destino (crear si no existe)
-                AlmacenItem::updateOrCreate(
-                    [
+                // ✅ Agregar al destino con Query Builder
+                $existeDestino = DB::table('almacen_item')
+                    ->where('id_almacen', $traspasoItem->id_almacen_destino)
+                    ->where('id_item', $traspasoItem->id_item)
+                    ->exists();
+                
+                if ($existeDestino) {
+                    DB::table('almacen_item')
+                        ->where('id_almacen', $traspasoItem->id_almacen_destino)
+                        ->where('id_item', $traspasoItem->id_item)
+                        ->increment('stock', $traspasoItem->cantidad);
+                } else {
+                    DB::table('almacen_item')->insert([
                         'id_almacen' => $traspasoItem->id_almacen_destino,
-                        'id_item' => $traspasoItem->id_item
-                    ],
-                    ['stock' => 0]
-                )->increment('stock', $traspasoItem->cantidad);
-            });
-        });
+                        'id_item' => $traspasoItem->id_item,
+                        'stock' => $traspasoItem->cantidad,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
 
-        static::deleting(function ($traspasoItem) {
+                \App\Models\LoteInventario::create([
+                'id_almacen' => $traspasoItem->id_almacen_destino,
+                'id_item' => $traspasoItem->id_item,
+                'cantidad_inicial' => $traspasoItem->cantidad,
+                'cantidad_disponible' => $traspasoItem->cantidad,
+                'precio_unitario' => 0,
+                'fecha_entrada' => now(),
+                'referencia_id' => $traspasoItem->id_traspaso,
+                'referencia_tipo' => 'traspaso',
+                'estado' => 'disponible',
+                'metodo_valuacion' => 'PEPS',
+            ]);
+
+            // ✅ Consumir lote en origen
+            \App\Models\LoteInventario::consumir(
+                $traspasoItem->id_almacen_origen,
+                $traspasoItem->id_item,
+                $traspasoItem->cantidad,
+                'PEPS'
+            );
+            });
+
+               // ✅ Movimiento de SALIDA (origen)
+                \App\Models\MovimientoInventario::registrar([
+                    'tipo_movimiento' => 'traspaso_origen',       // ← Valor correcto del ENUM
+                    'id_almacen' => $traspasoItem->id_almacen_origen,
+                    'id_item' => $traspasoItem->id_item,
+                    'cantidad' => -$traspasoItem->cantidad,
+                    'referencia_id' => $traspasoItem->id_traspaso,
+                    'referencia_tipo' => 'traspaso',
+                    'observaciones' => 'Salida por traspaso #' . $traspasoItem->id_traspaso,
+                ]);
+
+                // ✅ Movimiento de ENTRADA (destino)
+                \App\Models\MovimientoInventario::registrar([
+                    'tipo_movimiento' => 'traspaso_destino',      // ← Valor correcto del ENUM
+                    'id_almacen' => $traspasoItem->id_almacen_destino,
+                    'id_item' => $traspasoItem->id_item,
+                    'cantidad' => $traspasoItem->cantidad,
+                    'referencia_id' => $traspasoItem->id_traspaso,
+                    'referencia_tipo' => 'traspaso',
+                    'observaciones' => 'Entrada por traspaso #' . $traspasoItem->id_traspaso,
+                ]);
+                        });
+
+                        static::deleting(function ($traspasoItem) {
             DB::transaction(function () use ($traspasoItem) {
-                // Revertir el traspaso
-                AlmacenItem::where('id_almacen', $traspasoItem->id_almacen_origen)
+                // Revertir con Query Builder
+                DB::table('almacen_item')
+                    ->where('id_almacen', $traspasoItem->id_almacen_origen)
                     ->where('id_item', $traspasoItem->id_item)
                     ->increment('stock', $traspasoItem->cantidad);
                 
-                AlmacenItem::where('id_almacen', $traspasoItem->id_almacen_destino)
+                DB::table('almacen_item')
+                    ->where('id_almacen', $traspasoItem->id_almacen_destino)
                     ->where('id_item', $traspasoItem->id_item)
                     ->decrement('stock', $traspasoItem->cantidad);
             });
         });
     }
 
-    /**
-     * Relación con el traspaso
-     */
     public function traspaso(): BelongsTo
     {
         return $this->belongsTo(Traspaso::class, 'id_traspaso', 'id_traspaso');
     }
 
-    /**
-     * Relación con almacen_item (origen)
-     */
     public function almacenItemOrigen(): BelongsTo
     {
         return $this->belongsTo(
@@ -95,9 +143,6 @@ class TraspasoAlmacenItem extends Model
         );
     }
 
-    /**
-     * Relación con almacen_item (destino)
-     */
     public function almacenItemDestino(): BelongsTo
     {
         return $this->belongsTo(
@@ -107,27 +152,18 @@ class TraspasoAlmacenItem extends Model
         );
     }
 
-    /**
-     * Acceso rápido al almacén origen
-     */
     public function almacenOrigen()
     {
-        return $this->almacenItemOrigen->almacen();
+        return Almacen::find($this->id_almacen_origen);
     }
 
-    /**
-     * Acceso rápido al almacén destino
-     */
     public function almacenDestino()
     {
-        return $this->almacenItemDestino->almacen();
+        return Almacen::find($this->id_almacen_destino);
     }
 
-    /**
-     * Acceso rápido al item
-     */
     public function item()
     {
-        return $this->almacenItemOrigen->item();
+        return Item::find($this->id_item);
     }
 }

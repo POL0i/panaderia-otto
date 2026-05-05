@@ -8,6 +8,7 @@ class Produccion extends Model
 {
     protected $table = 'producciones';
     protected $primaryKey = 'id_produccion';
+    
     protected $fillable = [
         'fecha_produccion', 'cantidad_producida', 'id_empleado_solicita',
         'id_empleado_autoriza', 'estado', 'fecha_solicitud', 'fecha_autorizacion', 'observaciones'
@@ -34,16 +35,40 @@ class Produccion extends Model
         return $this->hasMany(DetalleProduccion::class, 'id_produccion');
     }
 
-   public function receta()
+    public function receta()
     {
         return $this->hasOneThrough(
             Receta::class,
             DetalleProduccion::class,
-            'id_produccion',           // FK en DetalleProduccion
-            'id_receta',               // PK en Receta (a través de detalle_receta)
-            'id_produccion',           // Local key en Produccion
-            'id_receta'                // FK en detalle_receta (necesita join)
+            'id_produccion',
+            'id_receta',
+            'id_produccion',
+            'id_receta'
         )->join('detalle_receta', 'detalle_receta.id_detalle_receta', '=', 'detalle_produccion.id_detalle_receta')
          ->whereNotNull('detalle_produccion.id_detalle_receta');
+    }
+
+    // =============================================
+    // MÉTODOS HELPER DE ESTADO
+    // =============================================
+    
+    public function esPendiente()
+    {
+        return $this->estado === 'pendiente';
+    }
+
+    public function esAprobado()
+    {
+        return $this->estado === 'aprobado';
+    }
+
+    public function esRechazado()
+    {
+        return $this->estado === 'rechazado';
+    }
+
+    public function esCancelado()
+    {
+        return $this->estado === 'cancelado';
     }
 }

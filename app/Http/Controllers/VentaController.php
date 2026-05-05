@@ -18,9 +18,18 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Models\TransaccionLibelula;
+use App\Services\LibelulaService;
 
 class VentaController extends Controller
 {
+    protected $libelulaService;
+
+    public function __construct(LibelulaService $libelulaService)
+    {
+        $this->libelulaService = $libelulaService;
+    }
+
     public function index()
     {
         $almacenes = Almacen::all();
@@ -42,7 +51,12 @@ class VentaController extends Controller
             ->join('almacenes', 'detalles_venta.id_almacen', '=', 'almacenes.id_almacen')
             ->join('items', 'detalles_venta.id_item', '=', 'items.id_item')
             ->join('productos', 'items.id_item', '=', 'productos.id_item')
-            ->select('detalles_venta.*', 'notas_venta.id_nota_venta', 'almacenes.nombre as almacen_nombre', 'productos.nombre as producto_nombre')
+            ->select(
+                'detalles_venta.*',
+                'notas_venta.id_nota_venta',
+                'almacenes.nombre as almacen_nombre',
+                'items.nombre as producto_nombre'  // ← Cambiado de productos.nombre a items.nombre
+            )
             ->orderBy('detalles_venta.created_at', 'desc')
             ->take(20)
             ->get();
@@ -124,11 +138,30 @@ class VentaController extends Controller
                     'precio'        => $detalle['precio'],
                 ]);
 
-                // Descontar stock usando Query Builder (evita error con PK compuesta)
+                // Descontar stock
                 DB::table('almacen_item')
                     ->where('id_almacen', $detalle['id_almacen'])
                     ->where('id_item', $detalle['id_item'])
                     ->decrement('stock', $detalle['cantidad']);
+
+                \App\Models\LoteInventario::consumir(
+                    $detalle['id_almacen'],
+                    $detalle['id_item'],
+                    $detalle['cantidad'],
+                    'PEPS'
+                );
+
+                \App\Models\MovimientoInventario::registrar([
+                    'tipo_movimiento' => 'egreso',
+                    'id_almacen' => $detalle['id_almacen'],
+                    'id_item' => $detalle['id_item'],
+                    'cantidad' => -$detalle['cantidad'],         // negativo
+                    'precio_unitario' => $detalle['precio'],
+                    'costo_total' => -($detalle['cantidad'] * $detalle['precio']),
+                    'referencia_id' => $notaVenta->id_nota_venta,
+                    'referencia_tipo' => 'venta',
+                    'observaciones' => 'Egreso por venta #' . $notaVenta->id_nota_venta,
+                ]);
             }
 
             // 7. Confirmar transacción
@@ -202,18 +235,22 @@ class VentaController extends Controller
         return response()->json(['stock' => $almacenItem ? $almacenItem->stock : 0]);
     }
     
-    public function getNotaVenta($id)
-    {
-        $nota = NotaVenta::with(['cliente', 'empleado'])->findOrFail($id);
-        $detalles = DB::table('detalles_venta')
-            ->join('almacenes', 'detalles_venta.id_almacen', '=', 'almacenes.id_almacen')
-            ->join('items', 'detalles_venta.id_item', '=', 'items.id_item')
-            ->join('productos', 'items.id_item', '=', 'productos.id_item')
-            ->where('detalles_venta.id_nota_venta', $id)
-            ->select('detalles_venta.*', 'almacenes.nombre as almacen_nombre', 'productos.nombre as producto_nombre')
-            ->get();
-        return response()->json(['nota_venta' => $nota, 'detalles' => $detalles]);
-    }
+public function getNotaVenta($id)
+{
+    $nota = NotaVenta::with(['cliente', 'empleado'])->findOrFail($id);
+    $detalles = DB::table('detalles_venta')
+        ->join('almacenes', 'detalles_venta.id_almacen', '=', 'almacenes.id_almacen')
+        ->join('items', 'detalles_venta.id_item', '=', 'items.id_item')
+        ->join('productos', 'items.id_item', '=', 'productos.id_item')
+        ->where('detalles_venta.id_nota_venta', $id)
+        ->select(
+            'detalles_venta.*',
+            'almacenes.nombre as almacen_nombre',
+            'items.nombre as producto_nombre'  // ← Cambiado
+        )
+        ->get();
+    return response()->json(['nota_venta' => $nota, 'detalles' => $detalles]);
+}
    public function enviarCorreo(Request $request)
     {
         $request->validate([
@@ -288,7 +325,7 @@ class VentaController extends Controller
                     'id_almacen' => $ai->id_almacen,
                     'almacen_nombre' => $ai->almacen->nombre,
                     'id_item' => $ai->id_item,
-                    'producto_nombre' => $ai->item->producto->nombre,
+                    'producto_nombre' => $ai->item->nombre ?? 'Producto',
                     'stock' => $ai->stock,
                     'precio' => $ai->item->producto->precio,
                     'imagen' => $imagen,
@@ -304,37 +341,32 @@ class VentaController extends Controller
     }
 
     //-- Seccion para clientes --//
-    public function landingPage()
-{
-    // Datos estáticos de prueba
-    $productosConStock = collect([
-        (object)[
-            'id_almacen' => 1,
-            'id_item' => 1,
-            'nombre' => 'Pastel de Queso',
-            'precio' => 222.00,
-            'stock' => 222,
-            'imagen' => 'productos/GE0tW0EWBWB05jT5lHx1SziAAFQEBgcjLD2BCETh.jpg',
-            'almacen_nombre' => 'Almacén Principal',
-            'categoria' => 'Pastelería',
-            'descripcion' => 'Delicioso pastel de queso artesanal'
-        ],
-        (object)[
-            'id_almacen' => 4,
-            'id_item' => 3,
-            'nombre' => 'Dona',
-            'precio' => 21.00,
-            'stock' => 2100,
-            'imagen' => 'productos/1nPgCUdttWG1YKgrlyLXsgWlnG9W2QWCC1LCUg9g.jpg',
-            'almacen_nombre' => 'Almacén de Todo',
-            'categoria' => 'Panadería',
-            'descripcion' => 'Dona esponjosa y deliciosa'
-        ]
-    ]);
-    
-    return view('PanaderiaOtto', compact('productosConStock'));
-    dd($productosConStock);
-}
+   public function landingPage()
+    {
+        // Obtener productos con stock desde la base de datos
+        $productosConStock = DB::table('almacen_item')
+            ->join('items', 'almacen_item.id_item', '=', 'items.id_item')
+            ->join('productos', 'items.id_item', '=', 'productos.id_item')
+            ->join('almacenes', 'almacen_item.id_almacen', '=', 'almacenes.id_almacen')
+            ->leftJoin('categoria_producto', 'productos.id_cat_producto', '=', 'categoria_producto.id_cat_producto')
+            ->where('items.tipo_item', 'producto')
+            ->where('almacen_item.stock', '>', 0)
+            ->select(
+                'almacen_item.id_almacen',
+                'almacen_item.id_item',
+                'items.nombre',
+                'productos.precio',
+                'almacen_item.stock',
+                'productos.imagen',
+                'almacenes.nombre as almacen_nombre',
+                'categoria_producto.nombre as categoria',
+                'items.nombre as descripcion'
+            )
+            ->orderBy('items.nombre')
+            ->get();
+
+        return view('PanaderiaOtto', compact('productosConStock'));
+    }
 
         
     public function agregarAlCarrito(Request $request)
@@ -450,4 +482,177 @@ class VentaController extends Controller
             'total_almacen_items' => $almacenItems->count()
         ]);
     }
+
+    
+   public function procesarPedido(Request $request, LibelulaService $libelula)
+{
+    // 1. Obtener carrito de sesión
+    $cart = session()->get('cart', []);
+    if (empty($cart)) {
+        return redirect()->route('landing')->with('error', 'Carrito vacío');
+    }
+
+    // 2. Calcular total
+    $total = $this->calcularTotal($cart);
+
+    // 3. Obtener el cliente
+    $clienteId = null;
+    
+    if (auth()->check()) {
+        $usuario = auth()->user();
+        if ($usuario->tipo_usuario === 'cliente' && $usuario->id_cliente) {
+            $clienteId = $usuario->id_cliente;
+        } else {
+            $clienteAnonimo = Cliente::firstOrCreate(
+                ['email' => 'anonimo@panaderiaotto.com'],
+                [
+                    'nombre' => 'Cliente',
+                    'apellido' => 'Anónimo',
+                    'telefono' => 'N/A'
+                ]
+            );
+            $clienteId = $clienteAnonimo->id_cliente;
+        }
+    } else {
+        $clienteAnonimo = Cliente::firstOrCreate(
+            ['email' => 'anonimo@panaderiaotto.com'],
+            [
+                'nombre' => 'Cliente',
+                'apellido' => 'Anónimo',
+                'telefono' => 'N/A'
+            ]
+        );
+        $clienteId = $clienteAnonimo->id_cliente;
+    }
+
+    // 4. Crear la Nota de Venta con un identificador único
+    $notaVenta = NotaVenta::create([
+        'fecha_venta' => now(),
+        'monto_total' => $total,
+        'estado' => 'pendiente',
+        'id_cliente' => $clienteId,
+        'id_empleado' => null,
+    ]);
+
+    // 5. Crear los detalles de la venta
+    foreach ($cart as $item) {
+        DetalleVenta::create([
+            'id_nota_venta' => $notaVenta->id_nota_venta,
+            'id_almacen' => $item['id_almacen'],
+            'id_item' => $item['id_item'],
+            'cantidad' => $item['cantidad'],
+            'precio' => $item['precio'],
+        ]);
+    }
+
+    // ✅ VERIFICAR si ya existe una transacción para esta nota de venta
+    $transaccionExistente = TransaccionLibelula::where('nota_venta_id', $notaVenta->id_nota_venta)->first();
+    
+    if ($transaccionExistente && $transaccionExistente->url_pasarela) {
+        // Ya existe una transacción, usar la existente
+        \Log::info('Usando transacción existente', ['nota_venta_id' => $notaVenta->id_nota_venta]);
+        
+        session()->forget('cart');
+        
+        return view('pago.mostrar', [
+            'notaVenta' => $notaVenta,
+            'qr_url' => $transaccionExistente->qr_url,
+            'url_pasarela' => $transaccionExistente->url_pasarela,
+            'id_transaccion' => $transaccionExistente->id_transaccion_libelula
+        ]);
+    }
+
+    // 6. Registrar deuda en Libélula
+    \Log::info('Intentando registrar pago en Libélula', ['nota_venta_id' => $notaVenta->id_nota_venta]);
+    $resultado = $libelula->registrarPago($notaVenta);
+    \Log::info('Respuesta de Libélula', $resultado);
+
+    if (!$resultado['success']) {
+        // Si el error es que ya existe, intentar obtener la transacción existente
+        if (str_contains($resultado['message'], 'Ya existe otra deuda activa')) {
+            // Buscar la transacción por el identificador
+            $transaccionExistente = TransaccionLibelula::where('identificador', (string) $notaVenta->id_nota_venta)->first();
+            
+            if ($transaccionExistente && $transaccionExistente->url_pasarela) {
+                \Log::info('Recuperando transacción existente después de error', ['nota_venta_id' => $notaVenta->id_nota_venta]);
+                
+                session()->forget('cart');
+                
+                return view('pago.mostrar', [
+                    'notaVenta' => $notaVenta,
+                    'qr_url' => $transaccionExistente->qr_url,
+                    'url_pasarela' => $transaccionExistente->url_pasarela,
+                    'id_transaccion' => $transaccionExistente->id_transaccion_libelula
+                ]);
+            }
+        }
+        
+        // Si falla, eliminar la nota de venta
+        $notaVenta->delete();
+        return back()->with('error', $resultado['message']);
+    }
+
+    // 7. Obtener transacción
+    $transaccion = $notaVenta->transaccionLibelula;
+
+    // 8. Limpiar carrito de sesión
+    session()->forget('cart');
+
+    // 9. Mostrar vista de pago
+    return view('pago.mostrar', [
+        'notaVenta' => $notaVenta,
+        'qr_url' => $transaccion->qr_url ?? null,
+        'url_pasarela' => $transaccion->url_pasarela ?? null,
+        'id_transaccion' => $transaccion->id_transaccion_libelula ?? null
+    ]);
+}
+
+    // Método auxiliar para calcular el total
+    private function calcularTotal($cart)
+    {
+        $total = 0;
+        foreach ($cart as $item) {
+            $total += $item['precio'] * $item['cantidad'];
+        }
+        return $total;
+    }
+
+    public function webhookPagoExitoso(Request $request)
+    {
+        $transactionId = $request->get('transaction_id');
+        
+        \Log::info('Webhook Libélula recibido', $request->all());
+        
+        if (!$transactionId) {
+            return response()->json(['error' => 'No transaction_id'], 400);
+        }
+        
+        $transaccion = TransaccionLibelula::where('id_transaccion_libelula', $transactionId)->first();
+        
+        if ($transaccion) {
+            $transaccion->update(['estado' => 'pagado']);
+            
+            $notaVenta = $transaccion->notaVenta;
+            $notaVenta->update(['estado' => 'completado']);
+        }
+        
+        return response()->json(['success' => true]);
+    }
+
+    public function verificarPago($id)
+{
+    $notaVenta = NotaVenta::findOrFail($id);
+    $transaccion = $notaVenta->transaccionLibelula;
+    
+    return response()->json([
+        'pagado' => $transaccion && $transaccion->estado === 'pagado'
+    ]);
+}
+
+public function pagoExito($id)
+{
+    $notaVenta = NotaVenta::findOrFail($id);
+    return redirect()->route('landing')->with('success', '¡Pago confirmado! Gracias por tu compra.');
+}
+
 }

@@ -106,13 +106,13 @@ class AlmacenModuleController extends Controller
         try {
             $item = Item::create([
                 'tipo_item' => 'insumo',
+                'nombre' => $validated['nombre'],
                 'unidad_medida' => $validated['unidad_medida'],
             ]);
 
             $insumo = Insumo::create([
                 'id_item' => $item->id_item,
-                'id_cat_insumo' => $validated['id_cat_insumo'],
-                'nombre' => $validated['nombre'],
+                'id_cat_insumo' => $validated['id_cat_insumo'],                
                 'precio_compra' => $validated['precio_compra'] ?? null,
             ]);
 
@@ -169,6 +169,7 @@ class AlmacenModuleController extends Controller
         try {
             $item = Item::create([
                 'tipo_item' => 'producto',
+                'nombre' => $validated['nombre'],
                 'unidad_medida' => $validated['unidad_medida'],
             ]);
 
@@ -182,8 +183,7 @@ class AlmacenModuleController extends Controller
 
             $producto = Producto::create([
                 'id_item' => $item->id_item,
-                'id_cat_producto' => $validated['id_cat_producto'],
-                'nombre' => $validated['nombre'],
+                'id_cat_producto' => $validated['id_cat_producto'],                
                 'precio' => $validated['precio'] ?? null,
                 'imagen' => $imagenPath,
             ]);
@@ -207,7 +207,7 @@ class AlmacenModuleController extends Controller
     // ============================================
     // STOCK (AlmacenItem)
     // ============================================
-    public function storeStock(Request $request)
+   public function storeStock(Request $request)
     {
         $validated = $request->validate([
             'id_almacen' => 'required|exists:almacenes,id_almacen',
@@ -216,23 +216,35 @@ class AlmacenModuleController extends Controller
         ]);
 
         // Verificar si ya existe el registro
-        $almacenItem = AlmacenItem::where([
-            'id_almacen' => $validated['id_almacen'],
-            'id_item' => $validated['id_item']
-        ])->first();
+        $existe = DB::table('almacen_item')
+            ->where('id_almacen', $validated['id_almacen'])
+            ->where('id_item', $validated['id_item'])
+            ->exists();
 
-        if ($almacenItem) {
-            // Actualizar stock (sumar o reemplazar según prefieras; aquí reemplazamos)
-            $almacenItem->update(['stock' => $validated['stock']]);
+        if ($existe) {
+            // Actualizar stock
+            DB::table('almacen_item')
+                ->where('id_almacen', $validated['id_almacen'])
+                ->where('id_item', $validated['id_item'])
+                ->update([
+                    'stock' => $validated['stock'],
+                    'updated_at' => now(),
+                ]);
             $message = 'Stock actualizado correctamente';
         } else {
-            $almacenItem = AlmacenItem::create($validated);
+            // Crear nuevo registro
+            DB::table('almacen_item')->insert([
+                'id_almacen' => $validated['id_almacen'],
+                'id_item' => $validated['id_item'],
+                'stock' => $validated['stock'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
             $message = 'Stock agregado correctamente';
         }
 
         return response()->json([
             'success' => true,
-            'almacen_item' => $almacenItem->load('almacen', 'item'),
             'message' => $message
         ]);
     }
@@ -240,28 +252,27 @@ class AlmacenModuleController extends Controller
     /**
      * Obtener items de un almacén específico (para mostrar en tabla)
      */
-    public function getItemsAlmacen($id)
+   public function getItemsPorAlmacen($idAlmacen)
     {
-        $almacen = Almacen::with(['items.item.producto', 'items.item.insumo'])->findOrFail($id);
-        
-        $items = $almacen->items->map(function($almacenItem) {
-            $item = $almacenItem->item;
-            $nombre = $item->producto ? $item->producto->nombre : ($item->insumo ? $item->insumo->nombre : 'Item #' . $item->id_item);
-            $tipo = $item->tipo_item;
-            return [
-                'id_item' => $item->id_item,
-                'nombre' => $nombre,
-                'tipo' => $tipo,
-                'stock' => $almacenItem->stock,
-                'unidad' => $item->unidad_medida
-            ];
-        });
+        try {
+            $items = DB::table('almacen_item')
+                ->join('items', 'almacen_item.id_item', '=', 'items.id_item')
+                ->where('almacen_item.id_almacen', $idAlmacen)
+                ->select(
+                    'almacen_item.id_almacen',
+                    'almacen_item.id_item',
+                    'items.nombre as item_nombre',
+                    'items.tipo_item',
+                    'items.unidad_medida',
+                    'almacen_item.stock'
+                )
+                ->get();
 
-        return response()->json([
-            'success' => true,
-            'almacen' => $almacen->nombre,
-            'items' => $items
-        ]);
+            return response()->json(['items' => $items]);
+        } catch (\Exception $e) {
+            \Log::error('Error en getItemsPorAlmacen: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
     
     public function searchImages(Request $request)

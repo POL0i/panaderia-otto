@@ -24,6 +24,31 @@
     <link rel="stylesheet" href="{{ asset('css/panadria-theme.css') }}">
     
     <style>
+
+        .btn-register {
+            transition: all 0.3s ease;
+        }
+
+        .btn-register:hover {
+            background: #C4A67A !important;
+            transform: translateY(-2px);
+        }
+
+        .modal-content {
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Estilos específicos solo para el login */
         body {
             margin: 0;
@@ -432,6 +457,21 @@
                         <i class="fas fa-sign-in-alt me-2"></i> Iniciar Sesión
                     </button>
                 </form>
+
+                   {{-- ✅ NUEVO: Botón y enlace de registro --}}
+                    <div class="divider">
+                        <span>¿Nuevo cliente?</span>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="button" class="btn btn-register" id="btnRegistroRapido" style="width: 100%; padding: 12px; background: #D2B48C; color: #5D3A1A; border: none; border-radius: 50px; font-weight: 600;">
+                            <i class="fas fa-user-plus me-2"></i> Registrarse como Cliente
+                        </button>
+                        <p class="mt-3" style="font-size: 12px; color: #A0522D;">
+                            Al registrarte podrás realizar pedidos y ver tu historial de compras
+                        </p>
+                    </div>
+                </div>
                 
                 <div class="divider">
                     <span>Panadería Otto</span>
@@ -449,11 +489,133 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal de Registro Rápido --}}
+    <div class="modal fade" id="registroRapidoModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #5D3A1A 0%, #8B4513 100%);">
+                    <h5 class="modal-title text-white">
+                        <i class="fas fa-user-plus me-2"></i> Registro Rápido
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="background: #FFF9F0;">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        Completa tus datos para crear una cuenta. Podrás realizar pedidos fácilmente.
+                    </div>
+                    
+                    <form id="formRegistroRapido" action="{{ route('registro.cliente.rapido') }}" method="POST">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label>Nombre <span class="text-danger">*</span></label>
+                                    <input type="text" name="nombre" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label>Apellido</label>
+                                    <input type="text" name="apellido" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Correo Electrónico <span class="text-danger">*</span></label>
+                            <input type="email" name="correo" class="form-control" required>
+                            <small class="text-muted">Este será tu usuario para iniciar sesión</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Contraseña <span class="text-danger">*</span></label>
+                            <input type="password" name="contraseña" class="form-control" minlength="8" required>
+                            <small class="text-muted">Mínimo 8 caracteres</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Confirmar Contraseña <span class="text-danger">*</span></label>
+                            <input type="password" name="contraseña_confirmation" class="form-control" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Teléfono (opcional)</label>
+                            <input type="text" name="telefono" class="form-control">
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="terminos" required>
+                            <label class="form-check-label" for="terminos">
+                                Acepto los <a href="#" data-bs-toggle="modal" data-bs-target="#terminosModal">términos y condiciones</a>
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100" style="background: #8B4513; border: none;">
+                            <i class="fas fa-check-circle"></i> Registrarse
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal de Términos y Condiciones (simple) --}}
+    <div class="modal fade" id="terminosModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Términos y Condiciones</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Al registrarte en Panadería Otto, aceptas:</p>
+                    <ul>
+                        <li>Proporcionar información veraz y actualizada</li>
+                        <li>Mantener la confidencialidad de tu contraseña</li>
+                        <li>Aceptar nuestras políticas de privacidad y tratamiento de datos</li>
+                    </ul>
+                    <p>Para más información, contacta con nuestro equipo de soporte.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
     
     @stack('scripts')
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnRegistro = document.getElementById('btnRegistroRapido');
+    const modal = new bootstrap.Modal(document.getElementById('registroRapidoModal'));
+    
+    if (btnRegistro) {
+        btnRegistro.addEventListener('click', function() {
+            modal.show();
+        });
+    }
+    
+    // Validar confirmación de contraseña
+    const form = document.getElementById('formRegistroRapido');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const password = form.querySelector('[name="contraseña"]');
+            const confirm = form.querySelector('[name="contraseña_confirmation"]');
+            
+            if (password.value !== confirm.value) {
+                e.preventDefault();
+                alert('Las contraseñas no coinciden');
+                confirm.focus();
+            }
+        });
+    }
+});
+</script>
 </body>
 </html>

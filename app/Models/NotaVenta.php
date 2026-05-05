@@ -14,39 +14,41 @@ class NotaVenta extends Model
         'fecha_venta',
         'monto_total',
         'estado',
+        'metodo_pago',
+        'id_transaccion_libelula',
         'id_cliente',
         'id_empleado',
     ];
 
-    protected $dates = [
-        'fecha_venta',
+    protected $casts = [
+        'fecha_venta' => 'date',
+        'monto_total' => 'decimal:2',
     ];
 
-    /**
-     * Get the cliente for this nota de venta.
-     */
     public function cliente()
     {
         return $this->belongsTo(Cliente::class, 'id_cliente', 'id_cliente');
     }
 
-    /**
-     * Get the empleado for this nota de venta.
-     */
     public function empleado()
     {
         return $this->belongsTo(Empleado::class, 'id_empleado', 'id_empleado');
     }
 
-    /**
-     * Get all detalles de venta for this nota.
-     */
     public function detalles()
     {
         return $this->hasMany(DetalleVenta::class, 'id_nota_venta', 'id_nota_venta');
     }
 
-    /**
-     * Get all productos through detalles.
-     */
+    // ✅ Nueva relación con transacciones Libélula
+    public function transaccionLibelula()
+    {
+        return $this->hasOne(TransaccionLibelula::class, 'nota_venta_id', 'id_nota_venta');
+    }
+
+    
+    public function pagadoConLibelula()
+    {
+        return $this->metodo_pago === 'libelula' && $this->estado === 'completado';
+    }
 }

@@ -81,20 +81,20 @@
                                 <i class="fas fa-plus"></i> Nuevo Almacén
                             </button>
                         </div>
-                        <div class="col-md-5">
-                            <label>Insumo / Item</label>
-                            <select class="form-control" id="itemSelect" required>
-                                <option value="">Seleccionar Item</option>
-                                <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($item->id_item); ?>" data-nombre="<?php echo e($item->insumo->nombre ?? 'Item'); ?>">
-                                        <?php echo e($item->insumo->nombre ?? 'Item'); ?> (<?php echo e($item->insumo->unidad_medida ?? 'unidad'); ?>)
-                                    </option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </select>
-                            <button type="button" class="btn btn-sm btn-link mt-1" data-toggle="modal" data-target="#createInsumoModal">
-                                <i class="fas fa-plus"></i> Nuevo Insumo
-                            </button>
-                        </div>
+                            <div class="col-md-5">
+                                <label>Insumo / Item</label>
+                                <select class="form-control" id="itemSelect" required>
+                                    <option value="">Seleccionar Item</option>
+                                    <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($item->id_item); ?>" data-nombre="<?php echo e($item->nombre ?? 'Item'); ?>">
+                                            <?php echo e($item->nombre ?? 'Item'); ?> (<?php echo e($item->unidad_medida ?? 'unidad'); ?>)
+                                        </option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </select>
+                                <button type="button" class="btn btn-sm btn-link mt-1" data-toggle="modal" data-target="#createInsumoModal">
+                                    <i class="fas fa-plus"></i> Nuevo Insumo
+                                </button>
+                            </div>
                         <div class="col-md-2">
                             <label>Cantidad</label>
                             <input type="number" class="form-control" id="itemCantidad" placeholder="Cantidad" required>
@@ -193,7 +193,7 @@
                                         <tr>
                                             <td><?php echo e($detalle->id_nota_compra); ?></td>
                                             <td><?php echo e($detalle->almacen->nombre ?? 'N/A'); ?></td>
-                                            <td><?php echo e($detalle->item->insumo->nombre ?? $detalle->item->nombre ?? 'Item'); ?></td>
+                                            <td><?php echo e($detalle->item->nombre ?? 'Item'); ?></td>
                                             <td><?php echo e($detalle->cantidad); ?></td>
                                             <td>Bs. <?php echo e(number_format($detalle->precio, 2)); ?></td>
                                             <td>Bs. <?php echo e(number_format($detalle->cantidad * $detalle->precio, 2)); ?></td>

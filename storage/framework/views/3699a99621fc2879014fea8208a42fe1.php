@@ -1,118 +1,241 @@
 
 
-<?php $__env->startSection('title', 'Ver Producción'); ?>
+
+<?php $__env->startSection('title', 'Producción #' . $produccion->id_produccion . ' - Panadería Otto'); ?>
+<?php $__env->startSection('page-title', 'Detalle de Producción #' . $produccion->id_produccion); ?>
+<?php $__env->startSection('page-description', 'Revisión y autorización de orden de producción'); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="container-fluid">
-    <div class="row mb-3 animate-fade-in-up">
+
+    
+    <?php if(session('error')): ?>
+        <div class="alert alert-danger"><?php echo nl2br(e(session('error'))); ?></div>
+    <?php endif; ?>
+    <?php if(session('success')): ?>
+        <div class="alert alert-success"><?php echo e(session('success')); ?></div>
+    <?php endif; ?>
+
+    
+    <div class="row">
         <div class="col-md-8">
-            <h1 class="h3 mb-0"><i class="fas fa-eye icon-panaderia"></i> Producción #<?php echo e($produccion->id_produccion); ?></h1>
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información de la Producción</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>ID:</strong> #<?php echo e($produccion->id_produccion); ?></p>
+                            <p><strong>Fecha producción:</strong> <?php echo e(\Carbon\Carbon::parse($produccion->fecha_produccion)->format('d/m/Y')); ?></p>
+                            <p><strong>Cantidad a producir:</strong> <?php echo e($produccion->cantidad_producida); ?></p>
+                            <p><strong>Solicitante:</strong> <?php echo e($produccion->empleadoSolicita->nombre ?? 'N/A'); ?></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Estado:</strong> 
+                                <?php switch($produccion->estado):
+                                    case ('pendiente'): ?> <span class="badge badge-warning">Pendiente</span> <?php break; ?>
+                                    <?php case ('aprobado'): ?> <span class="badge badge-success">Aprobado</span> <?php break; ?>
+                                    <?php case ('rechazado'): ?> <span class="badge badge-danger">Rechazado</span> <?php break; ?>
+                                    <?php case ('cancelado'): ?> <span class="badge badge-secondary">Cancelado</span> <?php break; ?>
+                                <?php endswitch; ?>
+                            </p>
+                            <p><strong>Fecha solicitud:</strong> <?php echo e($produccion->fecha_solicitud ? $produccion->fecha_solicitud->format('d/m/Y H:i') : 'No registrada'); ?></p>
+                            <?php if($produccion->fecha_autorizacion): ?>
+                                <p><strong>Autorizado por:</strong> <?php echo e($produccion->empleadoAutoriza->nombre ?? 'N/A'); ?></p>
+                                <p><strong>Fecha autorización:</strong> <?php echo e($produccion->fecha_autorizacion->format('d/m/Y H:i')); ?></p>
+                            <?php endif; ?>
+                            <?php if($produccion->observaciones): ?>
+                                <p><strong>Observaciones:</strong> <?php echo e($produccion->observaciones); ?></p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-md-4 text-right">
-            <a href="<?php echo e(route('producciones.index')); ?>" class="btn btn-back btn-sm">
-                <i class="fas fa-arrow-left"></i> Volver
+            <a href="<?php echo e(route('producciones.index')); ?>" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a lista
             </a>
         </div>
     </div>
 
-    <?php if(session('success')): ?>
-        <div class="alert alert-success alert-dismissible fade show animate-fade-in">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-            <i class="fas fa-check-circle"></i> <?php echo e(session('success')); ?>
+    
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    
+                       <?php
+                            $detalleConReceta = $produccion->detalles
+                                ->whereNotNull('id_detalle_receta')
+                                ->first();
+                            $receta = $detalleConReceta?->detalleReceta?->receta;
+                        ?>
+                        <h5 class="mb-0"><i class="fas fa-book"></i> Receta: 
+                            <strong><?php echo e($receta->nombre ?? 'N/A'); ?></strong>
+                            <?php if($receta && $receta->producto): ?>
+                                → Producto final: <strong><?php echo e($receta->producto->item->nombre ?? 'N/A'); ?></strong>
+                            <?php endif; ?>
+                        </h5>
+                    
 
-        </div>
-    <?php endif; ?>
-
-    <div class="card shadow-sm animate-fade-in-up">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Detalles de la Producción</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="font-weight-bold">ID Producción:</label>
-                        <p><?php echo e($produccion->id_produccion); ?></p>
-                    </div>
-                    <div class="form-group">
-                        <label class="font-weight-bold"><i class="fas fa-calendar"></i> Fecha de Producción:</label>
-                        <p><?php echo e($produccion->fecha_produccion->format('d/m/Y')); ?></p>
-                    </div>
-                    <div class="form-group">
-                        <label class="font-weight-bold"><i class="fas fa-book"></i> Receta:</label>
-                        <p><?php echo e($produccion->receta->nombre ?? 'N/A'); ?></p>
-                    </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="font-weight-bold"><i class="fas fa-cubes"></i> Cantidad Producida:</label>
-                        <p><?php echo e($produccion->cantidad_producida); ?></p>
-                    </div>
-                    <div class="form-group">
-                        <label class="font-weight-bold"><i class="fas fa-user"></i> Empleado:</label>
-                        <p><?php echo e($produccion->empleado->nombre ?? 'N/A'); ?></p>
-                    </div>
-                    <div class="form-group">
-                        <label class="font-weight-bold"><i class="fas fa-clock"></i> Creado:</label>
-                        <p><?php echo e($produccion->created_at->format('d/m/Y H:i')); ?></p>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Movimientos Planificados</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Ítem</th>
+                                    <th>Almacén actual</th>
+                                    <th>Cantidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $__currentLoopData = $produccion->detalles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $detalle): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <tr>
+                                    <td>
+                                        <?php if($detalle->tipo_movimiento == 'egreso'): ?>
+                                            <span class="badge badge-danger">Consume (Insumo)</span>
+                                        <?php else: ?>
+                                            <span class="badge badge-success">Produce (Producto)</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php echo e($detalle->item->nombre ?? 'Item #' . $detalle->id_item); ?>
+
+                                    </td>
+                                    <td>
+                                        <?php if($detalle->id_almacen && $detalle->id_almacen != 1): ?>
+                                            <?php echo e($detalle->almacen->nombre ?? 'Almacén #' . $detalle->id_almacen); ?>
+
+                                        <?php else: ?>
+                                            <span class="text-muted">Pendiente de asignación</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><strong><?php echo e($detalle->cantidad); ?></strong></td>
+                                </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm mt-3 animate-fade-in-up">
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0"><i class="fas fa-cubes"></i> Insumos Requeridos de la Receta</h5>
-        </div>
-        <div class="card-body">
-            <?php if($produccion->receta && $produccion->receta->detalles->count() > 0): ?>
-                <div class="table-responsive">
-                    <table class="table table-hover table-sm">
-                        <thead>
-                            <tr>
-                                <th>Insumo</th>
-                                <th>Cantidad Requerida</th>
-                                <th>Total para esta Producción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php $__currentLoopData = $produccion->receta->detalles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $detalle): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <tr>
-                                    <td><?php echo e($detalle->insumo->nombre ?? 'N/A'); ?></td>
-                                    <td><?php echo e($detalle->cantidad_requerida); ?></td>
-                                    <td><?php echo e($detalle->cantidad_requerida * $produccion->cantidad_producida); ?></td>
-                                </tr>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                        </tbody>
-                    </table>
+    
+    <?php if($produccion->estado == 'pendiente'): ?>
+    <div class="row mt-3">
+        
+        <div class="col-md-7">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-check-circle"></i> Aprobar Producción y Ejecutar Movimientos</h5>
                 </div>
-            <?php else: ?>
-                <p class="text-muted text-center"><i class="fas fa-inbox"></i> No hay insumos asignados a esta receta</p>
-            <?php endif; ?>
+                <div class="card-body">
+                    <form action="<?php echo e(route('producciones.aprobar', $produccion)); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-arrow-down text-danger"></i> 
+                                Almacén de INSUMOS (origen) - Se descontarán de aquí
+                                <span class="text-danger">*</span>
+                            </label>
+                            <select name="almacen_origen" class="form-control" required>
+                                <option value="">Seleccione de dónde sacar insumos...</option>
+                                <?php $__currentLoopData = \App\Models\Almacen::whereIn('tipo_almacen', ['insumo', 'mixto'])->get(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $alm): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($alm->id_almacen); ?>">
+                                        <?php echo e($alm->nombre); ?> (<?php echo e($alm->tipo_almacen); ?>)
+                                    </option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-arrow-up text-success"></i> 
+                                Almacén de PRODUCTO (destino) - Se ingresará aquí
+                                <span class="text-danger">*</span>
+                            </label>
+                            <select name="almacen_destino" class="form-control" required>
+                                <option value="">Seleccione dónde guardar producto...</option>
+                                <?php $__currentLoopData = \App\Models\Almacen::whereIn('tipo_almacen', ['producto', 'mixto'])->get(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $alm): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($alm->id_almacen); ?>">
+                                        <?php echo e($alm->nombre); ?> (<?php echo e($alm->tipo_almacen); ?>)
+                                        <?php if($alm->capacidad > 0): ?> - Cap: <?php echo e($alm->capacidad); ?> <?php endif; ?>
+                                    </option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-lg btn-block">
+                            <i class="fas fa-check"></i> Ejecutar Producción
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="col-md-5">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-times-circle"></i> Rechazar o Cancelar</h5>
+                </div>
+                <div class="card-body text-center">
+                    <button class="btn btn-danger btn-lg btn-block mb-3" data-toggle="modal" data-target="#modalMotivoRechazo">
+                        <i class="fas fa-times"></i> Rechazar Producción
+                    </button>
+                    <form action="<?php echo e(route('producciones.cancelar', $produccion)); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
+                        <button type="submit" class="btn btn-dark btn-lg btn-block" 
+                                onclick="return confirm('¿Está seguro de CANCELAR esta producción?')">
+                            <i class="fas fa-ban"></i> Cancelar Producción
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="card-footer mt-3">
-        <div class="d-flex justify-content-between">
-            <a href="<?php echo e(route('producciones.index')); ?>" class="btn btn-cancel">
-                <i class="fas fa-times"></i> Cancelar
-            </a>
-            <div>
-                <a href="<?php echo e(route('producciones.edit', $produccion)); ?>" class="btn btn-warning">
-                    <i class="fas fa-edit"></i> Editar
-                </a>
-                <form action="<?php echo e(route('producciones.destroy', $produccion)); ?>" method="POST" style="display:inline;">
+    
+    <div class="modal fade" id="modalMotivoRechazo" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-times-circle"></i> Rechazar Producción</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                </div>
+                <form action="<?php echo e(route('producciones.rechazar', $produccion)); ?>" method="POST">
                     <?php echo csrf_field(); ?>
-                    <?php echo method_field('DELETE'); ?>
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('¿Está seguro de eliminar esta producción?')">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </button>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Motivo del rechazo <span class="text-danger">*</span></label>
+                            <textarea name="motivo" class="form-control" rows="3" required 
+                                      placeholder="Explique por qué se rechaza..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
+    <?php endif; ?>
+
 </div>
 <?php $__env->stopSection(); ?>
-
 <?php echo $__env->make('layouts.adminlte', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\panaderia-otto\resources\views/produccion/producciones/show.blade.php ENDPATH**/ ?>

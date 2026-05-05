@@ -44,15 +44,14 @@
         </div>
     </div>
 </div>
-
 <?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
     // Datos de items con su tipo
     const itemsData = <?php echo json_encode($items->map(function($item) {
-        $nombre = $item->producto ? $item->producto->nombre : ($item->insumo ? $item->insumo->nombre : 'Item #'.$item->id_item);
         return [
-            'id' => $item->id_item, 'nombre' => $nombre, 'tipo' => $item->tipo_item
+            'id' => $item->id_item, 'nombre' => $item->nombre ?? 'Item #' . $item->id_item, // ← Corregido
+            'tipo' => $item->tipo_item
         ];
     })) ?>;
     
@@ -89,10 +88,8 @@ $(document).ready(function() {
         let filteredItems = [];
         
         if (tipoAlmacen === 'mixto') {
-            // Mixto: muestra todos los items
             filteredItems = itemsData;
         } else {
-            // Filtrar por tipo_item
             filteredItems = itemsData.filter(item => item.tipo === tipoAlmacen);
         }
         

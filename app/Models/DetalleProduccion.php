@@ -32,27 +32,12 @@ class DetalleProduccion extends Model
         return $this->belongsTo(AlmacenItem::class, ['id_almacen', 'id_item'], ['id_almacen', 'id_item']);
     }
 
-    // Acceso al almacén a través de almacenItem
-    public function almacen()
+    public function getAlmacenAttribute()
     {
-        return $this->hasOneThrough(
-            Almacen::class,
-            AlmacenItem::class,
-            ['id_almacen', 'id_item'], // Claves en almacen_item
-            'id_almacen',              // Clave en almacenes
-            ['id_almacen', 'id_item'], // Claves locales en DetalleProduccion
-            'id_almacen'               // Clave local en AlmacenItem
-        );
-    }
+        if (!$this->id_almacen || !$this->id_item) {
+            return null;
+        }
 
-    // Acceso rápido al insumo o producto
-    public function insumo()
-    {
-        return $this->item->insumo();
-    }
-
-    public function producto()
-    {
-        return $this->item->producto();
+        return Almacen::find($this->id_almacen);
     }
 }

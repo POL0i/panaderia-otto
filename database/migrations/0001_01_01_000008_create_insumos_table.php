@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('insumos', function (Blueprint $table) {
             $table->id('id_insumo');
             $table->foreignId('id_item')->constrained('items', 'id_item')->onDelete('cascade');
-            $table->string('nombre', 25);
-            $table->integer('precio_compra');
+            $table->foreignId('id_cat_insumo')->constrained('categoria_insumo', 'id_cat_insumo')->onDelete('restrict');
+            $table->decimal('precio_compra', 10, 2);
             $table->timestamps();
         });
     }

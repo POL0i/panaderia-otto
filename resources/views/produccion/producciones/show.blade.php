@@ -1,115 +1,238 @@
+{{-- resources/views/produccion/producciones/show.blade.php --}}
 @extends('layouts.adminlte')
 
-@section('title', 'Ver Producción')
+@section('title', 'Producción #' . $produccion->id_produccion . ' - Panadería Otto')
+@section('page-title', 'Detalle de Producción #' . $produccion->id_produccion)
+@section('page-description', 'Revisión y autorización de orden de producción')
 
 @section('content')
 <div class="container-fluid">
-    <div class="row mb-3 animate-fade-in-up">
+
+    {{-- Mensajes --}}
+    @if(session('error'))
+        <div class="alert alert-danger">{!! nl2br(e(session('error'))) !!}</div>
+    @endif
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
+    {{-- Información principal --}}
+    <div class="row">
         <div class="col-md-8">
-            <h1 class="h3 mb-0"><i class="fas fa-eye icon-panaderia"></i> Producción #{{ $produccion->id_produccion }}</h1>
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información de la Producción</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>ID:</strong> #{{ $produccion->id_produccion }}</p>
+                            <p><strong>Fecha producción:</strong> {{ \Carbon\Carbon::parse($produccion->fecha_produccion)->format('d/m/Y') }}</p>
+                            <p><strong>Cantidad a producir:</strong> {{ $produccion->cantidad_producida }}</p>
+                            <p><strong>Solicitante:</strong> {{ $produccion->empleadoSolicita->nombre ?? 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Estado:</strong> 
+                                @switch($produccion->estado)
+                                    @case('pendiente') <span class="badge badge-warning">Pendiente</span> @break
+                                    @case('aprobado') <span class="badge badge-success">Aprobado</span> @break
+                                    @case('rechazado') <span class="badge badge-danger">Rechazado</span> @break
+                                    @case('cancelado') <span class="badge badge-secondary">Cancelado</span> @break
+                                @endswitch
+                            </p>
+                            <p><strong>Fecha solicitud:</strong> {{ $produccion->fecha_solicitud ? $produccion->fecha_solicitud->format('d/m/Y H:i') : 'No registrada' }}</p>
+                            @if($produccion->fecha_autorizacion)
+                                <p><strong>Autorizado por:</strong> {{ $produccion->empleadoAutoriza->nombre ?? 'N/A' }}</p>
+                                <p><strong>Fecha autorización:</strong> {{ $produccion->fecha_autorizacion->format('d/m/Y H:i') }}</p>
+                            @endif
+                            @if($produccion->observaciones)
+                                <p><strong>Observaciones:</strong> {{ $produccion->observaciones }}</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-md-4 text-right">
-            <a href="{{ route('producciones.index') }}" class="btn btn-back btn-sm">
-                <i class="fas fa-arrow-left"></i> Volver
+            <a href="{{ route('producciones.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a lista
             </a>
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show animate-fade-in">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-            <i class="fas fa-check-circle"></i> {{ session('success') }}
-        </div>
-    @endif
+    {{-- Receta utilizada --}}
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    
+                       @php
+                            $detalleConReceta = $produccion->detalles
+                                ->whereNotNull('id_detalle_receta')
+                                ->first();
+                            $receta = $detalleConReceta?->detalleReceta?->receta;
+                        @endphp
+                        <h5 class="mb-0"><i class="fas fa-book"></i> Receta: 
+                            <strong>{{ $receta->nombre ?? 'N/A' }}</strong>
+                            @if($receta && $receta->producto)
+                                → Producto final: <strong>{{ $receta->producto->item->nombre ?? 'N/A' }}</strong>
+                            @endif
+                        </h5>
+                    
 
-    <div class="card shadow-sm animate-fade-in-up">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Detalles de la Producción</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="font-weight-bold">ID Producción:</label>
-                        <p>{{ $produccion->id_produccion }}</p>
-                    </div>
-                    <div class="form-group">
-                        <label class="font-weight-bold"><i class="fas fa-calendar"></i> Fecha de Producción:</label>
-                        <p>{{ $produccion->fecha_produccion->format('d/m/Y') }}</p>
-                    </div>
-                    <div class="form-group">
-                        <label class="font-weight-bold"><i class="fas fa-book"></i> Receta:</label>
-                        <p>{{ $produccion->receta->nombre ?? 'N/A' }}</p>
-                    </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="font-weight-bold"><i class="fas fa-cubes"></i> Cantidad Producida:</label>
-                        <p>{{ $produccion->cantidad_producida }}</p>
-                    </div>
-                    <div class="form-group">
-                        <label class="font-weight-bold"><i class="fas fa-user"></i> Empleado:</label>
-                        <p>{{ $produccion->empleado->nombre ?? 'N/A' }}</p>
-                    </div>
-                    <div class="form-group">
-                        <label class="font-weight-bold"><i class="fas fa-clock"></i> Creado:</label>
-                        <p>{{ $produccion->created_at->format('d/m/Y H:i') }}</p>
+            </div>
+        </div>
+    </div>
+
+    {{-- Detalles de la producción --}}
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Movimientos Planificados</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Ítem</th>
+                                    <th>Almacén actual</th>
+                                    <th>Cantidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($produccion->detalles as $detalle)
+                                <tr>
+                                    <td>
+                                        @if($detalle->tipo_movimiento == 'egreso')
+                                            <span class="badge badge-danger">Consume (Insumo)</span>
+                                        @else
+                                            <span class="badge badge-success">Produce (Producto)</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        {{ $detalle->item->nombre ?? 'Item #' . $detalle->id_item }}
+                                    </td>
+                                    <td>
+                                        @if($detalle->id_almacen && $detalle->id_almacen != 1)
+                                            {{ $detalle->almacen->nombre ?? 'Almacén #' . $detalle->id_almacen }}
+                                        @else
+                                            <span class="text-muted">Pendiente de asignación</span>
+                                        @endif
+                                    </td>
+                                    <td><strong>{{ $detalle->cantidad }}</strong></td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm mt-3 animate-fade-in-up">
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0"><i class="fas fa-cubes"></i> Insumos Requeridos de la Receta</h5>
-        </div>
-        <div class="card-body">
-            @if($produccion->receta && $produccion->receta->detalles->count() > 0)
-                <div class="table-responsive">
-                    <table class="table table-hover table-sm">
-                        <thead>
-                            <tr>
-                                <th>Insumo</th>
-                                <th>Cantidad Requerida</th>
-                                <th>Total para esta Producción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($produccion->receta->detalles as $detalle)
-                                <tr>
-                                    <td>{{ $detalle->insumo->nombre ?? 'N/A' }}</td>
-                                    <td>{{ $detalle->cantidad_requerida }}</td>
-                                    <td>{{ $detalle->cantidad_requerida * $produccion->cantidad_producida }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+    {{-- Acciones según estado --}}
+    @if($produccion->estado == 'pendiente')
+    <div class="row mt-3">
+        {{-- Formulario de aprobación --}}
+        <div class="col-md-7">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-check-circle"></i> Aprobar Producción y Ejecutar Movimientos</h5>
                 </div>
-            @else
-                <p class="text-muted text-center"><i class="fas fa-inbox"></i> No hay insumos asignados a esta receta</p>
-            @endif
+                <div class="card-body">
+                    <form action="{{ route('producciones.aprobar', $produccion) }}" method="POST">
+                        @csrf
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-arrow-down text-danger"></i> 
+                                Almacén de INSUMOS (origen) - Se descontarán de aquí
+                                <span class="text-danger">*</span>
+                            </label>
+                            <select name="almacen_origen" class="form-control" required>
+                                <option value="">Seleccione de dónde sacar insumos...</option>
+                                @foreach(\App\Models\Almacen::whereIn('tipo_almacen', ['insumo', 'mixto'])->get() as $alm)
+                                    <option value="{{ $alm->id_almacen }}">
+                                        {{ $alm->nombre }} ({{ $alm->tipo_almacen }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-arrow-up text-success"></i> 
+                                Almacén de PRODUCTO (destino) - Se ingresará aquí
+                                <span class="text-danger">*</span>
+                            </label>
+                            <select name="almacen_destino" class="form-control" required>
+                                <option value="">Seleccione dónde guardar producto...</option>
+                                @foreach(\App\Models\Almacen::whereIn('tipo_almacen', ['producto', 'mixto'])->get() as $alm)
+                                    <option value="{{ $alm->id_almacen }}">
+                                        {{ $alm->nombre }} ({{ $alm->tipo_almacen }})
+                                        @if($alm->capacidad > 0) - Cap: {{ $alm->capacidad }} @endif
+                                    </option>
+                                @endforeach>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-lg btn-block">
+                            <i class="fas fa-check"></i> Ejecutar Producción
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- Rechazar / Cancelar --}}
+        <div class="col-md-5">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-times-circle"></i> Rechazar o Cancelar</h5>
+                </div>
+                <div class="card-body text-center">
+                    <button class="btn btn-danger btn-lg btn-block mb-3" data-toggle="modal" data-target="#modalMotivoRechazo">
+                        <i class="fas fa-times"></i> Rechazar Producción
+                    </button>
+                    <form action="{{ route('producciones.cancelar', $produccion) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-dark btn-lg btn-block" 
+                                onclick="return confirm('¿Está seguro de CANCELAR esta producción?')">
+                            <i class="fas fa-ban"></i> Cancelar Producción
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="card-footer mt-3">
-        <div class="d-flex justify-content-between">
-            <a href="{{ route('producciones.index') }}" class="btn btn-cancel">
-                <i class="fas fa-times"></i> Cancelar
-            </a>
-            <div>
-                <a href="{{ route('producciones.edit', $produccion) }}" class="btn btn-warning">
-                    <i class="fas fa-edit"></i> Editar
-                </a>
-                <form action="{{ route('producciones.destroy', $produccion) }}" method="POST" style="display:inline;">
+    {{-- Modal para rechazar --}}
+    <div class="modal fade" id="modalMotivoRechazo" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-times-circle"></i> Rechazar Producción</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                </div>
+                <form action="{{ route('producciones.rechazar', $produccion) }}" method="POST">
                     @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('¿Está seguro de eliminar esta producción?')">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </button>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Motivo del rechazo <span class="text-danger">*</span></label>
+                            <textarea name="motivo" class="form-control" rows="3" required 
+                                      placeholder="Explique por qué se rechaza..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
+    @endif
+
 </div>
 @endsection

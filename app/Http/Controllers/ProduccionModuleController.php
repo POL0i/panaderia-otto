@@ -143,56 +143,53 @@ class ProduccionModuleController extends Controller
      * Agregar múltiples insumos a una receta (AJAX)
      */
     public function storeDetallesReceta(Request $request, Receta $receta)
-    {
-        $validated = $request->validate([
-            'insumos' => 'required|array|min:1',
-            'insumos.*.id_insumo' => 'required|exists:insumos,id_insumo',
-            'insumos.*.cantidad' => 'required|numeric|min:0.001',
-            'insumos.*.unidad' => 'required|string|in:kg,g,lb,oz,L,mL,unidad',
-        ]);
+{
+    $validated = $request->validate([
+        'insumos' => 'required|array|min:1',
+        'insumos.*.id_insumo' => 'required|exists:insumos,id_insumo',
+        'insumos.*.cantidad' => 'required|numeric|min:0.001',
+    ]);
 
-        DB::beginTransaction();
-        try {
-            $insumosAgregados = 0;
+    DB::beginTransaction();
+    try {
+        $insumosAgregados = 0;
+        
+        foreach ($validated['insumos'] as $insumoData) {
+            $existente = DetalleReceta::where([
+                'id_receta' => $receta->id_receta,
+                'id_insumo' => $insumoData['id_insumo']
+            ])->first();
             
-            foreach ($validated['insumos'] as $insumoData) {
-                // Verificar si ya existe este insumo en la receta
-                $existente = DetalleReceta::where([
+            if (!$existente) {
+                DetalleReceta::create([
                     'id_receta' => $receta->id_receta,
-                    'id_insumo' => $insumoData['id_insumo']
-                ])->first();
-                
-                if (!$existente) {
-                    DetalleReceta::create([
-                        'id_receta' => $receta->id_receta,
-                        'id_insumo' => $insumoData['id_insumo'],
-                        'cantidad_requerida' => $insumoData['cantidad'],
-                        'unidad_medida' => $insumoData['unidad'],
-                    ]);
-                    $insumosAgregados++;
-                }
+                    'id_insumo' => $insumoData['id_insumo'],
+                    'cantidad_requerida' => $insumoData['cantidad'],
+                    // SIN 'unidad_medida'
+                ]);
+                $insumosAgregados++;
             }
-
-            // Actualizar el contador de cantidad_requerida en la receta
-            $totalInsumos = $receta->detalles()->count();
-            $receta->update(['cantidad_requerida' => $totalInsumos]);
-
-            DB::commit();
-            
-            return response()->json([
-                'success' => true,
-                'message' => "Se agregaron {$insumosAgregados} insumos a la receta",
-                'total_insumos' => $totalInsumos
-            ]);
-            
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al agregar insumos: ' . $e->getMessage()
-            ], 500);
         }
+
+        $totalInsumos = $receta->detalles()->count();
+        $receta->update(['cantidad_requerida' => $totalInsumos]);
+
+        DB::commit();
+        
+        return response()->json([
+            'success' => true,
+            'message' => "Se agregaron {$insumosAgregados} insumos a la receta",
+            'total_insumos' => $totalInsumos
+        ]);
+        
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al agregar insumos: ' . $e->getMessage()
+        ], 500);
     }
+}
 
     /**
      * Actualizar un detalle de receta (AJAX)
@@ -200,13 +197,11 @@ class ProduccionModuleController extends Controller
     public function updateDetalleReceta(Request $request, DetalleReceta $detalle)
     {
         $validated = $request->validate([
-            'cantidad' => 'required|numeric|min:0.001',
-            'unidad' => 'required|string|in:kg,g,lb,oz,L,mL,unidad',
+            'cantidad' => 'required|numeric|min:0.001',            
         ]);
 
         $detalle->update([
             'cantidad_requerida' => $validated['cantidad'],
-            'unidad_medida' => $validated['unidad'],
         ]);
 
         return response()->json([

@@ -13,7 +13,6 @@ class Insumo extends Model
     protected $fillable = [
         'id_item',
         'id_cat_insumo',
-        'nombre',
         'precio_compra',
     ];
 

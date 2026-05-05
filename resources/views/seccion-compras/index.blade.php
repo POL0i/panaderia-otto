@@ -80,20 +80,20 @@
                                 <i class="fas fa-plus"></i> Nuevo Almacén
                             </button>
                         </div>
-                        <div class="col-md-5">
-                            <label>Insumo / Item</label>
-                            <select class="form-control" id="itemSelect" required>
-                                <option value="">Seleccionar Item</option>
-                                @foreach($items as $item)
-                                    <option value="{{ $item->id_item }}" data-nombre="{{ $item->insumo->nombre ?? 'Item' }}">
-                                        {{ $item->insumo->nombre ?? 'Item' }} ({{ $item->insumo->unidad_medida ?? 'unidad' }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            <button type="button" class="btn btn-sm btn-link mt-1" data-toggle="modal" data-target="#createInsumoModal">
-                                <i class="fas fa-plus"></i> Nuevo Insumo
-                            </button>
-                        </div>
+                            <div class="col-md-5">
+                                <label>Insumo / Item</label>
+                                <select class="form-control" id="itemSelect" required>
+                                    <option value="">Seleccionar Item</option>
+                                    @foreach($items as $item)
+                                        <option value="{{ $item->id_item }}" data-nombre="{{ $item->nombre ?? 'Item' }}">
+                                            {{ $item->nombre ?? 'Item' }} ({{ $item->unidad_medida ?? 'unidad' }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-sm btn-link mt-1" data-toggle="modal" data-target="#createInsumoModal">
+                                    <i class="fas fa-plus"></i> Nuevo Insumo
+                                </button>
+                            </div>
                         <div class="col-md-2">
                             <label>Cantidad</label>
                             <input type="number" class="form-control" id="itemCantidad" placeholder="Cantidad" required>
@@ -191,7 +191,7 @@
                                         <tr>
                                             <td>{{ $detalle->id_nota_compra }}</td>
                                             <td>{{ $detalle->almacen->nombre ?? 'N/A' }}</td>
-                                            <td>{{ $detalle->item->insumo->nombre ?? $detalle->item->nombre ?? 'Item' }}</td>
+                                            <td>{{ $detalle->item->nombre ?? 'Item' }}</td>
                                             <td>{{ $detalle->cantidad }}</td>
                                             <td>Bs. {{ number_format($detalle->precio, 2) }}</td>
                                             <td>Bs. {{ number_format($detalle->cantidad * $detalle->precio, 2) }}</td>

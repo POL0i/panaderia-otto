@@ -1,125 +1,107 @@
 @extends('layouts.adminlte')
 
-@section('title', 'Ver Traspaso')
+@section('title', 'Traspaso #' . $traspaso->id_traspaso)
 
 @section('content')
 <div class="container-fluid">
-    <div class="row mb-3 animate-fade-in-up">
+    <div class="row mb-3">
         <div class="col-md-6">
-            <h1 class="h3 mb-0"><i class="fas fa-exchange-alt icon-panaderia"></i> Traspaso #{{ $traspaso->id_traspaso }}</h1>
+            <h1 class="h3 mb-0"><i class="fas fa-exchange-alt"></i> Traspaso #{{ $traspaso->id_traspaso }}</h1>
         </div>
         <div class="col-md-6 text-right">
-            <a href="{{ route('traspasos.index') }}" class="btn btn-back btn-sm">
+            <a href="{{ route('traspasos.index') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
         </div>
     </div>
 
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show animate-fade-in">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-            <i class="fas fa-check-circle"></i> {{ session('success') }}
-        </div>
+        <div class="alert alert-success">{{ session('success') }}</div>
     @endif
-
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show animate-fade-in">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-            <i class="fas fa-times-circle"></i> {{ session('error') }}
-        </div>
+        <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
 
-    <div class="card shadow-sm animate-fade-in-up">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información del Traspaso</h5>
-        </div>
-        <div class="card-body">
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="font-weight-bold">ID Traspaso:</label>
-                        <p class="form-control-plaintext">
-                            <span class="badge badge-info">{{ $traspaso->id_traspaso }}</span>
-                        </p>
-                    </div>
-                    <div class="form-group">
-                        <label class="font-weight-bold">Almacén Origen:</label>
-                        <p class="form-control-plaintext">{{ $traspaso->almacenOrigen->nombre ?? 'N/A' }}</p>
-                    </div>
-                    <div class="form-group">
-                        <label class="font-weight-bold">Almacén Destino:</label>
-                        <p class="form-control-plaintext">{{ $traspaso->almacenDestino->nombre ?? 'N/A' }}</p>
-                    </div>
+    {{-- Información general --}}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información del Traspaso</h5>
                 </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="font-weight-bold">Item:</label>
-                        <p class="form-control-plaintext">{{ $traspaso->item->nombre ?? 'N/A' }}</p>
-                    </div>
-                    <div class="form-group">
-                        <label class="font-weight-bold">Cantidad:</label>
-                        <p class="form-control-plaintext">{{ $traspaso->cantidad }}</p>
-                    </div>
-                    <div class="form-group">
-                        <label class="font-weight-bold">Precio Unitario:</label>
-                        <p class="form-control-plaintext">${{ number_format($traspaso->precio_unitario, 2) }}</p>
+                <div class="card-body">
+                    <p><strong>ID:</strong> #{{ $traspaso->id_traspaso }}</p>
+                   <p><strong>Fecha:</strong> {{ \Carbon\Carbon::parse($traspaso->fecha_traspaso)->format('d/m/Y H:i') }}</p>
+                    <p><strong>Empleado:</strong> {{ $traspaso->empleado->nombre ?? 'N/A' }}</p>
+                    <p><strong>Descripción:</strong> {{ $traspaso->descripcion ?? '-' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-warehouse"></i> Almacenes</h5>
+                </div>
+                <div class="card-body">
+                    @if($traspaso->detalles->isNotEmpty())
+                        @php $primerDetalle = $traspaso->detalles->first(); @endphp
+                        <p><strong>Origen:</strong> {{ $primerDetalle->almacenOrigen()->nombre ?? 'N/A' }}</p>
+                        <p><strong>Destino:</strong> {{ $primerDetalle->almacenDestino()->nombre ?? 'N/A' }}</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Detalle de items --}}
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Items Traspasados</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Tipo</th>
+                                    <th>Cantidad</th>
+                                    <th>Unidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($traspaso->detalles as $detalle)
+                                <tr>
+                                    <td>{{ $detalle->item()->nombre ?? 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ $detalle->item()->tipo_item == 'producto' ? 'success' : 'warning' }}">
+                                            {{ $detalle->item()->tipo_item ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td><strong>{{ $detalle->cantidad }}</strong></td>
+                                    <td>{{ $detalle->item()->unidad_medida ?? 'unidad' }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="font-weight-bold">Fecha del Traspaso:</label>
-                        <p class="form-control-plaintext">{{ $traspaso->fecha_traspaso->format('d/m/Y H:i') }}</p>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="font-weight-bold">Estado:</label>
-                        <p class="form-control-plaintext">
-                            <span class="badge badge-{{ $traspaso->estado == 'completado' ? 'success' : ($traspaso->estado == 'pendiente' ? 'warning' : 'danger') }}">
-                                {{ ucfirst($traspaso->estado) }}
-                            </span>
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            @if($traspaso->observaciones)
-                <div class="form-group">
-                    <label class="font-weight-bold">Observaciones:</label>
-                    <p class="form-control-plaintext">{{ $traspaso->observaciones }}</p>
-                </div>
-            @endif
         </div>
-        <div class="card-footer d-flex justify-content-between">
-            <div>
-                @if($traspaso->estado === 'pendiente')
-                    <form action="{{ route('traspasos.completar', $traspaso) }}" method="POST" style="display:inline;">
-                        @csrf
-                        @method('PUT')
-                        <button type="submit" class="btn btn-save btn-sm">
-                            <i class="fas fa-check"></i> Completar
-                        </button>
-                    </form>
+    </div>
 
-                    <form action="{{ route('traspasos.cancelar', $traspaso) }}" method="POST" style="display:inline;">
-                        @csrf
-                        @method('PUT')
-                        <button type="submit" class="btn btn-warning btn-sm">
-                            <i class="fas fa-times"></i> Cancelar
-                        </button>
-                    </form>
-                @endif
-                <a href="{{ route('traspasos.edit', $traspaso) }}" class="btn btn-cancel btn-sm">
-                    <i class="fas fa-edit"></i> Editar
-                </a>
-            </div>
-            <a href="{{ route('traspasos.index') }}" class="btn btn-back btn-sm">
-                <i class="fas fa-arrow-left"></i> Volver
-            </a>
-        </div>
+    {{-- Acciones --}}
+    <div class="mt-3">
+        <form action="{{ route('traspasos.destroy', $traspaso) }}" method="POST" style="display:inline;"
+              onsubmit="return confirm('¿Eliminar este traspaso? Se revertirá el stock.')">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Eliminar y Revertir
+            </button>
+        </form>
     </div>
 </div>
 @endsection

@@ -17,13 +17,11 @@ class MovimientoInventario extends Model
         'cantidad',
         'precio_unitario',
         'costo_total',
-        'stock_resultante',
         'fecha_movimiento',
         'referencia_id',
         'referencia_tipo',
         'estado',
         'observaciones',
-        'id_usuario',
     ];
 
     protected $casts = [
@@ -73,12 +71,10 @@ class MovimientoInventario extends Model
             'cantidad' => $data['cantidad'],
             'precio_unitario' => $data['precio_unitario'] ?? 0,
             'costo_total' => $data['costo_total'] ?? ($data['cantidad'] * ($data['precio_unitario'] ?? 0)),
-            'stock_resultante' => $stockActual + $data['cantidad'],
             'fecha_movimiento' => $data['fecha_movimiento'] ?? now(),
             'referencia_id' => $data['referencia_id'] ?? null,
             'referencia_tipo' => $data['referencia_tipo'] ?? null,
             'observaciones' => $data['observaciones'] ?? null,
-            'id_usuario' => $data['id_usuario'] ?? auth()->id(),
         ]);
     }
 
@@ -120,5 +116,19 @@ class MovimientoInventario extends Model
     public function scopeEgresos($query)
     {
         return $query->where('cantidad', '<', 0);
+    }
+
+    // accesores para mostrar nombres en lugar de IDs
+
+    protected $appends = ['almacen_nombre', 'item_nombre'];
+
+    public function getAlmacenNombreAttribute()
+    {
+        return \App\Models\Almacen::find($this->id_almacen)?->nombre ?? 'N/A';
+    }
+
+    public function getItemNombreAttribute()
+    {
+        return \App\Models\Item::find($this->id_item)?->nombre ?? 'N/A';
     }
 }

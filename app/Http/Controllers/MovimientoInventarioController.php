@@ -6,6 +6,7 @@ use App\Models\MovimientoInventario;
 use App\Models\Almacen;
 use App\Models\Item;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MovimientoInventarioController extends Controller
 {
@@ -14,7 +15,18 @@ class MovimientoInventarioController extends Controller
      */
     public function index()
     {
-        $movimientos = MovimientoInventario::with('almacen', 'item')
+        $movimientos = MovimientoInventario::select(
+                'fecha_movimiento',
+                'referencia_tipo',
+                'referencia_id',
+                DB::raw('GROUP_CONCAT(DISTINCT tipo_movimiento) as tipos'),
+                DB::raw('SUM(CASE WHEN cantidad > 0 THEN cantidad ELSE 0 END) as total_ingresos'),
+                DB::raw('SUM(CASE WHEN cantidad < 0 THEN ABS(cantidad) ELSE 0 END) as total_egresos'),
+                DB::raw('SUM(costo_total) as costo_total'),
+                DB::raw('COUNT(*) as items_count'),
+                DB::raw('MIN(estado) as estado')
+            )
+            ->groupBy('fecha_movimiento', 'referencia_tipo', 'referencia_id')
             ->orderBy('fecha_movimiento', 'desc')
             ->paginate(15);
 
@@ -63,12 +75,21 @@ class MovimientoInventarioController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(MovimientoInventario $movimiento)
+   public function show($referenciaId, Request $request)
     {
-        $movimiento->load('almacen', 'item');
-        return view('inventario.movimientos.show', compact('movimiento'));
+        $tipo = $request->get('tipo', 'compra');
+        
+        // Obtener TODOS los movimientos de esa referencia
+        $movimientos = MovimientoInventario::where('referencia_id', $referenciaId)
+            ->where('referencia_tipo', $tipo)
+            ->orderBy('fecha_movimiento', 'asc')
+            ->get();
+        
+        // Datos del encabezado (del primer movimiento)
+        $encabezado = $movimientos->first();
+        
+        return view('inventario.movimientos.show', compact('movimientos', 'encabezado', 'tipo', 'referenciaId'));
     }
-
     /**
      * Show the form for editing the specified resource.
      */

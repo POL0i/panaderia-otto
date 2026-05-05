@@ -12,23 +12,41 @@
                 <?php echo csrf_field(); ?>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-md-8">
+                        
+                        <div class="col-md-6">
                             <div class="form-group">
                                 <label>Nombre del Producto <span class="text-danger">*</span></label>
                                 <input type="text" name="nombre" id="productoNombre" class="form-control" 
                                        placeholder="Ej: Pan Francés, Tarta de Manzana..." required>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        
+                        <div class="col-md-3">
                             <div class="form-group">
-                                <label>Precio de Venta</label>
+                                <label>Precio de Venta <span class="text-danger">*</span></label>
                                 <input type="number" name="precio" id="productoPrecio" class="form-control" 
-                                       step="0.01" min="0" placeholder="0.00">
+                                       step="0.01" min="0" placeholder="0.00" required>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Unidad de Medida <span class="text-danger">*</span></label>
+                                <select name="unidad_medida" id="productoUnidad" class="form-control" required>
+                                    <option value="kg">Kilogramos (kg)</option>
+                                    <option value="g">Gramos (g)</option>
+                                    <option value="lb">Libras (lb)</option>
+                                    <option value="oz">Onzas (oz)</option>
+                                    <option value="L">Litros (L)</option>
+                                    <option value="mL">Mililitros (mL)</option>
+                                    <option value="unidad">Unidad</option>
+                                </select>
                             </div>
                         </div>
                     </div>
                     
                     <div class="row">
+                        
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Categoría <span class="text-danger">*</span></label>
@@ -50,21 +68,6 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Unidad de Medida <span class="text-danger">*</span></label>
-                                <select name="unidad_medida" id="productoUnidad" class="form-control" required>
-                                    <option value="kg">Kilogramos (kg)</option>
-                                    <option value="g">Gramos (g)</option>
-                                    <option value="lb">Libras (lb)</option>
-                                    <option value="oz">Onzas (oz)</option>
-                                    <option value="L">Litros (L)</option>
-                                    <option value="mL">Mililitros (mL)</option>
-                                    <option value="unidad">Unidad</option>
-                                </select>
-                            </div>
-                        </div>
                     </div>
                     
                     
@@ -82,18 +85,15 @@
                                     </label>
                                 </div>
                                 <small class="text-muted">
-                                    Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 2MB.<br>
-                                    También puedes pegar una URL de imagen externa.
+                                    Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 2MB.
                                 </small>
-                                <input type="url" name="imagen_url" id="productoImagenUrl" class="form-control mt-2" 
-                                       placeholder="O pega una URL de imagen aquí (ej: https://ejemplo.com/imagen.jpg)">
                             </div>
                         </div>
                     </div>
                     
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle"></i> 
-                        Se creará automáticamente un registro en Items como "producto".
+                        Se creará automáticamente un registro en Items como "producto" con la unidad de medida seleccionada.
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -122,7 +122,6 @@
 <?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
-    // Previsualización de imagen local
     $('#productoImagen').on('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -132,22 +131,11 @@ $(document).ready(function() {
                 $('#localImagePreview').show();
             }
             reader.readAsDataURL(file);
-            // Limpiar URL si hay
-            $('#productoImagenUrl').val('');
         } else {
             $('#localImagePreview').hide();
         }
     });
     
-    // Si pegan URL, limpiar archivo local
-    $('#productoImagenUrl').on('input', function() {
-        if ($(this).val()) {
-            $('#productoImagen').val('');
-            $('#localImagePreview').hide();
-        }
-    });
-    
-    // Actualizar label del file input
     $('.custom-file-input').on('change', function() {
         const fileName = $(this).val().split('\\').pop();
         $(this).next('.custom-file-label').html(fileName);

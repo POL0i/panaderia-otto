@@ -65,126 +65,165 @@ class CompraController extends Controller
      * Store a new purchase note and its details.
      */
    public function store(Request $request)
-    {
-        try {
-            // 1. Validación
-            $validated = $request->validate([
-                'id_proveedor' => 'required|exists:proveedores,id_proveedor',
-                'detalles' => 'required|array|min:1',
-                'detalles.*.id_almacen' => 'required|exists:almacenes,id_almacen',
-                'detalles.*.id_item' => 'required|exists:items,id_item',
-                'detalles.*.cantidad' => 'required|integer|min:1',
-                'detalles.*.precio' => 'required|numeric|min:0.01',
-            ]);
+{
+    try {
+        \Log::info('=== INICIO COMPRA ===', ['request' => $request->except(['detalles'])]);
+        
+        // 1. Validación
+        $validated = $request->validate([
+            'id_proveedor' => 'required|exists:proveedores,id_proveedor',
+            'detalles' => 'required|array|min:1',
+            'detalles.*.id_almacen' => 'required|exists:almacenes,id_almacen',
+            'detalles.*.id_item' => 'required|exists:items,id_item',
+            'detalles.*.cantidad' => 'required|integer|min:1',
+            'detalles.*.precio' => 'required|numeric|min:0.01',
+        ]);
+        
+        \Log::info('Validación OK', ['detalles_count' => count($validated['detalles'])]);
 
-            // 2. Iniciar transacción
-            DB::beginTransaction();
+        DB::beginTransaction();
 
-            // 3. Obtener empleado
-            $usuario = Auth::user();
+        // 3. Obtener empleado
+        $usuario = Auth::user();
+        if (!$usuario) throw new \Exception('Usuario no autenticado');
+        
+        $idEmpleado = $usuario->empleado->id_empleado ?? Empleado::first()->id_empleado;
+        \Log::info('Empleado OK', ['id' => $idEmpleado]);
 
-            if (!$usuario) {
-                throw new \Exception('Usuario no autenticado - La sesión puede haber expirado');
-            }
-            
-            if ($usuario->empleado) {
-                $idEmpleado = $usuario->empleado->id_empleado;
-            } else {
-                $empleado = Empleado::first();
-                if (!$empleado) {
-                    throw new \Exception('No hay empleados registrados en el sistema');
+        // 4. Validar capacidad
+        $totalesPorAlmacen = [];
+        foreach ($validated['detalles'] as $detalle) {
+            $totalesPorAlmacen[$detalle['id_almacen']] = ($totalesPorAlmacen[$detalle['id_almacen']] ?? 0) + $detalle['cantidad'];
+        }
+        
+        foreach ($totalesPorAlmacen as $idAlmacen => $cantidadTotal) {
+            $almacen = Almacen::findOrFail($idAlmacen);
+            if ($almacen->capacidad > 0) {
+                $stockActual = DB::table('almacen_item')->where('id_almacen', $idAlmacen)->sum('stock');
+                if (($stockActual + $cantidadTotal) > $almacen->capacidad) {
+                    throw new \Exception("Capacidad excedida en '{$almacen->nombre}'");
                 }
-                $idEmpleado = $empleado->id_empleado;
+            }
+        }
+        \Log::info('Capacidad validada OK');
+
+        // 5. Calcular total y crear nota
+        $montoTotal = collect($validated['detalles'])->sum(fn($d) => $d['cantidad'] * $d['precio']);
+        
+        $notaCompra = NotaCompra::create([
+            'fecha_compra' => now(),
+            'monto_total' => $montoTotal,
+            'estado' => 'completado',
+            'id_proveedor' => $validated['id_proveedor'],
+            'id_empleado' => $idEmpleado,
+        ]);
+        \Log::info('NotaCompra creada', ['id' => $notaCompra->id_nota_compra]);
+
+        // 6. Procesar detalles
+        foreach ($validated['detalles'] as $index => $detalle) {
+            \Log::info("Procesando detalle #{$index}", ['item' => $detalle['id_item'], 'almacen' => $detalle['id_almacen']]);
+
+            // Crear almacen_item si no existe
+            if (!DB::table('almacen_item')->where('id_almacen', $detalle['id_almacen'])->where('id_item', $detalle['id_item'])->exists()) {
+                DB::table('almacen_item')->insert([
+                    'id_almacen' => $detalle['id_almacen'],
+                    'id_item' => $detalle['id_item'],
+                    'stock' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
             }
 
-            // 4. Calcular total
-            $montoTotal = collect($validated['detalles'])->sum(fn($d) => $d['cantidad'] * $d['precio']);
-
-            // 5. Crear nota de compra
-            $notaCompra = NotaCompra::create([
-                'fecha_compra' => now(),
-                'monto_total' => $montoTotal,
-                'estado' => 'completado',
-                'id_proveedor' => $validated['id_proveedor'],
-                'id_empleado' => $idEmpleado,
+            // Crear DetalleCompra
+            $detalleCompra = DetalleCompra::create([
+                'id_nota_compra' => $notaCompra->id_nota_compra,
+                'id_almacen' => $detalle['id_almacen'],
+                'id_item' => $detalle['id_item'],
+                'cantidad' => $detalle['cantidad'],
+                'precio' => $detalle['precio'],
             ]);
+            \Log::info("DetalleCompra creado", ['id' => $detalleCompra->id_detalle_compra ?? 'N/A']);
 
-            // 6. Procesar cada detalle
-            foreach ($validated['detalles'] as $detalle) {
-                // Verificar si existe el registro en almacen_item
-                $almacenItem = AlmacenItem::where('id_almacen', $detalle['id_almacen'])
-                    ->where('id_item', $detalle['id_item'])
-                    ->lockForUpdate()
-                    ->first();
+            // Incrementar stock
+            DB::table('almacen_item')
+                ->where('id_almacen', $detalle['id_almacen'])
+                ->where('id_item', $detalle['id_item'])
+                ->increment('stock', $detalle['cantidad']);
+            \Log::info("Stock incrementado");
 
-                // Si no existe, crearlo con stock inicial 0
-                if (!$almacenItem) {
-                    // Usar Query Builder para evitar problemas con PK compuesta
-                    DB::table('almacen_item')->insert([
-                        'id_almacen' => $detalle['id_almacen'],
-                        'id_item' => $detalle['id_item'],
-                        'stock' => 0,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                    
-                    // Recargar para obtener el registro recién creado
-                    $almacenItem = AlmacenItem::where('id_almacen', $detalle['id_almacen'])
-                        ->where('id_item', $detalle['id_item'])
-                        ->lockForUpdate()
-                        ->first();
-                }
-
-                // Crear detalle de compra
-                DetalleCompra::create([
-                    'id_nota_compra' => $notaCompra->id_nota_compra,
+            // Movimiento de inventario
+            try {
+                \App\Models\MovimientoInventario::registrar([
+                    'tipo_movimiento' => 'ingreso',
                     'id_almacen' => $detalle['id_almacen'],
                     'id_item' => $detalle['id_item'],
                     'cantidad' => $detalle['cantidad'],
-                    'precio' => $detalle['precio'],
+                    'precio_unitario' => $detalle['precio'],
+                    'costo_total' => $detalle['cantidad'] * $detalle['precio'],
+                    'referencia_id' => $notaCompra->id_nota_compra,
+                    'referencia_tipo' => 'compra',
+                    'observaciones' => 'Ingreso por compra #' . $notaCompra->id_nota_compra,
                 ]);
-
-                // Incrementar stock usando Query Builder (evita error con PK compuesta)
-                DB::table('almacen_item')
-                    ->where('id_almacen', $detalle['id_almacen'])
-                    ->where('id_item', $detalle['id_item'])
-                    ->increment('stock', $detalle['cantidad']);
+                \Log::info("MovimientoInventario registrado OK");
+            } catch (\Exception $e) {
+                \Log::error("ERROR en MovimientoInventario: " . $e->getMessage());
+                throw $e;
             }
 
-            // 7. Confirmar transacción
-            DB::commit();
-
-            // 8. Cargar relaciones para la respuesta
-            $notaCompra->load(['empleado', 'proveedor']);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Compra registrada exitosamente',
-                'nota_compra' => $notaCompra
-            ], 201);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error de validación: ' . implode(' ', $e->validator->errors()->all())
-            ], 422);
-            
-        } catch (\Illuminate\Database\QueryException $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error en la base de datos al procesar la compra'
-            ], 500);
-            
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
+            // Lote
+            try {
+                \App\Models\LoteInventario::desdeCompra($detalleCompra);
+                \Log::info("Lote creado OK");
+            } catch (\Exception $e) {
+                \Log::error("ERROR en Lote: " . $e->getMessage());
+                throw $e;
+            }
         }
+
+        DB::commit();
+        \Log::info('=== COMPRA COMPLETADA ===');
+
+        $notaCompra->load(['empleado', 'proveedor']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Compra registrada exitosamente',
+            'nota_compra' => $notaCompra
+        ], 201);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        DB::rollBack();
+        \Log::error('VALIDATION ERROR', ['errors' => $e->errors()]);
+        return response()->json([
+            'success' => false,
+            'message' => 'Error de validación: ' . implode(' ', $e->validator->errors()->all())
+        ], 422);
+        
+    } catch (\Illuminate\Database\QueryException $e) {
+        DB::rollBack();
+        \Log::error('SQL ERROR', [
+            'message' => $e->getMessage(),
+            'sql' => $e->getSql(),
+            'bindings' => $e->getBindings()
+        ]);
+        return response()->json([
+            'success' => false,
+            'message' => 'Error en la base de datos al procesar la compra'
+        ], 500);
+        
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('GENERAL ERROR', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
     }
+}
 
     /**
      * Get items by almacen.

@@ -25,15 +25,14 @@ class LoteInventario extends Model
     ];
 
     protected $casts = [
-        'cantidad_inicial' => 'decimal:2',
-        'cantidad_disponible' => 'decimal:2',
-        'precio_unitario' => 'decimal:2',
         'fecha_entrada' => 'datetime',
         'fecha_salida' => 'datetime',
     ];
 
+    protected $appends = ['almacen_nombre', 'item_nombre']; // ← Cargar siempre
+
     /**
-     * Relación con almacen_item
+     * Relación con almacen_item (SOLO para integridad, no para consultas)
      */
     public function almacenItem(): BelongsTo
     {
@@ -44,6 +43,17 @@ class LoteInventario extends Model
         );
     }
 
+    // ✅ Accesores (sin relaciones directas)
+    public function getAlmacenNombreAttribute()
+    {
+        return Almacen::find($this->id_almacen)?->nombre ?? 'N/A';
+    }
+
+    public function getItemNombreAttribute()
+    {
+        return Item::find($this->id_item)?->nombre ?? 'N/A';
+    }
+    
     /**
      * Crear lote desde una compra
      */
