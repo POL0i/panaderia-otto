@@ -20,145 +20,159 @@ class LibelulaService
         $this->callbackUrl = config('services.libelula.callback_url');
     }
 
-    /**
-     * Registrar una nota de venta en Libélula
-     */
-   public function registrarPago(NotaVenta $notaVenta)
-{
-    // Verificar si ya existe una transacción
-    $transaccionExistente = TransaccionLibelula::where('nota_venta_id', $notaVenta->id_nota_venta)->first();
-    
-    if ($transaccionExistente && $transaccionExistente->url_pasarela) {
-        \Log::info('Usando transacción existente en Service', ['nota_venta_id' => $notaVenta->id_nota_venta]);
-        return [
-            'success' => true,
-            'transaccion' => $transaccionExistente,
-            'qr_url' => $transaccionExistente->qr_url,
-            'url_pasarela' => $transaccionExistente->url_pasarela,
-            'id_transaccion' => $transaccionExistente->id_transaccion_libelula,
-            'codigo_recaudacion' => $transaccionExistente->codigo_recaudacion
-        ];
-    }
+    public function registrarPago(NotaVenta $notaVenta)
+    {
+        // ✅ Generar identificador ÚNICO cada vez
+        $identificadorUnico = 'OTTO-' . $notaVenta->id_nota_venta . '-' . time();
 
-    // Obtener los items de la nota de venta
-    $items = [];
-    foreach ($notaVenta->detalles as $detalle) {
-        $items[] = [
-            "concepto" => $detalle->item->producto->nombre ?? 'Producto',
-            "cantidad" => $detalle->cantidad,
-            "costo_unitario" => $detalle->precio,
-            "descuento_unitario" => 0
-        ];
-    }
-    
-    // Si no hay detalles (recién creada), usar los datos del carrito
-    if (empty($items)) {
-        $items = [
-            [
-                "concepto" => "Producto Panadería Otto",
-                "cantidad" => 1,
-                "costo_unitario" => $notaVenta->monto_total,
-                "descuento_unitario" => 0
-            ]
-        ];
-    }
+        // 1. Verificar si ya existe transacción en BD con URL válida
+        $transaccionExistente = TransaccionLibelula::where('nota_venta_id', $notaVenta->id_nota_venta)
+            ->whereNotNull('url_pasarela')
+            ->latest()
+            ->first();
 
-    $payload = [
-        "appkey" => $this->appkey,
-        "email_cliente" => $notaVenta->cliente->correo ?? 'cliente@ejemplo.com',
-        "identificador" => (string) $notaVenta->id_nota_venta,
-        "callback_url" => $this->callbackUrl,
-        "url_retorno" => route('landing'),
-        "descripcion" => "Nota de Venta #{$notaVenta->id_nota_venta} - Panadería Otto",
-        "nombre_cliente" => $notaVenta->cliente->nombre ?? 'Cliente',
-        "apellido_cliente" => $notaVenta->cliente->apellido ?? '',
-        "ci" => $notaVenta->cliente->ci ?? '',
-        "moneda" => "BOB",
-        "lineas_detalle_deuda" => $items
-    ];
-
-    try {
-        $response = Http::post("{$this->baseUrl}/deuda/registrar", $payload);
-        $data = $response->json();
-
-        if (!$response->successful() || ($data['error'] ?? true)) {
-            // Si el error es por deuda existente, intentar recuperar la URL
-            if (isset($data['error']) && $data['error'] == 2 && isset($data['url_pasarela_pagos']) && $data['url_pasarela_pagos']) {
-                \Log::info('Deuda ya existe, usando URL existente', ['url' => $data['url_pasarela_pagos']]);
-                
-                // Crear/actualizar transacción con la URL existente
-                $transaccion = TransaccionLibelula::updateOrCreate(
-                    ['nota_venta_id' => $notaVenta->id_nota_venta],
-                    [
-                        'identificador' => (string) $notaVenta->id_nota_venta,
-                        'id_transaccion_libelula' => $data['id_transaccion'] ?? null,
-                        'codigo_recaudacion' => $data['codigo_recaudacion'] ?? null,
-                        'monto' => $notaVenta->monto_total,
-                        'qr_url' => $data['qr_simple_url'] ?? null,
-                        'url_pasarela' => $data['url_pasarela_pagos'],
-                        'respuesta_api' => $data,
-                        'estado' => 'pendiente'
-                    ]
-                );
-                
-                return [
-                    'success' => true,
-                    'transaccion' => $transaccion,
-                    'qr_url' => $data['qr_simple_url'] ?? null,
-                    'url_pasarela' => $data['url_pasarela_pagos'],
-                    'id_transaccion' => $data['id_transaccion'],
-                    'codigo_recaudacion' => $data['codigo_recaudacion'] ?? null
-                ];
-            }
-            
-            \Log::error('Libélula Error:', $data);
+        if ($transaccionExistente && $transaccionExistente->url_pasarela) {
+            Log::info('Transacción existente en BD', ['id' => $transaccionExistente->id]);
             return [
-                'success' => false,
-                'message' => $data['mensaje'] ?? 'Error al registrar pago'
+                'success' => true,
+                'qr_url' => $transaccionExistente->qr_url,
+                'url_pasarela' => $transaccionExistente->url_pasarela,
+                'id_transaccion' => $transaccionExistente->id_transaccion_libelula,
+                'codigo_recaudacion' => $transaccionExistente->codigo_recaudacion
             ];
         }
 
-        // Guardar transacción exitosa
-        $transaccion = TransaccionLibelula::create([
-            'nota_venta_id' => $notaVenta->id_nota_venta,
-            'identificador' => (string) $notaVenta->id_nota_venta,
-            'id_transaccion_libelula' => $data['id_transaccion'],
-            'codigo_recaudacion' => $data['codigo_recaudacion'] ?? null,
-            'monto' => $notaVenta->monto_total,
-            'qr_url' => $data['qr_simple_url'] ?? null,
-            'url_pasarela' => $data['url_pasarela_pagos'],
-            'respuesta_api' => $data,
-            'estado' => 'pendiente'
-        ]);
+        // 2. Preparar items con el nombre REAL del producto
+        $items = [];
+        // Cargar relaciones necesarias
+$notaVenta->load('detalles.item');
 
-        // Actualizar nota_venta
-        $notaVenta->update([
-            'metodo_pago' => 'libelula',
-            'id_transaccion_libelula' => $data['id_transaccion']
-        ]);
+$items = [];
+foreach ($notaVenta->detalles as $detalle) {
+    // Obtener nombre del item directamente
+    $nombreProducto = $detalle->item->nombre ?? 'Producto';
 
-        return [
-            'success' => true,
-            'transaccion' => $transaccion,
-            'qr_url' => $data['qr_simple_url'] ?? null,
-            'url_pasarela' => $data['url_pasarela_pagos'],
-            'id_transaccion' => $data['id_transaccion'],
-            'codigo_recaudacion' => $data['codigo_recaudacion'] ?? null
-        ];
-
-    } catch (\Exception $e) {
-        \Log::error('Libélula Exception: ' . $e->getMessage());
-        return [
-            'success' => false,
-            'message' => 'Error de conexión con la pasarela de pagos: ' . $e->getMessage()
-        ];
+    // Si no tiene item, buscar en productos por id_item
+    if (empty($nombreProducto) || $nombreProducto == 'Producto') {
+        $producto = \App\Models\Producto::where('id_item', $detalle->id_item)->first();
+        if ($producto) {
+            $nombreProducto = $producto->nombre;
+        }
     }
+
+    // NUNCA enviar null o vacío
+    if (empty($nombreProducto)) {
+        $nombreProducto = 'Producto Panadería Otto';
+    }
+
+    $items[] = [
+        "concepto" => $nombreProducto,
+        "cantidad" => (int) $detalle->cantidad,
+        "costo_unitario" => (float) $detalle->precio,
+        "descuento_unitario" => 0
+    ];
 }
 
+        if (empty($items)) {
+            $items[] = [
+                "concepto" => "Pedido Panadería Otto",
+                "cantidad" => 1,
+                "costo_unitario" => (float) $notaVenta->monto_total,
+                "descuento_unitario" => 0
+            ];
+        }
 
-    /**
-     * Consultar estado de un pago
-     */
+        // 3. Datos del cliente
+        $nombreCliente = $notaVenta->cliente->nombre ?? 'Cliente';
+        $apellidoCliente = $notaVenta->cliente->apellido ?? '';
+        $emailCliente = 'cliente@panaderiaotto.com';
+
+        if ($notaVenta->cliente && $notaVenta->cliente->usuarios()->exists()) {
+            $emailCliente = $notaVenta->cliente->usuarios()->first()->correo ?? $emailCliente;
+        }
+
+        // 4. Payload con identificador ÚNICO
+        $payload = [
+            "appkey" => $this->appkey,
+            "email_cliente" => $emailCliente,
+            "identificador" => $identificadorUnico,
+            "callback_url" => $this->callbackUrl,
+            "url_retorno" => route('landing'),
+            "descripcion" => "Pedido #{$notaVenta->id_nota_venta} - Panadería Otto",
+            "nombre_cliente" => $nombreCliente,
+            "apellido_cliente" => $apellidoCliente,
+            "ci" => "0",
+            "moneda" => "BOB",
+            "lineas_detalle_deuda" => $items
+        ];
+
+        Log::info('Enviando a Libélula:', [
+            'identificador' => $identificadorUnico,
+            'nota_id' => $notaVenta->id_nota_venta,
+            'productos' => array_column($items, 'concepto')
+        ]);
+
+        // 5. Llamada a la API
+        try {
+            $response = Http::timeout(30)->post("{$this->baseUrl}/deuda/registrar", $payload);
+            $data = $response->json();
+
+            Log::info('Respuesta Libélula:', [
+                'status' => $response->status(),
+                'error' => $data['error'] ?? 'N/A',
+                'mensaje' => $data['mensaje'] ?? 'N/A',
+                'tiene_url' => isset($data['url_pasarela_pagos']) ? 'SI' : 'NO'
+            ]);
+
+            // 6. Si hay URL de pago, GUARDAR Y RETORNAR ÉXITO
+            $urlPasarela = $data['url_pasarela_pagos'] ?? null;
+
+            if ($urlPasarela) {
+                //  Usar updateOrCreate para no duplicar
+               $transaccion = TransaccionLibelula::create([
+    'nota_venta_id' => $notaVenta->id_nota_venta,
+    'identificador' => $identificadorUnico,
+    'id_transaccion_libelula' => $data['id_transaccion'] ?? null,
+    'codigo_recaudacion' => $data['codigo_recaudacion'] ?? null,
+    'monto' => $notaVenta->monto_total,
+    'qr_url' => $data['qr_simple_url'] ?? null,
+    'url_pasarela' => $urlPasarela,
+    'respuesta_api' => $data,
+    'estado' => 'pendiente'
+]);
+
+                Log::info('Transacción guardada/actualizada', [
+                    'id' => $transaccion->id,
+                    'identificador' => $identificadorUnico,
+                    'url' => $urlPasarela
+                ]);
+
+                return [
+                    'success' => true,
+                    'qr_url' => $data['qr_simple_url'] ?? null,
+                    'url_pasarela' => $urlPasarela,
+                    'id_transaccion' => $data['id_transaccion'] ?? null,
+                    'codigo_recaudacion' => $data['codigo_recaudacion'] ?? null,
+                    'message' => 'Pago registrado correctamente'
+                ];
+            }
+
+            // 7. Si no hay URL, error real
+            Log::error('Libélula no devolvió URL de pago', ['respuesta' => $data]);
+            return [
+                'success' => false,
+                'message' => $data['mensaje'] ?? 'Error al registrar el pago en Libélula'
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Excepción Libélula: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Error de conexión: ' . $e->getMessage()
+            ];
+        }
+    }
+
     public function consultarPago($identificador)
     {
         $payload = [
@@ -167,30 +181,26 @@ class LibelulaService
         ];
 
         try {
-            $response = Http::post("{$this->baseUrl}/deuda/consultar_deudas/por_identificador", $payload);
+            $response = Http::timeout(30)->post("{$this->baseUrl}/deuda/consultar_deudas/por_identificador", $payload);
             $data = $response->json();
 
-            if ($response->successful() && ($data['error'] ?? 1) == 0) {
+            Log::info('Consulta pago Libélula:', ['identificador' => $identificador, 'data' => $data]);
+
+            if (($data['error'] ?? 1) == 0) {
                 $datos = $data['datos'] ?? [];
                 return [
                     'success' => true,
                     'pagado' => $datos['pagado'] ?? false,
                     'fecha_pago' => $datos['fecha_pago'] ?? null,
-                    'forma_pago' => $datos['forma_pago'] ?? null,
                     'monto' => $datos['valor_total'] ?? 0
                 ];
             }
 
-            return [
-                'success' => false,
-                'message' => $data['mensaje'] ?? 'Error al consultar pago'
-            ];
+            return ['success' => false, 'message' => $data['mensaje'] ?? 'Error al consultar'];
 
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Error de conexión'
-            ];
+            Log::error('Error consulta Libélula: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Error de conexión'];
         }
     }
 }

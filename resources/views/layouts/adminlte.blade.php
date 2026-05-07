@@ -5,24 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Panadería Otto - Sistema de Gestión')</title>
-    
+
     <!-- Google Font: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <!-- Theme style -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
-    
+
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
     <!-- Panadería Theme -->
     <link rel="stylesheet" href="{{ asset('css/panaderia-theme.css') }}">
-    
+
     <style>
         /* Estilo para módulos destacados */
         .nav-link-modulo-destacado {
@@ -47,80 +47,80 @@
         .nav-link-modulo-destacado.active .nav-icon {
             color: white !important;
         }
-        
+
         /* Asegurar que Poppins sea la fuente principal */
         body, .main-header .navbar, .brand-link, .nav-sidebar .nav-link {
             font-family: 'Poppins', sans-serif;
         }
-        
+
         /* Sidebar personalizado - tonos panadería */
         .main-sidebar {
             background: linear-gradient(180deg, #5D3A1A 0%, #3E2510 100%);
         }
-        
+
         .main-sidebar .brand-link {
             background: linear-gradient(135deg, #8B4513 0%, #5D3A1A 100%);
             border-bottom: 2px solid #D2B48C;
         }
-        
+
         .brand-link .brand-text {
             font-weight: 600;
             letter-spacing: 1px;
             color: white;
         }
-        
+
         .main-sidebar .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link {
             color: rgba(255, 255, 255, 0.85);
         }
-        
+
         .main-sidebar .nav-sidebar .nav-link.active {
             background: linear-gradient(90deg, #8B4513 0%, #A0522D 100%);
             color: white;
             border-left: 4px solid #D2B48C;
         }
-        
+
         .main-sidebar .nav-sidebar .nav-link:hover {
             background: rgba(139, 69, 19, 0.6);
             color: white;
         }
-        
+
         .main-sidebar .nav-treeview .nav-link {
             color: rgba(255, 255, 255, 0.75);
         }
-        
+
         .main-sidebar .nav-treeview .nav-link.active {
             background: rgba(210, 180, 140, 0.2);
             color: #D2B48C;
             border-left: 3px solid #D2B48C;
         }
-        
+
         .main-sidebar .nav-treeview .nav-link:hover {
             background: rgba(210, 180, 140, 0.15);
             color: #D2B48C;
         }
-        
+
         /* User Panel */
         .user-panel {
             border-bottom: 1px solid rgba(210, 180, 140, 0.3);
             padding: 1rem 0.8rem !important;
             margin-bottom: 0.5rem;
         }
-        
+
         .user-panel .image i {
             color: #D2B48C;
         }
-        
+
         .user-panel .info a {
             color: white;
             font-weight: 600;
             font-size: 0.95rem;
             text-decoration: none;
         }
-        
+
         .user-panel .info a:hover {
             color: #D2B48C;
         }
-        
+
         .user-role-badge {
             display: inline-block;
             background: rgba(210, 180, 140, 0.2);
@@ -130,7 +130,7 @@
             font-weight: 500;
             color: #D2B48C;
         }
-        
+
         .user-status {
             display: inline-block;
             width: 8px;
@@ -140,13 +140,13 @@
             margin-left: 5px;
             animation: pulse 2s infinite;
         }
-        
+
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
             70% { box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); }
             100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
         }
-        
+
                 /* Footer del sidebar - CORREGIDO para no solaparse */
         .sidebar {
             display: flex !important;
@@ -156,11 +156,11 @@
             overflow-x: hidden !important;
             padding-right: 0 !important;
         }
-        
+
         .sidebar nav {
             flex: 1 0 auto !important;
         }
-        
+
         .sidebar-footer {
             position: sticky !important;
             bottom: 0 !important;
@@ -179,37 +179,37 @@
             z-index: 10 !important;
             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2) !important;
         }
-        
+
         .sidebar-footer a {
             color: #D2B48C !important;
             text-decoration: none !important;
             transition: all 0.3s ease !important;
         }
-        
+
         .sidebar-footer a:hover {
             color: white !important;
             text-shadow: 0 0 5px rgba(210, 180, 140, 0.5) !important;
         }
-        
+
         /* Cuando el sidebar está colapsado */
         .sidebar-mini.sidebar-collapse .sidebar {
             overflow-y: auto !important;
         }
-        
+
         .sidebar-mini.sidebar-collapse .sidebar-footer {
             width: 100% !important;
             padding: 0.5rem 0.2rem !important;
         }
-        
+
         .sidebar-mini.sidebar-collapse .sidebar-footer br {
             display: none !important;
         }
-        
+
         .sidebar-mini.sidebar-collapse .sidebar-footer {
             font-size: 0.55rem !important;
             line-height: 1.4 !important;
         }
-        
+
         .sidebar-mini.sidebar-collapse .sidebar-footer .fa-store,
         .sidebar-mini.sidebar-collapse .sidebar-footer .fa-clock,
         .sidebar-mini.sidebar-collapse .sidebar-footer .fa-info-circle {
@@ -217,29 +217,29 @@
             display: block !important;
             margin: 2px 0 !important;
         }
-        
+
         /* Ajuste para navegadores que no soportan backdrop-filter */
         @supports not (backdrop-filter: blur(5px)) {
             .sidebar-footer {
                 background: rgba(0, 0, 0, 0.5) !important;
             }
         }
-        
+
         /* Navbar superior */
         .main-header.navbar {
             background: white;
             border-bottom: 2px solid #D2B48C;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
-        
+
         .main-header .navbar-nav .nav-link {
             color: #5D3A1A;
         }
-        
+
         .main-header .navbar-nav .nav-link:hover {
             color: #8B4513;
         }
-        
+
         /* Dropdown menu */
         .dropdown-menu {
             border-radius: 12px;
@@ -247,114 +247,114 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             border-top: 3px solid #8B4513;
         }
-        
+
         .dropdown-item {
             color: #5D3A1A;
             transition: all 0.2s ease;
         }
-        
+
         .dropdown-item:hover {
             background: #FFF5E6;
             color: #8B4513;
         }
-        
+
         /* Content Header */
         .content-header h1 {
             color: #5D3A1A;
             font-weight: 600;
         }
-        
+
         .breadcrumb {
             background: transparent;
             padding: 0;
         }
-        
+
         .breadcrumb-item a {
             color: #8B4513;
         }
-        
+
         .breadcrumb-item.active {
             color: #5D3A1A;
             font-weight: 500;
         }
-        
+
         /* Footer */
         .main-footer {
             background: #FFF5E6;
             color: #5D3A1A;
             border-top: 1px solid #D2B48C;
         }
-        
+
         /* Animación para el sidebar */
         .main-sidebar {
             transition: all 0.3s ease;
         }
-        
+
         /* Scrollbar personalizada para el sidebar */
         .sidebar::-webkit-scrollbar {
             width: 5px !important;
         }
-        
+
         .sidebar::-webkit-scrollbar-track {
             background: #3E2510 !important;
         }
-        
+
         .sidebar::-webkit-scrollbar-thumb {
             background: #D2B48C !important;
             border-radius: 3px !important;
         }
-        
+
         .sidebar::-webkit-scrollbar-thumb:hover {
             background: #E8C9A0 !important;
         }
-        
+
         /* Estilo para el módulo de acceso destacado */
         .nav-link-acceso {
             background-color: rgba(76, 175, 80, 0.15) !important;
             border-left: 3px solid #4caf50 !important;
         }
-        
+
         .nav-link-acceso:hover {
             background-color: rgba(76, 175, 80, 0.25) !important;
         }
-        
+
         /* Iconos del sidebar */
         .nav-sidebar .nav-icon {
             color: #D2B48C;
         }
-        
+
         .nav-sidebar .nav-link.active .nav-icon {
             color: white;
         }
-        
+
         .nav-sidebar .nav-link:hover .nav-icon {
             color: #D2B48C;
         }
-        
+
         /* Estilo para el módulo de acceso destacado */
         .nav-link-acceso {
             background-color: rgba(76, 175, 80, 0.15) !important;
             border-left: 3px solid #4caf50 !important;
         }
-        
+
         .nav-link-acceso:hover {
             background-color: rgba(76, 175, 80, 0.25) !important;
         }
-        
+
         /* Iconos del sidebar */
         .nav-sidebar .nav-icon {
             color: #D2B48C;
         }
-        
+
         .nav-sidebar .nav-link.active .nav-icon {
             color: white;
         }
-        
+
         .nav-sidebar .nav-link:hover .nav-icon {
             color: #D2B48C;
         }
     </style>
-    
+
     @stack('styles')
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -405,7 +405,7 @@
                     </a>
                 </div>
             </li>
-            
+
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">
                     <i class="fas fa-user-circle"></i>
@@ -474,7 +474,7 @@
             <!-- Sidebar Menu COMPLETO -->
             <nav class="mt-2">
                 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
-                    
+
                     @php
                         $user = Auth::user();
                         $isAdmin = $user ? $user->esAdmin() : false;
@@ -555,14 +555,14 @@
                                     <p><i class="fas fa-star-of-life" style="font-size: 10px;"></i> Panel de Compras</p>
                                 </a>
                             </li>
-                            
+
                             <li class="nav-item">
                                 <a href="{{ route('ventas.index') }}" class="nav-link nav-link-modulo-destacado {{ Request::routeIs('ventas.index') ? 'active' : '' }}">
                                     <i class="fas fa-cart-shopping nav-icon"></i>
                                     <p><i class="fas fa-star-of-life" style="font-size: 10px;"></i> Panel de Ventas</p>
                                 </a>
                             </li>
-                            
+
                             <li class="nav-item">
                                 <a href="{{ route('notas-venta.index') }}" class="nav-link {{ Request::routeIs('notas-venta.*') ? 'active' : '' }}">
                                     <i class="far fa-circle nav-icon"></i><p>Notas de Venta</p>
@@ -656,7 +656,7 @@
                         </a>
                     </li>
                     @endif
-                    
+
                     <!-- MÓDULO: INVENTARIO -->
                     @if(in_array('inventario_ver', $userPermissions) || $isAdmin)
                     <li class="nav-item has-treeview {{ Request::routeIs('movimientos.*') || Request::routeIs('traspasos.*') || Request::routeIs('lotes.*') || Request::routeIs('configuracion.*') ? 'menu-open' : '' }}">
@@ -720,7 +720,7 @@
                                     <i class="far fa-circle nav-icon"></i><p>Producciones</p>
                                 </a>
                             </li>
-     
+
                         </ul>
                     </li>
                     @endif
@@ -732,7 +732,7 @@
             <div class="sidebar-footer">
                 <i class="fas fa-store"></i> Versión 2.0
                 <br>
-                <i class="far fa-clock"></i> 
+                <i class="far fa-clock"></i>
                 <span id="sidebar-clock"></span>
                 <br>
                 <a href="#" data-toggle="modal" data-target="#aboutModal">
@@ -748,7 +748,7 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        
+
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
@@ -810,6 +810,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     // Reloj en tiempo real
@@ -829,7 +830,7 @@
         $('.has-treeview.menu-open > .nav-link').each(function() {
             $(this).find('.right').addClass('fa-angle-down').removeClass('fa-angle-left');
         });
-        
+
         $('.has-treeview > .nav-link').on('click', function() {
             const icon = $(this).find('.right');
             if (icon.hasClass('fa-angle-left')) {

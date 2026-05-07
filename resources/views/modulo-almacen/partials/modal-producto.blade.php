@@ -16,7 +16,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Nombre del Producto <span class="text-danger">*</span></label>
-                                <input type="text" name="nombre" id="productoNombre" class="form-control" 
+                                <input type="text" name="nombre" id="productoNombre" class="form-control"
                                        placeholder="Ej: Pan Francés, Tarta de Manzana..." required>
                             </div>
                         </div>
@@ -24,7 +24,7 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label>Precio de Venta <span class="text-danger">*</span></label>
-                                <input type="number" name="precio" id="productoPrecio" class="form-control" 
+                                <input type="number" name="precio" id="productoPrecio" class="form-control"
                                        step="0.01" min="0" placeholder="0.00" required>
                             </div>
                         </div>
@@ -44,7 +44,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         {{-- Categoría --}}
                         <div class="col-md-6">
@@ -58,8 +58,8 @@
                                         @endforeach
                                     </select>
                                     <div class="input-group-append">
-                                        <button type="button" class="btn btn-info" 
-                                                data-toggle="modal" 
+                                        <button type="button" class="btn btn-info"
+                                                data-toggle="modal"
                                                 data-target="#createCategoriaProductoModal"
                                                 data-dismiss="modal">
                                             <i class="fas fa-plus"></i> Nueva
@@ -69,30 +69,60 @@
                             </div>
                         </div>
                     </div>
-                    
-                    {{-- Imagen --}}
+
+                    {{-- Imagen (ahora con opción de archivo o URL) --}}
                     <div class="form-group">
                         <label>Imagen del Producto</label>
                         <div class="card">
                             <div class="card-body">
+                                {{-- Selector de tipo de imagen --}}
+                                <div class="mb-3">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="imagen_tipo" id="tipoArchivo" value="file" checked>
+                                        <label class="form-check-label" for="tipoArchivo">Subir archivo</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="imagen_tipo" id="tipoUrl" value="url">
+                                        <label class="form-check-label" for="tipoUrl">Usar URL</label>
+                                    </div>
+                                </div>
+
+                                {{-- Vista previa (compartida) --}}
                                 <div class="image-preview mb-2 text-center" id="localImagePreview" style="display: none;">
                                     <img id="localPreviewImg" src="" alt="Vista previa" style="max-width: 150px; max-height: 150px; border-radius: 5px;">
                                 </div>
-                                <div class="custom-file">
-                                    <input type="file" class="custom-file-input" id="productoImagen" name="imagen" accept="image/*">
-                                    <label class="custom-file-label" for="productoImagen">
-                                        <i class="fas fa-upload"></i> Seleccionar imagen
-                                    </label>
+
+                                {{-- Campo para subir archivo --}}
+                                <div id="grupoArchivo">
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input" id="productoImagen" name="imagen" accept="image/*">
+                                        <label class="custom-file-label" for="productoImagen">
+                                            <i class="fas fa-upload"></i> Seleccionar imagen
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">
+                                        Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 2MB.
+                                    </small>
                                 </div>
-                                <small class="text-muted">
-                                    Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 2MB.
-                                </small>
+
+                                {{-- Campo para URL (oculto inicialmente) --}}
+                                <div id="grupoUrl" style="display: none;">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-link"></i></span>
+                                        </div>
+                                        <input type="url" class="form-control" id="productoImagenUrl" name="imagen_url" placeholder="https://ejemplo.com/imagen.jpg">
+                                    </div>
+                                    <small class="text-muted">
+                                        Pegue la URL completa de una imagen (jpg, png, gif).
+                                    </small>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> 
+                        <i class="fas fa-info-circle"></i>
                         Se creará automáticamente un registro en Items como "producto" con la unidad de medida seleccionada.
                     </div>
                 </div>
@@ -122,7 +152,34 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    // Cambiar entre archivo y URL
+    $('input[name="imagen_tipo"]').on('change', function() {
+        const tipo = $(this).val();
+        if (tipo === 'file') {
+            $('#grupoArchivo').show();
+            $('#grupoUrl').hide();
+            // Limpiar el campo de URL para no enviar ambos
+            $('#productoImagenUrl').val('');
+            // Reactivar el input file
+            $('#productoImagen').prop('disabled', false);
+            // La vista previa se actualizará si se selecciona un archivo nuevamente
+            actualizarVistaPrevia();
+        } else {
+            $('#grupoArchivo').hide();
+            $('#grupoUrl').show();
+            // Limpiar el input file para no subir archivo
+            $('#productoImagen').val('');
+            $('#productoImagen').prop('disabled', true);
+            // Actualizar label del file input
+            $('.custom-file-label').html('<i class="fas fa-upload"></i> Seleccionar imagen');
+            // Mostrar vista previa desde URL si tiene algo
+            actualizarVistaPreviaUrl();
+        }
+    });
+
+    // Previsualizar imagen desde archivo
     $('#productoImagen').on('change', function(e) {
+        if ($('input[name="imagen_tipo"]:checked').val() !== 'file') return;
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
@@ -135,10 +192,60 @@ $(document).ready(function() {
             $('#localImagePreview').hide();
         }
     });
-    
+
+    // Previsualizar imagen desde URL
+    $('#productoImagenUrl').on('input', function() {
+        if ($('input[name="imagen_tipo"]:checked').val() !== 'url') return;
+        actualizarVistaPreviaUrl();
+    });
+
+    function actualizarVistaPreviaUrl() {
+        const url = $('#productoImagenUrl').val().trim();
+        if (url === '') {
+            $('#localImagePreview').hide();
+        } else {
+            // Intentar cargar la imagen; si falla, ocultar
+            $('#localPreviewImg').attr('src', url).off('error').on('error', function() {
+                $(this).attr('src', '');
+                $('#localImagePreview').hide();
+            }).off('load').on('load', function() {
+                $('#localImagePreview').show();
+            });
+        }
+    }
+
+    function actualizarVistaPrevia() {
+        const tipo = $('input[name="imagen_tipo"]:checked').val();
+        if (tipo === 'file') {
+            const fileInput = $('#productoImagen')[0];
+            if (fileInput.files && fileInput.files[0]) {
+                // Disparar el evento change manualmente o usar FileReader
+                $('#productoImagen').trigger('change');
+            } else {
+                $('#localImagePreview').hide();
+            }
+        } else {
+            actualizarVistaPreviaUrl();
+        }
+    }
+
+    // Actualizar el label del custom file input
     $('.custom-file-input').on('change', function() {
         const fileName = $(this).val().split('\\').pop();
-        $(this).next('.custom-file-label').html(fileName);
+        $(this).next('.custom-file-label').html(fileName ? fileName : '<i class="fas fa-upload"></i> Seleccionar imagen');
+    });
+
+    // Limpiar vista previa al abrir el modal
+    $('#createProductoModal').on('show.bs.modal', function() {
+        // Resetear al estado inicial: archivo
+        $('#tipoArchivo').prop('checked', true);
+        $('#grupoArchivo').show();
+        $('#grupoUrl').hide();
+        $('#productoImagen').val('');
+        $('#productoImagenUrl').val('');
+        $('.custom-file-label').html('<i class="fas fa-upload"></i> Seleccionar imagen');
+        $('#localImagePreview').hide();
+        $('#localPreviewImg').attr('src', '');
     });
 });
 </script>

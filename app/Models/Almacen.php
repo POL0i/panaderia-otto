@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;  // ✅ AGREGADO
 
 class Almacen extends Model
 {
@@ -79,9 +80,17 @@ class Almacen extends Model
     /**
      * Get all almacen_items for this almacen.
      */
-    public function items()
+    public function almacenItems()  // ✅ Nombre correcto de la relación
     {
         return $this->hasMany(AlmacenItem::class, 'id_almacen', 'id_almacen');
+    }
+
+    /**
+     * Alias para mantener compatibilidad
+     */
+    public function items()
+    {
+        return $this->almacenItems();
     }
 
     /**
@@ -89,7 +98,7 @@ class Almacen extends Model
      */
     public function itemsPorTipo($tipoItem)
     {
-        return $this->items()
+        return $this->almacenItems()
             ->whereHas('item', function($query) use ($tipoItem) {
                 $query->where('tipo_item', $tipoItem);
             });
@@ -112,23 +121,26 @@ class Almacen extends Model
     }
 
     /**
-     * Get image URL helper
+     * Calcular porcentaje de capacidad utilizada
      */
-    public function getImagenUrlAttribute()
+    public function getPorcentajeCapacidadAttribute()
     {
-        if (empty($this->imagen)) {
-            return asset('images/default-warehouse.png');
-        }
-        
-        if (filter_var($this->imagen, FILTER_VALIDATE_URL)) {
-            return $this->imagen;
-        }
-        
-        if (Storage::disk('public')->exists($this->imagen)) {
-            return Storage::url($this->imagen);
-        }
-        
-        return asset('images/default-warehouse.png');
+        $stockActual = $this->almacenItems()->sum('stock');
+        if ($this->capacidad <= 0) return 0;
+
+        return round(($stockActual / $this->capacidad) * 100, 2);
+    }
+
+    /**
+     * Get color based on capacity usage
+     */
+    public function getCapacidadColorAttribute()
+    {
+        $porcentaje = $this->porcentaje_capacidad;
+
+        if ($porcentaje >= 90) return 'danger';
+        if ($porcentaje >= 70) return 'warning';
+        return 'success';
     }
 
     /**
@@ -153,28 +165,5 @@ class Almacen extends Model
     public function traspasosComoDestino()
     {
         return $this->hasMany(TraspasoAlmacenItem::class, 'id_almacen_destino', 'id_almacen');
-    }
-
-    /**
-     * Calcular porcentaje de capacidad utilizada
-     */
-    public function getPorcentajeCapacidadAttribute()
-    {
-        $stockActual = $this->items()->sum('stock');
-        if ($this->capacidad <= 0) return 0;
-        
-        return round(($stockActual / $this->capacidad) * 100, 2);
-    }
-
-    /**
-     * Get color based on capacity usage
-     */
-    public function getCapacidadColorAttribute()
-    {
-        $porcentaje = $this->porcentaje_capacidad;
-        
-        if ($porcentaje >= 90) return 'danger';
-        if ($porcentaje >= 70) return 'warning';
-        return 'success';
     }
 }

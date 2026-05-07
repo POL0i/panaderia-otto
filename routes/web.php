@@ -43,54 +43,71 @@ use App\Http\Controllers\PempresaController;
 use App\Http\Controllers\CompraController;
 use App\Http\Controllers\VentaController;
 
-Route::prefix('ventas')->name('ventas.')->group(function () {
-    Route::get('/', [VentaController::class, 'index'])->name('index');
-    Route::post('/store', [VentaController::class, 'store'])->name('store'); 
-    Route::get('/nota/{id}', [VentaController::class, 'getNotaVenta'])->name('nota');
-    Route::get('/clientes', [VentaController::class, 'getClientes'])->name('clientes');
-    Route::get('/almacenes', [VentaController::class, 'getAlmacenes'])->name('almacenes');
-    Route::get('/items', [VentaController::class, 'getItems'])->name('items');
-    Route::get('/stock/{idAlmacen}/{idItem}', [VentaController::class, 'getStock'])->name('stock');
-    Route::post('/enviar-correo', [VentaController::class, 'enviarCorreo'])->name('enviar-correo'); 
-    Route::get('/productos-con-stock', [VentaController::class, 'getProductosConStock'])
-    ->name('getProductosConStock');
+// Landing pública
+Route::get('/', [VentaController::class, 'landingPage'])->name('landing');
+
+// Carrito de compras (público)
+Route::prefix('carrito')->name('carrito.')->group(function () {
+    Route::post('/agregar', [VentaController::class, 'agregarAlCarrito'])->name('agregar');
+    Route::post('/actualizar', [VentaController::class, 'actualizarCarrito'])->name('actualizar');
+    Route::post('/eliminar', [VentaController::class, 'eliminarDelCarrito'])->name('eliminar');
+    Route::get('/', [VentaController::class, 'verCarrito'])->name('ver');
+    Route::get('/count', [VentaController::class, 'carritoCount'])->name('count');
 });
 
-Route::get('/', [VentaController::class, 'landingPage'])->name('landing');
-Route::post('/carrito/agregar', [VentaController::class, 'agregarAlCarrito'])->name('carrito.agregar');
-Route::post('/carrito/actualizar', [VentaController::class, 'actualizarCarrito'])->name('carrito.actualizar');
-Route::post('/carrito/eliminar', [VentaController::class, 'eliminarDelCarrito'])->name('carrito.eliminar');
-Route::get('/carrito', [VentaController::class, 'verCarrito'])->name('carrito.ver');
+// Procesar pedido
 Route::get('/procesar-pedido', [VentaController::class, 'procesarPedido'])->name('procesar.pedido');
-Route::get('/carrito/count', [VentaController::class, 'carritoCount'])->name('carrito.count');
 
+// Webhook de pago
 Route::post('/webhook/libelula/pago-exitoso', [VentaController::class, 'webhookPagoExitoso'])
     ->name('webhook.libelula');
 
-// Registro rápido de clientes (público)
-Route::post('/registro/cliente/rapido', [UsuarioController::class, 'registroClienteRapido'])->name('registro.cliente.rapido');
+// Registro rápido de clientes
+Route::post('/registro/cliente/rapido', [UsuarioController::class, 'registroClienteRapido'])
+    ->name('registro.cliente.rapido');
 
+// Pago verificación
 Route::get('/pago/verificar/{id}', [VentaController::class, 'verificarPago'])->name('pago.verificar');
 Route::get('/pago/exito/{id}', [VentaController::class, 'pagoExito'])->name('pago.exito');
 
-// Sección de Compras
-Route::prefix('compras')->name('compras.')->group(function () {
-    Route::get('/', [CompraController::class, 'index'])->name('index');
-    Route::post('/store', [CompraController::class, 'store'])->name('store');
-    Route::get('/nota/{id}', [CompraController::class, 'getNotaCompra'])->name('nota');
-    Route::get('/detalles', [CompraController::class, 'getDetallesCompra'])->name('detalles');
-    Route::get('/items-almacen/{id}', [CompraController::class, 'getItemsByAlmacen'])->name('items.almacen');
-    
-    // APIs para modales
-    Route::post('/proveedor', [CompraController::class, 'storeProveedor'])->name('proveedor.store');
-    Route::post('/almacen', [CompraController::class, 'storeAlmacen'])->name('almacen.store');
-    Route::post('/insumo', [CompraController::class, 'storeInsumo'])->name('insumo.store');
-    Route::get('/proveedores', [CompraController::class, 'getProveedores'])->name('proveedores');
-    Route::get('/almacenes', [CompraController::class, 'getAlmacenes'])->name('almacenes');
-    Route::get('/items', [CompraController::class, 'getItems'])->name('items');
-      Route::post('/enviar-correo', [CompraController::class, 'enviarCorreoCompra'])->name('enviar-correo');
-});
 
+// Rutas protegidas por autenticación
+Route::middleware(['auth'])->group(function () {
+
+    // Sección de Ventas
+    Route::prefix('ventas')->name('ventas.')->group(function () {
+        Route::get('/', [VentaController::class, 'index'])->name('index');
+        Route::post('/store', [VentaController::class, 'store'])->name('store');
+        Route::get('/clientes', [VentaController::class, 'getClientes'])->name('clientes');
+        Route::get('/almacenes', [VentaController::class, 'getAlmacenes'])->name('almacenes');
+        Route::get('/items', [VentaController::class, 'getItems'])->name('items');
+        Route::get('/stock/{idAlmacen}/{idItem}', [VentaController::class, 'getStock'])->name('stock');
+        Route::get('/nota/{id}', [VentaController::class, 'getNotaVenta'])->name('nota');
+        Route::post('/enviar-correo', [VentaController::class, 'enviarCorreo'])->name('enviar-correo');
+        Route::get('/productos-con-stock', [VentaController::class, 'getProductosConStock'])->name('getProductosConStock');
+        Route::get('/debug', [VentaController::class, 'debugProductos'])->name('debug');
+
+        // RUTA PARA COMPLETAR VENTA (DEBE ESTAR DENTRO DEL GRUPO)
+        Route::post('/{id}/completar', [VentaController::class, 'completarVenta'])->name('completar');
+    });
+
+    // Sección de Compras
+    Route::prefix('compras')->name('compras.')->group(function () {
+        Route::get('/', [CompraController::class, 'index'])->name('index');
+        Route::post('/store', [CompraController::class, 'store'])->name('store');
+        Route::get('/nota/{id}', [CompraController::class, 'getNotaCompra'])->name('nota');
+        Route::get('/detalles', [CompraController::class, 'getDetallesCompra'])->name('detalles');
+        Route::get('/items-almacen/{id}', [CompraController::class, 'getItemsByAlmacen'])->name('items.almacen');
+        Route::post('/proveedor', [CompraController::class, 'storeProveedor'])->name('proveedor.store');
+        Route::post('/almacen', [CompraController::class, 'storeAlmacen'])->name('almacen.store');
+        Route::post('/insumo', [CompraController::class, 'storeInsumo'])->name('insumo.store');
+        Route::get('/proveedores', [CompraController::class, 'getProveedores'])->name('proveedores');
+        Route::get('/almacenes', [CompraController::class, 'getAlmacenes'])->name('almacenes');
+        Route::get('/items', [CompraController::class, 'getItems'])->name('items');
+        Route::post('/enviar-correo', [CompraController::class, 'enviarCorreoCompra'])->name('enviar-correo');
+    });
+
+});
 /*
 |--------------------------------------------------------------------------
 | Rutas Públicas
@@ -132,7 +149,7 @@ Route::middleware(['auth'])->group(function () {
         // CRUD Usuarios
         Route::get('usuarios/{id}/editar', [UsuarioController::class, 'edit'])->name('usuarios.edit');
         Route::put('usuarios/{id}', [UsuarioController::class, 'update'])->name('usuarios.update');
-        
+
         // API Permisos
         Route::get('usuarios/{id}/permisos', [UsuarioController::class, 'getPermisosUsuario'])
             ->name('usuarios.permisos');
@@ -206,7 +223,7 @@ Route::middleware(['auth'])->group(function () {
         // Recursos tradicionales
         Route::resource('almacenes', AlmacenController::class);
         Route::resource('productos', ProductoController::class);
-        
+
         // Rutas adicionales para categorías de productos dentro de producto
         Route::prefix('productos')->group(function () {
             Route::post('/categorias', [ProductoController::class, 'storeCategoria'])
@@ -218,10 +235,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/categorias/{id}/edit', [ProductoController::class, 'editCategoria'])
                 ->name('productos.categorias.edit');
         });
-        
+
         Route::resource('items', ItemController::class);
         Route::resource('insumos', InsumoController::class);
-        
+
         // Rutas adicionales para categorías de insumos dentro de insumo
         Route::prefix('insumos')->group(function () {
             Route::post('/categorias', [InsumoController::class, 'storeCategoria'])
@@ -233,12 +250,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/categorias/{id}/edit', [InsumoController::class, 'editCategoria'])
                 ->name('insumos.categorias.edit');
         });
-        
+
         Route::resource('almacen-items', AlmacenItemController::class);
 
         Route::post('/modulo-almacen/search-images', [AlmacenModuleController::class, 'searchImages'])
         ->name('modulo-almacen.search-images');
-    }); 
+    });
     /*
     |--------------------------------------------------------------------------
     | MÓDULO: INVENTARIO (permiso: inventario_ver)
@@ -276,7 +293,7 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware(['permiso:produccion_ver'])->group(function () {
-        
+
         // =============================================
         // PANEL PRINCIPAL Y GESTIÓN BÁSICA
         // =============================================
@@ -285,7 +302,7 @@ Route::middleware(['auth'])->group(function () {
     ->except(['edit', 'update', 'destroy'])
     ->parameters(['producciones' => 'produccion']);  // ← Agregar esta línea
 
-    
+
         Route::get('/produccion', [ProduccionModuleController::class, 'index'])
             ->name('produccion.index')
             ->middleware('permiso:panel_produccion_ver');
@@ -323,7 +340,7 @@ Route::middleware(['auth'])->group(function () {
         // =============================================
         // PRODUCCIONES
         // =============================================
-        
+
         // Cálculo de insumos (AJAX - debe ir ANTES del resource)
  Route::post('producciones/calcular-insumos', [ProduccionController::class, 'calcularInsumos'])
     ->name('producciones.calcular-insumos');

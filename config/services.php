@@ -24,7 +24,7 @@ return [
     ],
 
     'libelula' => [
-        'appkey' => env('LIBELULA_APPKEY'), 
+        'appkey' => env('LIBELULA_APPKEY'),
         'base_url' => env('LIBELULA_BASE_URL', 'https://api.libelula.bo/rest'),
         'callback_url' => env('LIBELULA_CALLBACK_URL'),
     ],

@@ -14,70 +14,85 @@
                         <i class="fas fa-plus"></i> Crear Item
                     </a>
                 </div>
-            </div> <!-- Cierre del card-header -->
+            </div>
 
             <div class="card-body">
                 @if ($message = Session::get('success'))
                     <div class="alert alert-success alert-dismissible fade show">
                         <button type="button" class="close" data-dismiss="alert">&times;</button>
-                        <strong>Éxito!</strong> {{ $message }}
+                        <strong>¡Éxito!</strong> {{ $message }}
                     </div>
                 @endif
 
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Tipo de Item</th>
-                            <th>Unidad de Medida</th>
-                            <th>Producto/Insumo</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($items as $item)
-                        <tr>
-                            <td>{{ $item->id_item }}</td>
-                            <td>
-                                <span class="badge badge-secondary">{{ ucfirst($item->tipo_item) }}</span>
-                            </td>
-                            <td>{{ $item->unidad_medida }}</td>
-                            <td>
-                                @if ($item->tipo_item === 'producto' && $item->producto)
-                                    <span class="badge badge-success">{{ $item->producto->nombre }}</span>
-                                @elseif ($item->tipo_item === 'insumo' && $item->insumo)
-                                    <span class="badge badge-info">{{ $item->insumo->nombre }}</span>
-                                @else
-                                    <span class="badge badge-warning">Sin relación</span>
-                                @endif
-                            </td>
-                            <td>
-                                <a href="{{ route('items.show', $item->id_item) }}" class="btn btn-info btn-sm">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{{ route('items.edit', $item->id_item) }}" class="btn btn-warning btn-sm">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form action="{{ route('items.destroy', $item->id_item) }}" method="POST" style="display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Está seguro?')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        @empty
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
                             <tr>
-                                <td colspan="5" class="text-center">
-                                    No hay items registrados
+                                <th width="5%">ID</th>
+                                <th width="35%">Nombre</th>
+                                <th width="15%">Tipo</th>
+                                <th width="15%">Unidad de Medida</th>
+                                <th width="30%">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($items as $item)
+                            <tr>
+                                <td>{{ $item->id_item }}</td>
+                                <td>
+                                    <strong>{{ $item->nombre }}</strong>
+                                    
+                                </td>
+                                <td>
+                                    @if($item->tipo_item === 'producto')
+                                        <span class="badge badge-success">
+                                            <i class="fas fa-box"></i> Producto
+                                        </span>
+                                    @else
+                                        <span class="badge badge-info">
+                                            <i class="fas fa-flask"></i> Insumo
+                                        </span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="badge badge-secondary">{{ $item->unidad_medida }}</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ route('items.edit', $item->id_item) }}" class="btn btn-warning" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form action="{{ route('items.destroy', $item->id_item) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger" title="Eliminar" onclick="return confirm('¿Está seguro de eliminar este item?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div> <!-- Cierre del card-body -->
-        </div> <!-- Cierre del card -->
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        <i class="fas fa-box-open fa-3x mb-3 d-block"></i>
+                                        No hay items registrados
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    <table>
+                </div>
+
+                @if($items->hasPages())
+                    <div class="card-footer clearfix">
+                        <div class="float-right">
+                            {{ $items->links() }}
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
 </div>
 @endsection

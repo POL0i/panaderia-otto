@@ -6,6 +6,16 @@
 
 @push('styles')
 <style>
+        .btn-completar-venta {
+        transition: all 0.3s ease;
+    }
+    .btn-completar-venta:hover {
+        transform: scale(1.1);
+    }
+    .btn-completar-venta:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
     .producto-card-modal {
         cursor: pointer;
         transition: all 0.3s ease;
@@ -97,7 +107,7 @@
                             </button>
                         </div>
                     </div>
-                    
+
                     <!-- Información del producto seleccionado -->
                     <div class="row mt-3" id="productoSeleccionadoInfo" style="display: none;">
                         <div class="col-12">
@@ -116,12 +126,12 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Campos ocultos para almacenar IDs seleccionados -->
                     <input type="hidden" id="selectedAlmacenId" value="">
                     <input type="hidden" id="selectedItemId" value="">
                     <input type="hidden" id="selectedStock" value="0">
-                    
+
                     <div class="row mt-3">
                         <div class="col-md-6">
                             <label>Cantidad <span class="text-danger">*</span></label>
@@ -133,7 +143,7 @@
                             <input type="number" step="0.01" class="form-control" id="itemPrecio" placeholder="Precio unitario" required>
                         </div>
                     </div>
-                    
+
                     <div class="row mt-3">
                         <div class="col-12">
                             <button type="button" class="btn btn-add-item btn-block" onclick="addItemToCart()" id="btnAgregarCarrito" disabled>
@@ -189,19 +199,44 @@
                             <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead><tr><th>ID</th><th>Fecha</th><th>Cliente</th><th>Empleado</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
-                                    <tbody>
-                                        @foreach($notasVenta as $nota)
-                                        <tr>
-                                            <td>{{ $nota->id_nota_venta }}</td>
-                                            <td>{{ \Carbon\Carbon::parse($nota->fecha_venta)->format('d/m/Y H:i') }}</td>
-                                            <td>{{ $nota->cliente->nombre ?? 'N/A' }}</td>
-                                            <td>{{ $nota->empleado->nombre ?? 'N/A' }}</td>
-                                            <td>Bs. {{ number_format($nota->monto_total, 2) }}</td>
-                                            <td><span class="badge badge-success">{{ $nota->estado }}</span></td>
-                                            <td><button class="btn btn-sm btn-info" onclick="verDetalleNota({{ $nota->id_nota_venta }})"><i class="fas fa-eye"></i></button></td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
+                                    {{-- En la sección de Historial de Ventas, modifica la tabla --}}
+<tbody>
+    @foreach($notasVenta as $nota)
+    <tr>
+        <td>{{ $nota->id_nota_venta }}</td>
+        <td>{{ \Carbon\Carbon::parse($nota->fecha_venta)->format('d/m/Y H:i') }}</td>
+        <td>{{ $nota->cliente->nombre ?? 'N/A' }}</td>
+        <td>{{ $nota->empleado->nombre ?? 'Sin asignar' }}</td>
+        <td>Bs. {{ number_format($nota->monto_total, 2) }}</td>
+        <td>
+            @if($nota->estado === 'completado')
+                <span class="badge badge-success">Completado</span>
+            @elseif($nota->estado === 'pendiente')
+                <span class="badge badge-warning">Pendiente</span>
+            @elseif($nota->estado === 'cancelado')
+                <span class="badge badge-danger">Cancelado</span>
+            @else
+                <span class="badge badge-secondary">{{ $nota->estado }}</span>
+            @endif
+        </td>
+        <td>
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-info" onclick="verDetalleNota({{ $nota->id_nota_venta }})" title="Ver detalle">
+                    <i class="fas fa-eye"></i>
+                </button>
+
+                @if($nota->estado === 'pendiente')
+                <button class="btn btn-success btn-completar-venta"
+                        data-id="{{ $nota->id_nota_venta }}"
+                        title="Completar venta">
+                    <i class="fas fa-check"></i>
+                </button>
+                @endif
+            </div>
+        </td>
+    </tr>
+    @endforeach
+</tbody>
                                 </table>
                             </div>
                         </div>
@@ -268,7 +303,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row" id="productosGrid" style="max-height: 400px; overflow-y: auto;">
                         <!-- Los productos se cargarán aquí dinámicamente -->
                         <div class="col-12 text-center py-5">
@@ -424,202 +459,264 @@
 </div>
 
 @endsection
-
 @push('scripts')
 <script>
+$(document).ready(function() {
+    // Variables globales
+    let productosData = [];
 
-    $(document).ready(function() {
-        // Variables globales
-        let productosData = [];
-        
-        // Cargar productos al abrir el modal
-        $('#btnSeleccionarProducto').on('click', function() {
-            cargarProductosParaModal();
-            $('#seleccionProductoModal').modal('show');
-        });
-        
-        // Función para cargar productos
-        function cargarProductosParaModal() {
-            $('#productosGrid').html('<div class="col-12 text-center py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Cargando productos...</p></div>');
-            
-            $.ajax({
-                url: '{{ route("ventas.getProductosConStock") }}',
-                method: 'GET',
-                success: function(response) {
-                    if (response.success) {
-                        productosData = response.productos;
-                        renderProductosGrid(productosData);
-                    } else {
-                        $('#productosGrid').html('<div class="col-12 text-center text-danger">Error al cargar productos</div>');
-                    }
-                },
-                error: function() {
+    // Cargar productos al abrir el modal
+    $('#btnSeleccionarProducto').on('click', function() {
+        cargarProductosParaModal();
+        $('#seleccionProductoModal').modal('show');
+    });
+
+    // Función para cargar productos
+    function cargarProductosParaModal() {
+        $('#productosGrid').html('<div class="col-12 text-center py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Cargando productos...</p></div>');
+
+        $.ajax({
+            url: '{{ route("ventas.getProductosConStock") }}',
+            method: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    productosData = response.productos;
+                    renderProductosGrid(productosData);
+                } else {
                     $('#productosGrid').html('<div class="col-12 text-center text-danger">Error al cargar productos</div>');
                 }
-            });
-        }
-        
-        // Renderizar productos en grid
-        function renderProductosGrid(productos) {
-            if (productos.length === 0) {
-                $('#productosGrid').html('<div class="col-12 text-center text-muted py-5">No hay productos disponibles</div>');
-                return;
+            },
+            error: function() {
+                $('#productosGrid').html('<div class="col-12 text-center text-danger">Error al cargar productos</div>');
             }
-            
-            let html = '';
-            productos.forEach(function(producto) {
-                const stockClass = producto.stock > 10 ? 'stock-suficiente' : (producto.stock > 0 ? 'stock-bajo' : 'stock-agotado');
-                const stockText = producto.stock > 0 ? `${producto.stock} unidades` : 'Agotado';
-                
-                // Usar imagen o placeholder
-                const imagenUrl = producto.imagen && producto.imagen !== '' 
-                    ? producto.imagen 
-                    : 'https://placehold.co/80x80/8B4513/white?text=Producto';
-                
-                html += `
-                    <div class="col-md-6 col-lg-4">
-                        <div class="producto-card-modal p-2" 
-                            data-almacen-id="${producto.id_almacen}"
-                            data-almacen-nombre="${producto.almacen_nombre}"
-                            data-item-id="${producto.id_item}"
-                            data-producto-nombre="${producto.producto_nombre}"
-                            data-stock="${producto.stock}"
-                            data-precio="${producto.precio}"
-                            data-imagen="${imagenUrl}">
-                            <div class="d-flex">
-                                <div class="mr-3">
-                                    <img src="${imagenUrl}" 
-                                        alt="${producto.producto_nombre}" 
-                                        class="producto-imagen-modal"
-                                        style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;"
-                                        onerror="this.src='https://placehold.co/80x80/8B4513/white?text=Producto'">
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1"><strong>${producto.producto_nombre}</strong></h6>
-                                    <small class="text-muted d-block">📦 ${producto.almacen_nombre}</small>
-                                    <small class="text-muted d-block">💰 Bs. ${parseFloat(producto.precio).toFixed(2)}</small>
-                                    <span class="stock-badge ${stockClass} mt-1 d-inline-block">
-                                        📊 Stock: ${stockText}
-                                    </span>
-                                </div>
+        });
+    }
+
+    // Renderizar productos en grid
+    function renderProductosGrid(productos) {
+        if (productos.length === 0) {
+            $('#productosGrid').html('<div class="col-12 text-center text-muted py-5">No hay productos disponibles</div>');
+            return;
+        }
+
+        let html = '';
+        productos.forEach(function(producto) {
+            const stockClass = producto.stock > 10 ? 'stock-suficiente' : (producto.stock > 0 ? 'stock-bajo' : 'stock-agotado');
+            const stockText = producto.stock > 0 ? `${producto.stock} unidades` : 'Agotado';
+
+            const imagenUrl = producto.imagen && producto.imagen !== ''
+                ? producto.imagen
+                : 'https://placehold.co/80x80/8B4513/white?text=Producto';
+
+            html += `
+                <div class="col-md-6 col-lg-4">
+                    <div class="producto-card-modal p-2"
+                        data-almacen-id="${producto.id_almacen}"
+                        data-almacen-nombre="${producto.almacen_nombre}"
+                        data-item-id="${producto.id_item}"
+                        data-producto-nombre="${producto.producto_nombre}"
+                        data-stock="${producto.stock}"
+                        data-precio="${producto.precio}"
+                        data-imagen="${imagenUrl}">
+                        <div class="d-flex">
+                            <div class="mr-3">
+                                <img src="${imagenUrl}"
+                                    alt="${producto.producto_nombre}"
+                                    class="producto-imagen-modal"
+                                    style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;"
+                                    onerror="this.src='https://placehold.co/80x80/8B4513/white?text=Producto'">
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1"><strong>${producto.producto_nombre}</strong></h6>
+                                <small class="text-muted d-block">📦 ${producto.almacen_nombre}</small>
+                                <small class="text-muted d-block">💰 Bs. ${parseFloat(producto.precio).toFixed(2)}</small>
+                                <span class="stock-badge ${stockClass} mt-1 d-inline-block">
+                                    📊 Stock: ${stockText}
+                                </span>
                             </div>
                         </div>
                     </div>
-                `;
-            });
-            
-            $('#productosGrid').html(html);
-            
-            // Agregar evento de clic a las tarjetas
-            $('.producto-card-modal').on('click', function() {
-                $('.producto-card-modal').removeClass('selected');
-                $(this).addClass('selected');
-                
-                // Guardar selección
-                const almacenId = $(this).data('almacen-id');
-                const almacenNombre = $(this).data('almacen-nombre');
-                const itemId = $(this).data('item-id');
-                const productoNombre = $(this).data('producto-nombre');
-                const stock = $(this).data('stock');
-                const precio = $(this).data('precio');
-                const imagen = $(this).data('imagen');
-                
-                // Actualizar campos ocultos
-                $('#selectedAlmacenId').val(almacenId);
-                $('#selectedItemId').val(itemId);
-                $('#selectedStock').val(stock);
-                
-                // Mostrar información seleccionada
-                $('#productoSeleccionadoImg').attr('src', imagen || '/images/default-product.png');
-                $('#productoSeleccionadoNombre').text(productoNombre);
-                $('#productoSeleccionadoAlmacen').text(almacenNombre);
-                $('#productoSeleccionadoStock').text(stock + ' unidades');
-                
-                // Setear precio
-                $('#itemPrecio').val(precio);
-                
-                // Habilitar cantidad y botón
-                $('#itemCantidad').prop('disabled', false);
-                $('#itemCantidad').attr('max', stock);
-                $('#maxStockMsg').text(`Máximo disponible: ${stock} unidades`);
-                
-                // Mostrar la información y habilitar botón
-                $('#productoSeleccionadoInfo').show();
-                $('#btnAgregarCarrito').prop('disabled', false);
-                
-                // Cerrar modal después de seleccionar
-                $('#seleccionProductoModal').modal('hide');
-            });
-        }
-        
-        // Filtros
-        $('#filtroAlmacenModal').on('change', aplicarFiltros);
-        $('#buscarProductoModal').on('keyup', aplicarFiltros);
-        $('#btnLimpiarFiltros').on('click', function() {
-            $('#filtroAlmacenModal').val('');
-            $('#buscarProductoModal').val('');
-            aplicarFiltros();
+                </div>
+            `;
         });
-        
-        function aplicarFiltros() {
-            const almacenFiltro = $('#filtroAlmacenModal').val();
-            const busqueda = $('#buscarProductoModal').val().toLowerCase();
-            
-            let productosFiltrados = productosData;
-            
-            if (almacenFiltro) {
-                productosFiltrados = productosFiltrados.filter(p => p.id_almacen == almacenFiltro);
-            }
-            
-            if (busqueda) {
-                productosFiltrados = productosFiltrados.filter(p => 
-                    p.producto_nombre.toLowerCase().includes(busqueda) ||
-                    p.almacen_nombre.toLowerCase().includes(busqueda)
-                );
-            }
-            
-            renderProductosGrid(productosFiltrados);
-        }
-        
-        // Validar cantidad
-        $('#itemCantidad').on('input', function() {
-            const cantidad = parseInt($(this).val());
-            const stock = parseInt($('#selectedStock').val());
-            const maxStockMsg = $('#maxStockMsg');
-            
-            if (cantidad > stock) {
-                $(this).addClass('is-invalid');
-                maxStockMsg.html(`<span class="text-danger">⚠️ La cantidad excede el stock disponible (${stock} unidades)</span>`);
-                $('#btnAgregarCarrito').prop('disabled', true);
-            } else if (cantidad <= 0 || isNaN(cantidad)) {
-                $(this).addClass('is-invalid');
-                maxStockMsg.html(`<span class="text-danger">⚠️ Ingrese una cantidad válida</span>`);
-                $('#btnAgregarCarrito').prop('disabled', true);
-            } else {
-                $(this).removeClass('is-invalid');
-                maxStockMsg.html(`✅ Stock disponible: ${stock} unidades`);
-                $('#btnAgregarCarrito').prop('disabled', false);
-            }
+
+        $('#productosGrid').html(html);
+
+        // Agregar evento de clic a las tarjetas
+        $('.producto-card-modal').on('click', function() {
+            $('.producto-card-modal').removeClass('selected');
+            $(this).addClass('selected');
+
+            const almacenId = $(this).data('almacen-id');
+            const almacenNombre = $(this).data('almacen-nombre');
+            const itemId = $(this).data('item-id');
+            const productoNombre = $(this).data('producto-nombre');
+            const stock = $(this).data('stock');
+            const precio = $(this).data('precio');
+            const imagen = $(this).data('imagen');
+
+            $('#selectedAlmacenId').val(almacenId);
+            $('#selectedItemId').val(itemId);
+            $('#selectedStock').val(stock);
+
+            $('#productoSeleccionadoImg').attr('src', imagen || '/images/default-product.png');
+            $('#productoSeleccionadoNombre').text(productoNombre);
+            $('#productoSeleccionadoAlmacen').text(almacenNombre);
+            $('#productoSeleccionadoStock').text(stock + ' unidades');
+
+            $('#itemPrecio').val(precio);
+
+            $('#itemCantidad').prop('disabled', false);
+            $('#itemCantidad').attr('max', stock);
+            $('#maxStockMsg').text(`Máximo disponible: ${stock} unidades`);
+
+            $('#productoSeleccionadoInfo').show();
+            $('#btnAgregarCarrito').prop('disabled', false);
+
+            $('#seleccionProductoModal').modal('hide');
         });
-        
-        // Limpiar selección
-        $('#btnLimpiarSeleccion').on('click', function() {
-            $('#selectedAlmacenId').val('');
-            $('#selectedItemId').val('');
-            $('#selectedStock').val('');
-            $('#itemCantidad').val('').prop('disabled', true);
-            $('#itemPrecio').val('');
-            $('#productoSeleccionadoInfo').hide();
-            $('#btnAgregarCarrito').prop('disabled', true);
-            $('#maxStockMsg').empty();
-        });
+    }
+
+    // Filtros
+    $('#filtroAlmacenModal').on('change', aplicarFiltros);
+    $('#buscarProductoModal').on('keyup', aplicarFiltros);
+    $('#btnLimpiarFiltros').on('click', function() {
+        $('#filtroAlmacenModal').val('');
+        $('#buscarProductoModal').val('');
+        aplicarFiltros();
     });
 
-    window.routes = {
-        ventasStore: '{{ route("ventas.store") }}',
-        ventasClientes: '{{ route("ventas.clientes") }}',
-        ventasEnviarCorreo: '{{ route("ventas.enviar-correo") }}'
-    };
+    function aplicarFiltros() {
+        const almacenFiltro = $('#filtroAlmacenModal').val();
+        const busqueda = $('#buscarProductoModal').val().toLowerCase();
+
+        let productosFiltrados = productosData;
+
+        if (almacenFiltro) {
+            productosFiltrados = productosFiltrados.filter(p => p.id_almacen == almacenFiltro);
+        }
+
+        if (busqueda) {
+            productosFiltrados = productosFiltrados.filter(p =>
+                p.producto_nombre.toLowerCase().includes(busqueda) ||
+                p.almacen_nombre.toLowerCase().includes(busqueda)
+            );
+        }
+
+        renderProductosGrid(productosFiltrados);
+    }
+
+    // Validar cantidad
+    $('#itemCantidad').on('input', function() {
+        const cantidad = parseInt($(this).val());
+        const stock = parseInt($('#selectedStock').val());
+        const maxStockMsg = $('#maxStockMsg');
+
+        if (cantidad > stock) {
+            $(this).addClass('is-invalid');
+            maxStockMsg.html(`<span class="text-danger">⚠️ La cantidad excede el stock disponible (${stock} unidades)</span>`);
+            $('#btnAgregarCarrito').prop('disabled', true);
+        } else if (cantidad <= 0 || isNaN(cantidad)) {
+            $(this).addClass('is-invalid');
+            maxStockMsg.html(`<span class="text-danger">⚠️ Ingrese una cantidad válida</span>`);
+            $('#btnAgregarCarrito').prop('disabled', true);
+        } else {
+            $(this).removeClass('is-invalid');
+            maxStockMsg.html(`✅ Stock disponible: ${stock} unidades`);
+            $('#btnAgregarCarrito').prop('disabled', false);
+        }
+    });
+
+    // Limpiar selección
+    $('#btnLimpiarSeleccion').on('click', function() {
+        $('#selectedAlmacenId').val('');
+        $('#selectedItemId').val('');
+        $('#selectedStock').val('');
+        $('#itemCantidad').val('').prop('disabled', true);
+        $('#itemPrecio').val('');
+        $('#productoSeleccionadoInfo').hide();
+        $('#btnAgregarCarrito').prop('disabled', true);
+        $('#maxStockMsg').empty();
+    });
+
+    // ==========================================
+    // BOTÓN COMPLETAR VENTA - CORREGIDO
+    // ==========================================
+    $(document).on('click', '.btn-completar-venta', function() {
+        const idVenta = $(this).data('id');
+        const btn = $(this);
+
+        console.log('Click en completar venta #' + idVenta); // Debug
+
+        Swal.fire({
+            title: '¿Completar venta?',
+            text: `¿Estás seguro de completar la venta #${idVenta}? Esto actualizará el inventario.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, completar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+                console.log('Enviando petición POST a: /ventas/' + idVenta + '/completar'); // Debug
+
+                $.ajax({
+                    url: '/ventas/' + idVenta + '/completar',
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Accept': 'application/json'
+                    },
+                    success: function(response) {
+                        console.log('Respuesta:', response); // Debug
+
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Venta completada!',
+                                text: response.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+
+                            setTimeout(() => {
+                                location.reload();
+                            }, 2000);
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                            btn.prop('disabled', false).html('<i class="fas fa-check"></i>');
+                        }
+                    },
+                    error: function(xhr) {
+                        console.log('Error:', xhr); // Debug
+
+                        let message = 'Error al completar la venta';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            message = xhr.responseJSON.message;
+                        } else if (xhr.status === 404) {
+                            message = 'Ruta no encontrada. Verifica que la URL sea correcta.';
+                        } else if (xhr.status === 419) {
+                            message = 'Sesión expirada. Recarga la página.';
+                        }
+
+                        Swal.fire('Error', message, 'error');
+                        btn.prop('disabled', false).html('<i class="fas fa-check"></i>');
+                    }
+                });
+            }
+        });
+    });
+});
+
+// Variables globales para rutas
+window.routes = {
+    ventasStore: '{{ route("ventas.store") }}',
+    ventasClientes: '{{ route("ventas.clientes") }}',
+    ventasEnviarCorreo: '{{ route("ventas.enviar-correo") }}'
+};
 </script>
 <script src="{{ asset('js/gestion-comercial.js') }}"></script>
 @endpush

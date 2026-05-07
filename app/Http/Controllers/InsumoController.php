@@ -6,6 +6,7 @@ use App\Models\Insumo;
 use App\Models\CategoriaInsumo;
 use App\Models\Item;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class InsumoController extends Controller
 {
@@ -15,18 +16,16 @@ class InsumoController extends Controller
     public function index()
     {
         $insumos = Insumo::with(['categoria', 'item'])
-            ->orderBy('nombre')
+            ->join('items', 'insumos.id_item', '=', 'items.id_item')
+            ->orderBy('items.nombre', 'asc')
+            ->select('insumos.*')
             ->paginate(15);
-        
+
         $categorias = CategoriaInsumo::with('insumos')
             ->orderBy('nombre')
             ->paginate(10);
-        
-        // CORREGIDO: Eliminar orderBy ya que no existe columna 'nombre'
-        // Si necesitas ordenar, puedes hacerlo por id_item o simplemente obtener todos
-        $items = Item::where('tipo_item', 'insumo')->get();
 
-        return view('insumo.index', compact('insumos', 'categorias', 'items'));
+        return view('insumo.index', compact('insumos', 'categorias'));
     }
 
     /**
@@ -35,10 +34,8 @@ class InsumoController extends Controller
     public function create()
     {
         $categorias = CategoriaInsumo::all();
-        // CORREGIDO: Eliminar orderBy
-        $items = Item::where('tipo_item', 'insumo')->get();
-        
-        return view('insumo.create', compact('categorias', 'items'));
+
+        return view('insumo.create', compact('categorias'));
     }
 
     /**
@@ -47,16 +44,36 @@ class InsumoController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nombre' => 'required|string|max:100',
+            'nombre' => 'required|string|max:255',
             'id_cat_insumo' => 'required|exists:categoria_insumo,id_cat_insumo',
-            'id_item' => 'nullable|exists:items,id_item',
+            'unidad_medida' => 'required|string|in:kg,g,lb,oz,L,mL,unidad,docena',
             'precio_compra' => 'nullable|numeric|min:0',
         ]);
 
-        Insumo::create($validated);
+        DB::beginTransaction();
+        try {
+            // 1. Crear el Item padre con NOMBRE
+            $item = Item::create([
+                'nombre' => $request->nombre,
+                'tipo_item' => 'insumo',
+                'unidad_medida' => $request->unidad_medida,
+            ]);
 
-        return redirect()->route('insumos.index')
-            ->with('success', 'Insumo creado exitosamente');
+            // 2. Crear el Insumo SIN nombre
+            $insumo = Insumo::create([
+                'id_item' => $item->id_item,
+                'id_cat_insumo' => $request->id_cat_insumo,
+                'precio_compra' => $request->precio_compra ?? null,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('insumos.index')
+                ->with('success', 'Insumo creado exitosamente');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al crear insumo: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -65,7 +82,7 @@ class InsumoController extends Controller
     public function show(Insumo $insumo)
     {
         $insumo->load(['categoria', 'item', 'detallesReceta', 'detallesCompra']);
-        
+
         return view('insumo.show', compact('insumo'));
     }
 
@@ -75,10 +92,8 @@ class InsumoController extends Controller
     public function edit(Insumo $insumo)
     {
         $categorias = CategoriaInsumo::all();
-        // CORREGIDO: Eliminar orderBy
-        $items = Item::where('tipo_item', 'insumo')->get();
-        
-        return view('insumo.edit', compact('insumo', 'categorias', 'items'));
+
+        return view('insumo.edit', compact('insumo', 'categorias'));
     }
 
     /**
@@ -87,16 +102,34 @@ class InsumoController extends Controller
     public function update(Request $request, Insumo $insumo)
     {
         $validated = $request->validate([
-            'nombre' => 'required|string|max:100',
             'id_cat_insumo' => 'required|exists:categoria_insumo,id_cat_insumo',
-            'id_item' => 'nullable|exists:items,id_item',
+            'nombre' => 'required|string|max:255',
+            'unidad_medida' => 'required|string|in:kg,g,lb,oz,L,mL,unidad,docena',
             'precio_compra' => 'nullable|numeric|min:0',
         ]);
 
-        $insumo->update($validated);
+        DB::beginTransaction();
+        try {
+            // Actualizar el Item relacionado
+            $insumo->item->update([
+                'nombre' => $request->nombre,
+                'unidad_medida' => $request->unidad_medida,
+            ]);
 
-        return redirect()->route('insumos.index')
-            ->with('success', 'Insumo actualizado exitosamente');
+            // Actualizar el Insumo
+            $insumo->update([
+                'id_cat_insumo' => $request->id_cat_insumo,
+                'precio_compra' => $request->precio_compra,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('insumos.index')
+                ->with('success', 'Insumo actualizado exitosamente');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al actualizar insumo: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -109,17 +142,17 @@ class InsumoController extends Controller
                 ->with('error', 'No se puede eliminar un insumo con recetas o compras asociadas');
         }
 
+        $item = $insumo->item;
         $insumo->delete();
+        $item->delete();
 
         return redirect()->route('insumos.index')
             ->with('success', 'Insumo eliminado exitosamente');
     }
 
     // ========== MÉTODOS PARA CATEGORÍAS DE INSUMOS ==========
+    // Estos se mantienen igual
 
-    /**
-     * Store a newly created category in storage.
-     */
     public function storeCategoria(Request $request)
     {
         $validated = $request->validate([
@@ -137,13 +170,10 @@ class InsumoController extends Controller
             ->with('success', 'Categoría creada exitosamente');
     }
 
-    /**
-     * Update the specified category in storage.
-     */
     public function updateCategoria(Request $request, $id)
     {
         $categoria = CategoriaInsumo::findOrFail($id);
-        
+
         $validated = $request->validate([
             'nombre' => 'required|string|max:255|unique:categoria_insumo,nombre,' . $id . ',id_cat_insumo',
             'descripcion' => 'nullable|string|max:500',
@@ -155,36 +185,29 @@ class InsumoController extends Controller
             ->with('success', 'Categoría actualizada exitosamente');
     }
 
-    /**
-     * Remove the specified category from storage.
-     */
     public function destroyCategoria($id)
     {
         $categoria = CategoriaInsumo::findOrFail($id);
-        
-        // Verificar si tiene insumos asociados
+
         if ($categoria->insumos()->count() > 0) {
             return redirect()->route('insumos.index')
                 ->with('error', 'No se puede eliminar la categoría porque tiene insumos asociados');
         }
-        
+
         $categoria->delete();
 
         return redirect()->route('insumos.index')
             ->with('success', 'Categoría eliminada exitosamente');
     }
 
-    /**
-     * Show form for editing category.
-     */
     public function editCategoria($id)
     {
         $categoria = CategoriaInsumo::findOrFail($id);
-        
+
         if (request()->ajax()) {
             return response()->json($categoria);
         }
-        
+
         return view('insumo.categoria-edit', compact('categoria'));
     }
 }

@@ -8,9 +8,13 @@ use App\Models\Produccion;
 use App\Models\CategoriaInsumo;
 use App\Models\Insumo;
 use App\Models\DetalleReceta;
+use App\Models\DetalleProduccion;
 use App\Models\Item;
+use App\Models\Almacen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ProduccionModuleController extends Controller
 {
@@ -20,9 +24,9 @@ class ProduccionModuleController extends Controller
         $totalProducciones = Produccion::count();
         $totalCategorias = CategoriaInsumo::count();
         $totalInsumos = Insumo::count();
-        
+
         $categorias = CategoriaInsumo::orderBy('nombre')->get();
-        
+
         $ultimasRecetas = Receta::withCount('detalles')
             ->orderBy('created_at', 'desc')
             ->limit(5)
@@ -37,6 +41,7 @@ class ProduccionModuleController extends Controller
             'ultimasRecetas'
         ));
     }
+
     public function storeCategoria(Request $request)
     {
         $validated = $request->validate([
@@ -53,67 +58,61 @@ class ProduccionModuleController extends Controller
         ]);
     }
 
-    /**
-     * Store a new insumo (AJAX)
-     */
     public function storeInsumo(Request $request)
-        {
-            $validated = $request->validate([
-                'nombre' => 'required|string|max:100',
-                'id_cat_insumo' => 'required|exists:categoria_insumo,id_cat_insumo',
-                'unidad_medida' => 'required|string|in:kg,g,lb,oz,L,mL,unidad',
-                'precio_compra' => 'nullable|numeric|min:0',
+    {
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:100',
+            'id_cat_insumo' => 'required|exists:categoria_insumo,id_cat_insumo',
+            'unidad_medida' => 'required|string|in:kg,g,lb,oz,L,mL,unidad',
+            'precio_compra' => 'nullable|numeric|min:0',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // 1. Crear el Item primero
+            $item = Item::create([
+                'tipo_item' => 'insumo',
+                'unidad_medida' => $validated['unidad_medida'],
             ]);
 
-            DB::beginTransaction();
-            try {
-                // 1. Crear el Item primero
-                $item = Item::create([
-                    'tipo_item' => 'insumo',
-                    'unidad_medida' => $validated['unidad_medida'],
-                ]);
+            // 2. Crear el Insumo con el id_item
+            $insumo = Insumo::create([
+                'id_item' => $item->id_item,
+                'id_cat_insumo' => $validated['id_cat_insumo'],
+                'nombre' => $validated['nombre'],
+                'precio_compra' => $validated['precio_compra'] ?? null,
+            ]);
 
-                // 2. Crear el Insumo con el id_item
-                $insumo = Insumo::create([
-                    'id_item' => $item->id_item,
-                    'id_cat_insumo' => $validated['id_cat_insumo'],
-                    'nombre' => $validated['nombre'],
-                    'precio_compra' => $validated['precio_compra'] ?? null,
-                ]);
+            DB::commit();
 
-                DB::commit();
+            return response()->json([
+                'success' => true,
+                'insumo' => $insumo->load('categoria', 'item'),
+                'message' => 'Insumo creado exitosamente'
+            ]);
 
-                return response()->json([
-                    'success' => true,
-                    'insumo' => $insumo->load('categoria', 'item'),
-                    'message' => 'Insumo creado exitosamente'
-                ]);
-                
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error al crear insumo: ' . $e->getMessage()
-                ], 500);
-            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear insumo: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
-    /**
-     * Store a new receta (AJAX)
-     */
     public function storeReceta(Request $request)
     {
         $validated = $request->validate([
             'nombre' => 'required|string|max:100|unique:recetas,nombre',
             'descripcion' => 'nullable|string',
-            'id_producto' => 'required|exists:productos,id_producto',   // ← nuevo
+            'id_producto' => 'required|exists:productos,id_producto',
         ]);
 
         $receta = Receta::create([
             'nombre' => $validated['nombre'],
             'descripcion' => $validated['descripcion'] ?? null,
             'cantidad_requerida' => 0,
-            'id_producto' => $validated['id_producto'],   // ← nuevo
+            'id_producto' => $validated['id_producto'],
         ]);
 
         return response()->json([
@@ -124,80 +123,71 @@ class ProduccionModuleController extends Controller
         ]);
     }
 
-      public function detallesReceta(Receta $receta)
+    public function detallesReceta(Receta $receta)
     {
         $receta->load(['detalles.insumo.categoria']);
-        
-        // Categorías con sus insumos para el selector
+
         $categorias = CategoriaInsumo::with(['insumos' => function($query) {
             $query->orderBy('nombre');
         }])->orderBy('nombre')->get();
-        
-        // Insumos que ya están en la receta (para evitar duplicados en el selector)
+
         $insumosEnReceta = $receta->detalles->pluck('id_insumo')->toArray();
 
         return view('produccion.recetas.detalles', compact('receta', 'categorias', 'insumosEnReceta'));
     }
 
-    /**
-     * Agregar múltiples insumos a una receta (AJAX)
-     */
     public function storeDetallesReceta(Request $request, Receta $receta)
-{
-    $validated = $request->validate([
-        'insumos' => 'required|array|min:1',
-        'insumos.*.id_insumo' => 'required|exists:insumos,id_insumo',
-        'insumos.*.cantidad' => 'required|numeric|min:0.001',
-    ]);
-
-    DB::beginTransaction();
-    try {
-        $insumosAgregados = 0;
-        
-        foreach ($validated['insumos'] as $insumoData) {
-            $existente = DetalleReceta::where([
-                'id_receta' => $receta->id_receta,
-                'id_insumo' => $insumoData['id_insumo']
-            ])->first();
-            
-            if (!$existente) {
-                DetalleReceta::create([
-                    'id_receta' => $receta->id_receta,
-                    'id_insumo' => $insumoData['id_insumo'],
-                    'cantidad_requerida' => $insumoData['cantidad'],
-                    // SIN 'unidad_medida'
-                ]);
-                $insumosAgregados++;
-            }
-        }
-
-        $totalInsumos = $receta->detalles()->count();
-        $receta->update(['cantidad_requerida' => $totalInsumos]);
-
-        DB::commit();
-        
-        return response()->json([
-            'success' => true,
-            'message' => "Se agregaron {$insumosAgregados} insumos a la receta",
-            'total_insumos' => $totalInsumos
+    {
+        $validated = $request->validate([
+            'insumos' => 'required|array|min:1',
+            'insumos.*.id_insumo' => 'required|exists:insumos,id_insumo',
+            'insumos.*.cantidad' => 'required|numeric|min:0.001',
         ]);
-        
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al agregar insumos: ' . $e->getMessage()
-        ], 500);
-    }
-}
 
-    /**
-     * Actualizar un detalle de receta (AJAX)
-     */
+        DB::beginTransaction();
+        try {
+            $insumosAgregados = 0;
+
+            foreach ($validated['insumos'] as $insumoData) {
+                $existente = DetalleReceta::where([
+                    'id_receta' => $receta->id_receta,
+                    'id_insumo' => $insumoData['id_insumo']
+                ])->first();
+
+                if (!$existente) {
+                    DetalleReceta::create([
+                        'id_receta' => $receta->id_receta,
+                        'id_insumo' => $insumoData['id_insumo'],
+                        'cantidad_requerida' => $insumoData['cantidad'],
+                    ]);
+                    $insumosAgregados++;
+                }
+            }
+
+            $totalInsumos = $receta->detalles()->count();
+            $receta->update(['cantidad_requerida' => $totalInsumos]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Se agregaron {$insumosAgregados} insumos a la receta",
+                'total_insumos' => $totalInsumos
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al agregar insumos: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function updateDetalleReceta(Request $request, DetalleReceta $detalle)
     {
         $validated = $request->validate([
-            'cantidad' => 'required|numeric|min:0.001',            
+            'cantidad' => 'required|numeric|min:0.001',
         ]);
 
         $detalle->update([
@@ -211,15 +201,11 @@ class ProduccionModuleController extends Controller
         ]);
     }
 
-    /**
-     * Eliminar un detalle de receta (AJAX)
-     */
     public function destroyDetalleReceta(DetalleReceta $detalle)
     {
         $receta = $detalle->receta;
         $detalle->delete();
-        
-        // Actualizar el contador en la receta
+
         $totalInsumos = $receta->detalles()->count();
         $receta->update(['cantidad_requerida' => $totalInsumos]);
 
@@ -229,7 +215,7 @@ class ProduccionModuleController extends Controller
             'total_insumos' => $totalInsumos
         ]);
     }
-    
+
     public function indexProducciones()
     {
         $producciones = Produccion::with(['empleadoSolicita', 'empleadoAutoriza'])
@@ -238,7 +224,6 @@ class ProduccionModuleController extends Controller
         return view('produccion.producciones.index', compact('producciones'));
     }
 
-    // API para calcular insumos necesarios al seleccionar receta y cantidad
     public function calcularInsumos(Request $request)
     {
         $request->validate([
@@ -247,7 +232,7 @@ class ProduccionModuleController extends Controller
         ]);
 
         $receta = Receta::with('detalles.insumo.item')->findOrFail($request->id_receta);
-        $factor = $request->cantidad; // asumimos que la receta base es para 1 unidad
+        $factor = $request->cantidad;
 
         $insumos = $receta->detalles->map(function ($detalle) use ($factor) {
             return [
@@ -262,7 +247,6 @@ class ProduccionModuleController extends Controller
         return response()->json(['insumos' => $insumos]);
     }
 
-    // Almacenar nueva producción (viene del panel)
     public function storeProduccion(Request $request)
     {
         $validated = $request->validate([
@@ -275,22 +259,37 @@ class ProduccionModuleController extends Controller
 
         DB::beginTransaction();
         try {
-            // Obtener receta y calcular insumos
-            $receta = Receta::with('detalles.insumo.item')->findOrFail($validated['id_receta']);
+            // Obtener receta con sus relaciones
+            $receta = Receta::with(['detalles.insumo.item', 'producto.item'])->findOrFail($validated['id_receta']);
+
+            // Verificar que la receta tenga producto
+            if (!$receta->producto) {
+                throw new \Exception('La receta seleccionada no tiene un producto asociado.');
+            }
+
             $factor = $validated['cantidad_producida'];
+
+            // Obtener empleado del usuario autenticado
+            $usuario = Auth::user();
+            if (!$usuario || !$usuario->empleado) {
+                throw new \Exception('Usuario no tiene un empleado asociado.');
+            }
 
             // Crear producción
             $produccion = Produccion::create([
                 'fecha_produccion' => now()->toDateString(),
                 'cantidad_producida' => $validated['cantidad_producida'],
-                'id_empleado_solicita' => Auth::user()->empleado->id_empleado,
+                'id_empleado_solicita' => $usuario->empleado->id_empleado,
                 'estado' => 'pendiente',
                 'fecha_solicitud' => now(),
                 'observaciones' => $validated['observaciones'] ?? null,
             ]);
 
-            // Determinar almacén de origen de insumos (puede ser fijo o seleccionable)
-            $almacenOrigen = Almacen::first()->id_almacen; // Ajustar
+            // ✅ Determinar almacén de origen (primer almacén o seleccionable)
+            $almacenOrigen = Almacen::first();
+            if (!$almacenOrigen) {
+                throw new \Exception('No hay almacenes registrados en el sistema.');
+            }
 
             // Crear detalles de egreso (insumos)
             foreach ($receta->detalles as $detalleReceta) {
@@ -300,39 +299,33 @@ class ProduccionModuleController extends Controller
                 DetalleProduccion::create([
                     'id_produccion' => $produccion->id_produccion,
                     'id_detalle_receta' => $detalleReceta->id_detalle_receta,
-                    'id_almacen' => $almacenOrigen,
+                    'id_almacen' => $almacenOrigen->id_almacen,
                     'id_item' => $insumoItem->id_item,
                     'cantidad' => $cantidadNecesaria,
                     'tipo_movimiento' => 'egreso',
                 ]);
             }
 
-            // Crear detalle de ingreso del producto terminado (si la receta tiene producto asociado)
-            // Asumimos que Receta tiene un campo id_producto o similar.
-            $producto = $receta->producto; // Necesitas definir esta relación
-            if ($producto) {
-                DetalleProduccion::create([
-                    'id_produccion' => $produccion->id_produccion,
-                    'id_detalle_receta' => null,
-                    'id_almacen' => $validated['almacen_destino'],
-                    'id_item' => $producto->id_item,
-                    'cantidad' => $validated['cantidad_producida'],
-                    'tipo_movimiento' => 'ingreso',
-                ]);
-            }
+            // Crear detalle de ingreso del producto terminado
+            $productoItem = $receta->producto->item;
+            DetalleProduccion::create([
+                'id_produccion' => $produccion->id_produccion,
+                'id_detalle_receta' => null,
+                'id_almacen' => $validated['almacen_destino'],
+                'id_item' => $productoItem->id_item,
+                'cantidad' => $validated['cantidad_producida'],
+                'tipo_movimiento' => 'ingreso',
+            ]);
 
             DB::commit();
 
-            // Notificar si se indicó
-            if ($request->notificar_empleado) {
-                // Lógica de notificación (mail, push, etc.)
-            }
-
             return redirect()->route('producciones.show', $produccion)
-                ->with('success', 'Producción creada exitosamente. Pendiente de autorización.');
+                ->with('success', 'Producción #' . $produccion->id_produccion . ' creada. Pendiente de autorización.');
+
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Error al crear producción: ' . $e->getMessage());
+            Log::error('Error al crear producción: ' . $e->getMessage());
+            return back()->with('error', $e->getMessage())->withInput();
         }
     }
 }

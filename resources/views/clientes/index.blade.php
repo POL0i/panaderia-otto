@@ -21,20 +21,23 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-            <div class="table-responsive">
-            <table class="table table-hover table-sm">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($clientes ?? [] as $cliente)
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>Teléfono</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($clientes ?? [] as $cliente)
                         <tr>
                             <td><span class="badge badge-info">{{ $cliente->id_cliente }}</span></td>
                             <td>{{ $cliente->nombre ?? 'N/A' }}</td>
+                            <td>{{ $cliente->apellido ?? 'N/A' }}</td>
+                            <td>{{ $cliente->telefono ?? 'N/A' }}</td>
                             <td>
                                 <a href="{{ route('clientes.edit', $cliente->id_cliente) }}" class="btn btn-warning btn-xs" title="Editar">
                                     <i class="fas fa-edit"></i>
@@ -48,13 +51,13 @@
                                 </form>
                             </td>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="3" class="text-center text-muted">No hay clientes registrados</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No hay clientes registrados</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

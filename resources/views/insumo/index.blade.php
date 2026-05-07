@@ -25,14 +25,14 @@
                 @if ($message = Session::get('success'))
                     <div class="alert alert-success alert-dismissible fade show">
                         <button type="button" class="close" data-dismiss="alert">&times;</button>
-                        <strong>Éxito!</strong> {{ $message }}
+                        <strong>¡Éxito!</strong> {{ $message }}
                     </div>
                 @endif
 
                 @if ($message = Session::get('error'))
                     <div class="alert alert-danger alert-dismissible fade show">
                         <button type="button" class="close" data-dismiss="alert">&times;</button>
-                        <strong>Error!</strong> {{ $message }}
+                        <strong>¡Error!</strong> {{ $message }}
                     </div>
                 @endif
 
@@ -44,48 +44,70 @@
                                 <i class="fas fa-plus"></i> Crear Insumo
                             </a>
                         </div>
-                        
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Categoría</th>
-                                    <th>Item</th>
-                                    <th>Precio Compra</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($insumos as $insumo)
-                                <tr>
-                                    <td>{{ $insumo->id_insumo }}</td>
-                                    <td>{{ $insumo->nombre }}</td>
-                                    <td><span class="badge badge-primary">{{ $insumo->categoria->nombre ?? 'N/A' }}</span></td>
-                                    <td>{{ $insumo->item->id_item ?? 'N/A' }}</td>
-                                    <td>${{ number_format($insumo->precio_compra, 2) }}</td>
-                                    <td>
-                                        <a href="{{ route('insumos.show', $insumo->id_insumo) }}" class="btn btn-info btn-sm">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="{{ route('insumos.edit', $insumo->id_insumo) }}" class="btn btn-warning btn-sm">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form action="{{ route('insumos.destroy', $insumo->id_insumo) }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Está seguro de eliminar este insumo?')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                        <div class="card-footer">
-                            {{ $insumos->links() }}
+
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">ID</th>
+                                        <th width="30%">Nombre</th>
+                                        <th width="20%">Categoría</th>
+                                        <th width="15%">Unidad de Medida</th>
+                                        <th width="15%">Precio Compra</th>
+                                        <th width="15%">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($insumos as $insumo)
+                                    <tr>
+                                        <td>{{ $insumo->id_insumo }}</td>
+                                        <td>
+                                            <strong>{{ $insumo->item->nombre ?? 'N/A' }}</strong>
+                                            <br>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-primary">{{ $insumo->categoria->nombre ?? 'N/A' }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-secondary">{{ $insumo->item->unidad_medida ?? 'N/A' }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-info">${{ number_format($insumo->precio_compra, 2) }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ route('insumos.edit', $insumo->id_insumo) }}" class="btn btn-warning" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <form action="{{ route('insumos.destroy', $insumo->id_insumo) }}" method="POST" style="display:inline;">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger" title="Eliminar" onclick="return confirm('¿Está seguro de eliminar este insumo?')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-4">
+                                                <i class="fas fa-box-open fa-3x mb-3 d-block"></i>
+                                                No hay insumos registrados
+                                            </td
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
                         </div>
+
+                        @if($insumos->hasPages())
+                            <div class="card-footer clearfix">
+                                <div class="float-right">
+                                    {{ $insumos->links() }}
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Tab de Categorías -->
@@ -95,46 +117,68 @@
                                 <i class="fas fa-plus"></i> Nueva Categoría
                             </button>
                         </div>
-                        
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Descripción</th>
-                                    <th>Insumos Asociados</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($categorias as $categoria)
-                                <tr>
-                                    <td>{{ $categoria->id_cat_insumo }}</td>
-                                    <td>{{ $categoria->nombre }}</td>
-                                    <td>{{ $categoria->descripcion ?? 'Sin descripción' }}</td>
-                                    <td><span class="badge badge-info">{{ $categoria->insumos->count() }}</span></td>
-                                    <td>
-                                        <button type="button" class="btn btn-warning btn-sm btn-edit-categoria" 
-                                                data-id="{{ $categoria->id_cat_insumo }}"
-                                                data-nombre="{{ $categoria->nombre }}"
-                                                data-descripcion="{{ $categoria->descripcion }}">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <form action="{{ route('insumos.categorias.destroy', $categoria->id_cat_insumo) }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Está seguro de eliminar esta categoría?')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                        <div class="card-footer">
-                            {{ $categorias->links() }}
+
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">ID</th>
+                                        <th width="30%">Nombre</th>
+                                        <th width="35%">Descripción</th>
+                                        <th width="15%">Insumos</th>
+                                        <th width="15%">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($categorias as $categoria)
+                                    <tr>
+                                        <td>{{ $categoria->id_cat_insumo }}</td>
+                                        <td>
+                                            <strong>{{ $categoria->nombre }}</strong>
+                                        </td>
+                                        <td>
+                                            {{ $categoria->descripcion ?? 'Sin descripción' }}
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-info">{{ $categoria->insumos->count() }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-warning btn-sm btn-edit-categoria"
+                                                        data-id="{{ $categoria->id_cat_insumo }}"
+                                                        data-nombre="{{ $categoria->nombre }}"
+                                                        data-descripcion="{{ $categoria->descripcion }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <form action="{{ route('insumos.categorias.destroy', $categoria->id_cat_insumo) }}" method="POST" style="display:inline;">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Está seguro de eliminar esta categoría?')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-4">
+                                                <i class="fas fa-tags fa-3x mb-3 d-block"></i>
+                                                No hay categorías registradas
+                                            </td
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
                         </div>
+
+                        @if($categorias->hasPages())
+                            <div class="card-footer clearfix">
+                                <div class="float-right">
+                                    {{ $categorias->links() }}
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -160,10 +204,12 @@
                     <div class="form-group">
                         <label for="nombre">Nombre <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="nombre" name="nombre" required maxlength="255">
+                        <small class="text-muted">Ej: Harinas, Lácteos, Huevos</small>
                     </div>
                     <div class="form-group">
                         <label for="descripcion">Descripción</label>
                         <textarea class="form-control" id="descripcion" name="descripcion" rows="3" maxlength="500"></textarea>
+                        <small class="text-muted">Describe brevemente esta categoría</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -185,7 +231,7 @@
             var id = $(this).data('id');
             var nombre = $(this).data('nombre');
             var descripcion = $(this).data('descripcion');
-            
+
             $('#modalCategoriaTitle').text('Editar Categoría');
             $('#categoriaId').val(id);
             $('#nombre').val(nombre);
@@ -194,7 +240,7 @@
             $('#formCategoria').attr('action', '/insumos/categorias/' + id);
             $('#modalCategoria').modal('show');
         });
-        
+
         // Resetear modal cuando se cierra
         $('#modalCategoria').on('hidden.bs.modal', function() {
             $('#modalCategoriaTitle').text('Nueva Categoría');

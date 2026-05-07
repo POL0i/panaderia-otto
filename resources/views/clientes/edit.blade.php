@@ -35,10 +35,32 @@
             @csrf
             @method('PUT')
             <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="nombre"><i class="fas fa-user icon-panaderia"></i> Nombre <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('nombre') is-invalid @enderror" id="nombre" name="nombre" value="{{ old('nombre', $cliente->nombre) }}" placeholder="Nombre del cliente" required>
+                            @error('nombre')
+                                <span class="invalid-feedback d-block">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="apellido"><i class="fas fa-user icon-panaderia"></i> Apellido <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('apellido') is-invalid @enderror" id="apellido" name="apellido" value="{{ old('apellido', $cliente->apellido) }}" placeholder="Apellido del cliente" required>
+                            @error('apellido')
+                                <span class="invalid-feedback d-block">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label for="nombre"><i class="fas fa-user icon-panaderia"></i> Nombre <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control @error('nombre') is-invalid @enderror" id="nombre" name="nombre" value="{{ old('nombre', $cliente->nombre) }}" placeholder="Nombre del cliente" required>
-                    @error('nombre')
+                    <label for="telefono"><i class="fas fa-phone icon-panaderia"></i> Teléfono <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control @error('telefono') is-invalid @enderror" id="telefono" name="telefono" value="{{ old('telefono', $cliente->telefono) }}" placeholder="Número de teléfono" required>
+                    <small class="text-muted">Ej: 71234567 o 59171234567</small>
+                    @error('telefono')
                         <span class="invalid-feedback d-block">{{ $message }}</span>
                     @enderror
                 </div>
