@@ -25,35 +25,36 @@ class UsuarioController extends Controller
         $usuarios = Usuario::with(['empleado', 'cliente', 'rolPermisoUsuarios.rolPermiso.rol', 'rolPermisoUsuarios.rolPermiso.permiso'])
             ->orderBy('created_at', 'desc')
             ->get();
+        
+        // ✅ AGREGAR ESTAS LÍNEAS - Cargar TODOS los empleados y clientes
+        $empleados = \App\Models\Empleado::all();
+        $clientes = \App\Models\Cliente::all();
+        
+        $roles = \App\Models\Rol::all();
+        $permisos = \App\Models\Permiso::all();
+        $rolPermisos = \App\Models\RolPermiso::with(['rol', 'permiso'])->where('estado', 'activo')->get();
             
-        return view('usuarios.index', compact('usuarios'));
+        return view('usuarios.index', compact(
+            'usuarios', 
+            'empleados',
+            'clientes',
+            'roles', 
+            'permisos', 
+            'rolPermisos'
+        ));
     }
 
     /**
      * Módulo de acceso - Vista principal
      */
     public function createAccess()
-    {
-        $empleados = Empleado::whereDoesntHave('usuarios', function($query) {
-                $query->where('tipo_usuario', 'empleado');
-            })
-            ->orWhereHas('usuarios', function($query) {
-                $query->where('tipo_usuario', 'cliente');
-            })
-            ->get();
-            
-        $clientes = Cliente::whereDoesntHave('usuarios', function($query) {
-                $query->where('tipo_usuario', 'cliente');
-            })
-            ->orWhereHas('usuarios', function($query) {
-                $query->where('tipo_usuario', 'empleado');
-            })
-            ->get();
-            
+    {       
         $rolPermisos = RolPermiso::with(['rol', 'permiso'])
             ->where('estado', 'activo')
             ->get();
             
+        $empleados = \App\Models\Empleado::all();  // TODOS los empleados
+        $clientes = \App\Models\Cliente::all();    // TODOS los clientes
         $roles = Rol::all();
         $permisos = Permiso::all();
         
@@ -62,7 +63,14 @@ class UsuarioController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
             
-        return view('usuarios.acceso', compact('empleados', 'clientes', 'rolPermisos', 'roles', 'permisos', 'usuarios'));
+            return view('usuarios.acceso', compact(
+                'empleados', 
+                'clientes', 
+                'rolPermisos', 
+                'roles', 
+                'permisos', 
+                'usuarios'
+            ));
     }
 
     /**
@@ -81,6 +89,35 @@ class UsuarioController extends Controller
             'rol_permiso_ids' => 'nullable|array',
             'rol_permiso_ids.*' => 'exists:rol_permiso,id_rol_permiso'
         ]);
+
+        if ($request->tipo_usuario === 'empleado' && $request->id_empleado) {
+            $existeUsuario = Usuario::where('id_empleado', $request->id_empleado)->exists();
+            
+            if ($existeUsuario) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Este empleado ya tiene un usuario asignado.'
+                    ], 422);
+                }
+                return back()->with('error', 'Este empleado ya tiene un usuario asignado.')->withInput();
+            }
+        }
+        
+        // ✅ Validar que el cliente no tenga ya un usuario
+        if ($request->tipo_usuario === 'cliente' && $request->id_cliente) {
+            $existeUsuario = Usuario::where('id_cliente', $request->id_cliente)->exists();
+            
+            if ($existeUsuario) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Este cliente ya tiene un usuario asignado.'
+                    ], 422);
+                }
+                return back()->with('error', 'Este cliente ya tiene un usuario asignado.')->withInput();
+            }
+        }
 
         DB::beginTransaction();
         try {
@@ -366,6 +403,40 @@ class UsuarioController extends Controller
             'rol_permiso_ids.*' => 'exists:rol_permiso,id_rol_permiso'
         ]);
 
+        // ✅ VALIDACIÓN ADICIONAL: Un empleado solo puede tener un usuario
+        if ($request->tipo_usuario === 'empleado' && $request->id_empleado) {
+            $existeOtroUsuario = Usuario::where('id_empleado', $request->id_empleado)
+                ->where('id_usuario', '!=', $id)
+                ->exists();
+            
+            if ($existeOtroUsuario) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Este empleado ya tiene un usuario asignado.'
+                    ], 422);
+                }
+                return back()->with('error', 'Este empleado ya tiene un usuario asignado.')->withInput();
+            }
+        }
+        
+        // ✅ Validación para cliente
+        if ($request->tipo_usuario === 'cliente' && $request->id_cliente) {
+            $existeOtroUsuario = Usuario::where('id_cliente', $request->id_cliente)
+                ->where('id_usuario', '!=', $id)
+                ->exists();
+            
+            if ($existeOtroUsuario) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Este cliente ya tiene un usuario asignado.'
+                    ], 422);
+                }
+                return back()->with('error', 'Este cliente ya tiene un usuario asignado.')->withInput();
+            }
+        }
+
         DB::beginTransaction();
         try {
             $usuario = Usuario::findOrFail($id);
@@ -378,34 +449,14 @@ class UsuarioController extends Controller
                 'id_cliente' => $validated['tipo_usuario'] == 'cliente' ? $validated['id_cliente'] : null,
             ];
             
-            // Solo actualizar contraseña si se proporcionó
             if (!empty($validated['contraseña'])) {
                 $updateData['contraseña'] = Hash::make($validated['contraseña']);
             }
             
             $usuario->update($updateData);
             
-            // Asignar nuevos permisos
-            if (!empty($validated['rol_permiso_ids'])) {
-                foreach ($validated['rol_permiso_ids'] as $rolPermisoId) {
-                    $existente = RolPermisoUsuario::where([
-                        'id_rol_permiso' => $rolPermisoId,
-                        'id_usuario' => $id
-                    ])->first();
-                    
-                    if ($existente) {
-                        $existente->update(['estado' => 'activo']);
-                    } else {
-                        RolPermisoUsuario::create([
-                            'id_rol_permiso' => $rolPermisoId,
-                            'id_usuario' => $id,
-                            'estado' => 'activo',
-                            'fecha_asignacion' => now(),
-                        ]);
-                    }
-                }
-            }
-
+            // Manejar permisos...
+            
             DB::commit();
             
             if ($request->ajax()) {
@@ -428,8 +479,7 @@ class UsuarioController extends Controller
                 ], 500);
             }
             
-            return back()->with('error', 'Error al actualizar usuario: ' . $e->getMessage())
-                ->withInput();
+            return back()->with('error', 'Error al actualizar usuario: ' . $e->getMessage())->withInput();
         }
     }
 
@@ -511,4 +561,99 @@ class UsuarioController extends Controller
             return back()->with('error', 'Error al registrar: ' . $e->getMessage())->withInput();
         }
     }
-}   
+
+   /**
+ * Vista unificada de personas (empleados y clientes)
+ */
+    public function personas(Request $request)
+    {
+        $filtro = $request->get('filtro', 'todos');
+        $buscar = $request->get('buscar', '');
+        
+        // Obtener empleados con su usuario
+        $empleados = Empleado::with(['usuarios' => function($query) {
+            $query->where('tipo_usuario', 'empleado');
+        }])
+        ->when($buscar, function($query) use ($buscar) {
+            return $query->where(function($q) use ($buscar) {
+                $q->where('nombre', 'like', "%{$buscar}%")
+                ->orWhere('apellido', 'like', "%{$buscar}%")
+                ->orWhere('telefono', 'like', "%{$buscar}%");
+            });
+        })
+        ->get()
+        ->map(function($empleado) {
+            $usuario = $empleado->usuarios->first();
+            return [
+                'id' => $empleado->id_empleado,
+                'tipo' => 'Empleado',
+                'nombre' => $empleado->nombre . ' ' . $empleado->apellido,
+                'telefono' => $empleado->telefono ?? '-',
+                'direccion' => $empleado->direccion ?? '-',
+                'info_extra' => $empleado->sueldo ? '$' . number_format($empleado->sueldo, 2) : '-',
+                'tiene_usuario' => !is_null($usuario),
+                'usuario_correo' => $usuario->correo ?? null,
+                'usuario_estado' => $usuario->estado ?? null,
+                'usuario_id' => $usuario->id_usuario ?? null,
+                'color_tipo' => 'primary',
+                'icono_tipo' => 'fa-user-tie',
+            ];
+        });
+        
+        // Obtener clientes con su usuario
+        $clientes = Cliente::with(['usuarios' => function($query) {
+            $query->where('tipo_usuario', 'cliente');
+        }])
+        ->when($buscar, function($query) use ($buscar) {
+            return $query->where(function($q) use ($buscar) {
+                $q->where('nombre', 'like', "%{$buscar}%")
+                ->orWhere('apellido', 'like', "%{$buscar}%")
+                ->orWhere('telefono', 'like', "%{$buscar}%");
+            });
+        })
+        ->get()
+        ->map(function($cliente) {
+            $usuario = $cliente->usuarios->first();
+            return [
+                'id' => $cliente->id_cliente,
+                'tipo' => 'Cliente',
+                'nombre' => $cliente->nombre . ' ' . ($cliente->apellido ?? ''),
+                'telefono' => $cliente->telefono ?? '-',
+                'direccion' => '-',
+                'info_extra' => '-',
+                'tiene_usuario' => !is_null($usuario),
+                'usuario_correo' => $usuario->correo ?? null,
+                'usuario_estado' => $usuario->estado ?? null,
+                'usuario_id' => $usuario->id_usuario ?? null,
+                'color_tipo' => 'info',
+                'icono_tipo' => 'fa-user',
+            ];
+        });
+        
+        // Unir ambas colecciones
+        $personas = $empleados->concat($clientes);
+        
+        // Aplicar filtro
+        if ($filtro === 'empleados') {
+            $personas = $personas->where('tipo', 'Empleado');
+        } elseif ($filtro === 'clientes') {
+            $personas = $personas->where('tipo', 'Cliente');
+        } elseif ($filtro === 'sin_usuario') {
+            $personas = $personas->where('tiene_usuario', false);
+        } elseif ($filtro === 'con_usuario') {
+            $personas = $personas->where('tiene_usuario', true);
+        }
+        
+        // Ordenar por nombre
+        $personas = $personas->sortBy('nombre')->values();
+        
+        $total = $personas->count();
+        $sinUsuario = $personas->where('tiene_usuario', false)->count();
+        $empleadosCount = $personas->where('tipo', 'Empleado')->count();
+        $clientesCount = $personas->where('tipo', 'Cliente')->count();
+        
+        return view('usuarios.personas', compact(
+            'personas', 'filtro', 'buscar', 'total', 'sinUsuario', 'empleadosCount', 'clientesCount'
+        ));
+    }   
+}

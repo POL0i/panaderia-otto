@@ -34,7 +34,7 @@
                             <i class="fas fa-check mr-2"></i>
                             Guardar Rol
                         </button>
-                        <a href="{{ route('roles.index') }}" class="btn btn-back">
+                        <a href="{{ route('rol_permisos.index') }}" class="btn btn-back">
                             <i class="fas fa-arrow-left mr-2"></i>
                             Volver
                         </a>

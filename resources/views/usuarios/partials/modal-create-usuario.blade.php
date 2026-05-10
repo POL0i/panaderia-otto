@@ -17,14 +17,14 @@
                     </div>
                     
                     <div class="row">
-                        {{-- Tipo de Usuario --}}
+                        {{-- ✅ Tipo de Usuario (CORREGIDO) --}}
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="text-panaderia" for="tipo_usuario">
                                     <i class="fas fa-user-tag mr-1"></i>Tipo de Usuario <span class="text-danger">*</span>
                                 </label>
                                 <select name="tipo_usuario" id="tipo_usuario" class="form-control" required>
-                                    <option value="">Seleccione...</option>
+                                    <option value="">Seleccione tipo...</option>
                                     <option value="empleado">Empleado</option>
                                     <option value="cliente">Cliente</option>
                                 </select>
@@ -66,8 +66,9 @@
                             </div>
                         </div>
 
-                        {{-- Selector de Empleado/Cliente --}}
+                        {{-- ✅ Contenedores de Empleado y Cliente (se muestran según tipo) --}}
                         <div class="col-md-12">
+                            {{-- Contenedor de Empleado --}}
                             <div id="empleado_container" style="display: none;">
                                 <div class="form-group">
                                     <label class="text-panaderia" for="id_empleado">
@@ -83,7 +84,7 @@
                                             @endforeach
                                         </select>
                                         <div class="input-group-append">
-                                            <button type="button" class="btn btn-success" data-target="#createEmpleadoModal">
+                                            <button type="button" class="btn btn-success" data-toggle="modal" data-target="#createEmpleadoModal">
                                                 <i class="fas fa-plus"></i> Nuevo
                                             </button>
                                         </div>
@@ -91,6 +92,7 @@
                                 </div>
                             </div>
 
+                            {{-- Contenedor de Cliente --}}
                             <div id="cliente_container" style="display: none;">
                                 <div class="form-group">
                                     <label class="text-panaderia" for="id_cliente">
@@ -106,7 +108,7 @@
                                             @endforeach
                                         </select>
                                         <div class="input-group-append">
-                                            <button type="button" class="btn btn-success" data-target="#createClienteModal">
+                                            <button type="button" class="btn btn-success" data-toggle="modal" data-target="#createClienteModal">
                                                 <i class="fas fa-plus"></i> Nuevo
                                             </button>
                                         </div>

@@ -539,10 +539,29 @@ class VentaController extends Controller
         return redirect()->route('landing')->with('error', 'Error al conectar con la pasarela de pago.');
     }
 
-    
     if ($resultado['success'] && !empty($resultado['url_pasarela'])) {
+        // Guardar la transacción en la base de datos
+        TransaccionLibelula::create([
+            'nota_venta_id' => $notaVenta->id_nota_venta,
+            'identificador' => (string) $notaVenta->id_nota_venta,
+            'id_transaccion_libelula' => $resultado['id_transaccion'] ?? null,
+            'codigo_recaudacion' => $resultado['codigo_recaudacion'] ?? null,
+            'monto' => $notaVenta->monto_total,
+            'qr_url' => $resultado['qr_url'] ?? null,
+            'url_pasarela' => $resultado['url_pasarela'],
+            'estado' => 'pendiente'
+        ]);
+
+        // Limpiar carrito
         session()->forget('cart');
-        return redirect()->away($resultado['url_pasarela']);
+
+        // 👉 En lugar de redirect()->away(), retornamos la vista con los datos
+        return view('pago.mostrar', [
+            'notaVenta' => $notaVenta,
+            'qr_url' => $resultado['qr_url'] ?? null,
+            'url_pasarela' => $resultado['url_pasarela'],
+            'id_transaccion' => $resultado['id_transaccion'] ?? null,
+        ]);
     }
 
     // Si falló

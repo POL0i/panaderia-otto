@@ -19,7 +19,14 @@ class Rol extends Model
      */
     public function permisos()
     {
-        return $this->hasMany(RolPermiso::class, 'id_rol', 'id_rol');
+        return $this->belongsToMany(
+            Permiso::class,           // Modelo relacionado
+            'rol_permiso',           // Tabla pivote
+            'id_rol',                 // FK de este modelo en la pivote
+            'id_permiso'              // FK del otro modelo en la pivote
+        )
+        ->withPivot('id_rol_permiso', 'estado', 'descripcion')  // Columnas extra de la pivote
+        ->withTimestamps();          // Si la tabla pivote tiene timestamps
     }
 
     /**

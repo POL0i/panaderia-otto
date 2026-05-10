@@ -34,7 +34,7 @@ class RolController extends Controller
 
         \App\Models\Rol::create($validated);
 
-        return redirect()->route('roles.index')->with('success', 'Rol creado exitosamente.');
+        return redirect()->route('rol_permisos.index')->with('success', 'Rol creado exitosamente.');
     }
 
     /**
@@ -71,5 +71,12 @@ class RolController extends Controller
         $rol->delete();
 
         return redirect()->route('roles.index')->with('success', 'Rol eliminado exitosamente.');
+    }
+    // En App\Models\Rol
+    public function permisos()
+    {
+        return $this->belongsToMany(Permiso::class, 'rol_permisos', 'id_rol', 'id_permiso')
+                    ->withPivot('estado', 'descripcion')
+                    ->withTimestamps(); // si tienes timestamps en la tabla pivote
     }
 }

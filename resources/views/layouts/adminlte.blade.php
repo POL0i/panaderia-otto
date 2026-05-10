@@ -492,51 +492,56 @@
                     <!-- MÓDULO: USUARIOS (Solo Admin) -->
                     @if($isAdmin)
                     <!-- Clientes -->
-                    <li class="nav-item">
-                        <a href="{{ route('clientes.index') }}" class="nav-link {{ Request::routeIs('clientes.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-users"></i>
-                            <p>Clientes</p>
-                        </a>
-                    </li>
-                    <li class="nav-item has-treeview {{ Request::routeIs('usuarios.*') || Request::routeIs('empleados.*') || Request::routeIs('roles.*') || Request::routeIs('permisos.*') || Request::routeIs('rol-permisos.*') || Request::routeIs('rol-permiso-usuarios.*') ? 'menu-open' : '' }}">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fas fa-user-tie"></i>
-                            <p>Usuarios <i class="right fas fa-angle-left"></i></p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('usuarios.create-access') }}" class="nav-link nav-link-acceso {{ Request::routeIs('usuarios.create-access') ? 'active' : '' }}">
-                                    <i class="fas fa-lock-open nav-icon" style="color: #4caf50;"></i>
-                                    <p><i class="fas fa-star-of-life" style="font-size: 10px;"></i> Módulo de Acceso</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('empleados.index') }}" class="nav-link {{ Request::routeIs('empleados.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i><p>Empleados</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('roles.index') }}" class="nav-link {{ Request::routeIs('roles.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i><p>Roles</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('permisos.index') }}" class="nav-link {{ Request::routeIs('permisos.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i><p>Permisos</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('rol-permisos.index') }}" class="nav-link {{ Request::routeIs('rol-permisos.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i><p>Rol Permisos</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('rol-permiso-usuarios.index') }}" class="nav-link {{ Request::routeIs('rol-permiso-usuarios.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i><p>Rol Permiso Usuarios</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
+                        <li class="nav-item has-treeview {{ 
+                            Request::routeIs('usuarios.*') || 
+                            Request::routeIs('personas.*') || 
+                            Request::routeIs('roles.*') || 
+                            Request::routeIs('permisos.*') || 
+                            Request::routeIs('rol_permisos.*') || 
+                            Request::routeIs('rol-permiso-usuarios.*') 
+                            ? 'menu-open' : '' }}">
+                            
+                            <a href="#" class="nav-link {{ 
+                                Request::routeIs('usuarios.*') || 
+                                Request::routeIs('personas.*') || 
+                                Request::routeIs('roles.*') || 
+                                Request::routeIs('permisos.*') || 
+                                Request::routeIs('rol_permisos.*') || 
+                                Request::routeIs('rol-permiso-usuarios.*') 
+                                ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-user-tie"></i>
+                                <p>Usuarios <i class="right fas fa-angle-left"></i></p>
+                            </a>
+                            
+                            <ul class="nav nav-treeview">
+                                {{-- Módulo de Acceso --}}
+                                <li class="nav-item">
+                                    <a href="{{ route('usuarios.create-access') }}" 
+                                    class="nav-link {{ Request::routeIs('usuarios.create-access') ? 'active' : '' }}">
+                                        <i class="fas fa-lock-open nav-icon" style="color: #4caf50;"></i>
+                                        <p><i class="fas fa-star-of-life" style="font-size: 10px;"></i> Módulo de Acceso</p>
+                                    </a>
+                                </li>
+                                
+                                {{-- Personas --}}
+                                <li class="nav-item">
+                                    <a href="{{ route('personas.index') }}" 
+                                    class="nav-link {{ Request::routeIs('personas.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Personas</p>
+                                    </a>
+                                </li>
+                                
+                                {{-- Roles y Permisos --}}
+                                <li class="nav-item">
+                                    <a href="{{ route('rol_permisos.index') }}" 
+                                    class="nav-link {{ Request::routeIs('rol_permisos.*') || Request::routeIs('roles.*') || Request::routeIs('permisos.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Roles y Permisos</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                     @endif
 
 
@@ -588,16 +593,6 @@
                                     <i class="far fa-circle nav-icon"></i><p>Proveedores</p>
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a href="{{ route('ppersona.index') }}" class="nav-link {{ Request::routeIs('ppersona.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i><p>Personas Proveedores</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('pempresa.index') }}" class="nav-link {{ Request::routeIs('pempresa.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i><p>Empresas Proveedoras</p>
-                                </a>
-                            </li>
                         </ul>
                     </li>
                     @endif
@@ -624,18 +619,8 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('productos.index') }}" class="nav-link {{ Request::routeIs('productos.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i><p>Productos</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
                                 <a href="{{ route('items.index') }}" class="nav-link {{ Request::routeIs('items.*') ? 'active' : '' }}">
                                     <i class="far fa-circle nav-icon"></i><p>Items</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('insumos.index') }}" class="nav-link {{ Request::routeIs('insumos.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i><p>Insumos</p>
                                 </a>
                             </li>
                             <li class="nav-item">

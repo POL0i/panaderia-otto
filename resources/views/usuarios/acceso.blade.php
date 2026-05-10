@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="{{ asset('css/panaderia-theme.css') }}">
 <style>
     /* ==========================================
-       SECCIÓN DE ESTILOS PARA ACCESO
+        SECCIÓN DE ESTILOS PARA ACCESO
        ========================================== */
     
     /* Tarjetas de usuario */
@@ -156,19 +156,19 @@
         </div>
     </div>
 
-    {{-- Botones de acción rápida (SIMPLIFICADOS) --}}
+    {{-- Botones de acción rápida --}}
     <div class="row mb-4">
         <div class="col-12 text-center">
             <div class="quick-actions">
                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createUsuarioModal">
                     <i class="fas fa-user-plus mr-2"></i> Nuevo Usuario
                 </button>
-                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#createClienteModal">
-                    <i class="fas fa-user mr-2"></i> Nuevo Cliente
-                </button>
-                <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#asignarPermisoRolModal">
-                    <i class="fas fa-link mr-2"></i> Asignar Permiso a Rol
-                </button>
+                <a href="{{ route('personas.index') }}" class="btn btn-info">
+                    <i class="fas fa-address-book mr-2"></i> Directorio de Personas
+                </a>
+                <a href="{{ route('rol_permisos.index') }}" class="btn btn-warning">
+                    <i class="fas fa-shield-alt mr-2"></i> Roles y Permisos
+                </a>
             </div>
         </div>
     </div>
@@ -183,7 +183,7 @@
                     </h5>
                     <div class="card-tools">
                         <input type="text" id="searchUsuario" class="form-control form-control-sm" 
-                               placeholder="Buscar usuario..." style="width: 250px;">
+                            placeholder="Buscar usuario..." style="width: 250px;">
                     </div>
                 </div>
                 <div class="card-body">
@@ -256,8 +256,8 @@
                                         data-correo="{{ $usuario->correo }}"
                                         data-tipo="{{ $usuario->tipo_usuario }}"
                                         data-estado="{{ $usuario->estado }}"
-                                        data-id-empleado="{{ $usuario->id_empleado }}"
-                                        data-id-cliente="{{ $usuario->id_cliente }}"
+                                        data-id-empleado="{{ $usuario->id_empleado ?? '' }}"
+                                        data-id-cliente="{{ $usuario->id_cliente ?? '' }}"
                                         title="Editar usuario">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -524,47 +524,102 @@ $(document).ready(function() {
         const correo = $(this).data('correo');
         const tipo = $(this).data('tipo');
         const estado = $(this).data('estado');
-        const idEmpleado = $(this).data('id-empleado');
-        const idCliente = $(this).data('id-cliente');
+        const idEmpleado = $(this).data('idEmpleado');
+        const idCliente = $(this).data('idCliente');
         
+        console.log('Editando usuario:', {userId, correo, tipo, estado, idEmpleado, idCliente});
+        
+        // Asignar valores básicos
         $('#edit_id_usuario').val(userId);
         $('#edit_correo').val(correo);
-        $('#edit_tipo_usuario').val(tipo).trigger('change');
         $('#edit_estado').val(estado);
+        $('#edit_tipo_usuario').val(tipo);
         
-        if (tipo === 'empleado' && idEmpleado) {
-            $('#edit_id_empleado').val(idEmpleado);
-        } else if (tipo === 'cliente' && idCliente) {
-            $('#edit_id_cliente').val(idCliente);
+        // Resetear selects
+        $('#edit_id_empleado').val('');
+        $('#edit_id_cliente').val('');
+        
+        // Mostrar/ocultar contenedores según tipo
+        $('#edit_empleado_container, #edit_cliente_container').hide();
+        $('#edit_id_empleado, #edit_id_cliente').prop('required', false);
+        
+        if (tipo === 'empleado') {
+            $('#edit_empleado_container').show();
+            $('#edit_id_empleado').prop('required', true);
+            
+            // Seleccionar empleado si tiene ID
+            if (idEmpleado && idEmpleado !== '') {
+                // Verificar que el select tenga opciones
+                if ($('#edit_id_empleado option[value="' + idEmpleado + '"]').length > 0) {
+                    $('#edit_id_empleado').val(idEmpleado);
+                    console.log('Empleado seleccionado:', idEmpleado);
+                } else {
+                    console.warn('Opción de empleado no encontrada en el select');
+                }
+            }
+        } else if (tipo === 'cliente') {
+            $('#edit_cliente_container').show();
+            $('#edit_id_cliente').prop('required', true);
+            
+            // Seleccionar cliente si tiene ID
+            if (idCliente && idCliente !== '') {
+                if ($('#edit_id_cliente option[value="' + idCliente + '"]').length > 0) {
+                    $('#edit_id_cliente').val(idCliente);
+                    console.log('Cliente seleccionado:', idCliente);
+                } else {
+                    console.warn('Opción de cliente no encontrada en el select');
+                }
+            }
         }
         
         $('#edit_contraseña').val('');
         $('#editUsuarioModal').modal('show');
-    });
-
-    $('#formEditarUsuario').on('submit', function(e) {
-        e.preventDefault();
-        const userId = $('#edit_id_usuario').val();
-        const formData = $(this).serialize();
         
-        $.ajax({
-            url: '/usuarios/' + userId,
-            method: 'PUT',
-            data: formData,
-            success: function(response) {
-                $('#editUsuarioModal').modal('hide');
-                toastr.success('Usuario actualizado correctamente');
-                setTimeout(() => location.reload(), 1500);
-            },
-            error: function(xhr) {
-                var message = 'Error al actualizar usuario';
-                if (xhr.responseJSON?.errors) {
-                    message = Object.values(xhr.responseJSON.errors).flat().join('\n');
-                }
-                toastr.error(message);
+        // Por si acaso, reintentar después de que el modal se muestre
+        $('#editUsuarioModal').on('shown.bs.modal', function() {
+            if (tipo === 'empleado' && idEmpleado && idEmpleado !== '') {
+                $('#edit_id_empleado').val(idEmpleado);
+            } else if (tipo === 'cliente' && idCliente && idCliente !== '') {
+                $('#edit_id_cliente').val(idCliente);
             }
-        });
+        }).off('shown.bs.modal.editUsuario'); // Evitar múltiples bindings
     });
+$('#formEditarUsuario').on('submit', function(e) {
+    e.preventDefault();
+    const userId = $('#edit_id_usuario').val();
+    const formData = $(this).serialize();
+    
+    $.ajax({
+        url: '/usuarios/' + userId,
+        method: 'PUT',
+        data: formData,
+        success: function(response) {
+            $('#editUsuarioModal').modal('hide');
+            toastr.success('Usuario actualizado correctamente');
+            setTimeout(() => location.reload(), 1500);
+        },
+        error: function(xhr) {
+            var message = 'Error al actualizar usuario';
+            
+            // ✅ Mostrar errores de validación (422)
+            if (xhr.status === 422 && xhr.responseJSON) {
+                if (xhr.responseJSON.errors) {
+                    // Errores de validación de Laravel
+                    var errors = xhr.responseJSON.errors;
+                    message = Object.values(errors).flat().join('\n');
+                } else if (xhr.responseJSON.message) {
+                    // Mensaje personalizado (nuestra validación de empleado duplicado)
+                    message = xhr.responseJSON.message;
+                }
+            } else if (xhr.responseJSON?.message) {
+                message = xhr.responseJSON.message;
+            }
+            
+            toastr.error(message);
+            console.error('Error details:', xhr.responseJSON); // Debug
+        }
+    });
+});
 
   // ============================================
     // CREAR CLIENTE (desde modal usuario) - CORREGIDO

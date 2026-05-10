@@ -160,9 +160,28 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('empleados', EmpleadoController::class);
         Route::resource('roles', RolController::class);
         Route::resource('permisos', PermisoController::class);
-        Route::resource('rol-permisos', RolPermisoController::class);
+        Route::resource('rol-permisos', RolPermisoController::class)->names([
+            'index'   => 'rol_permisos.index',
+            'create'  => 'rol_permisos.create',
+            'store'   => 'rol_permisos.store',
+            'show'    => 'rol_permisos.show',
+            'edit'    => 'rol_permisos.edit',
+            'update'  => 'rol_permisos.update',
+            'destroy' => 'rol_permisos.destroy',
+        ]);
+
+        Route::prefix('roles')->name('roles.')->group(function () {
+            Route::get('{id}/edit', [RolPermisoController::class, 'editRole'])->name('edit');
+            Route::put('{id}', [RolPermisoController::class, 'updateRole'])->name('update');
+            Route::delete('{id}', [RolPermisoController::class, 'destroyRole'])->name('destroy');
+            Route::delete('{id}/clear-permissions', [RolPermisoController::class, 'clearPermissions'])->name('clear-permissions');
+        });
         Route::resource('rol-permiso-usuarios', RolPermisoUsuarioController::class);
 
+        Route::get('personas', [UsuarioController::class, 'personas'])->name('personas.index');
+        Route::post('empleados/store-ajax', [UsuarioController::class, 'storeEmpleado'])->name('empleados.store-ajax');
+        Route::post('clientes/store-ajax', [UsuarioController::class, 'storeCliente'])->name('clientes.store-ajax');
+        
         // Endpoints AJAX para crear desde modales
         Route::post('empleados/store-ajax', [UsuarioController::class, 'storeEmpleado'])
             ->name('empleados.store-ajax');
@@ -342,7 +361,7 @@ Route::middleware(['auth'])->group(function () {
         // =============================================
 
         // Cálculo de insumos (AJAX - debe ir ANTES del resource)
- Route::post('producciones/calcular-insumos', [ProduccionController::class, 'calcularInsumos'])
+Route::post('producciones/calcular-insumos', [ProduccionController::class, 'calcularInsumos'])
     ->name('producciones.calcular-insumos');
 
 Route::resource('producciones', ProduccionController::class)

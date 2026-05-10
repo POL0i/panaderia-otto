@@ -13,13 +13,17 @@
                 @method('PUT')
                 <div class="modal-body bg-panaderia-light">
                     <input type="hidden" name="id_usuario" id="edit_id_usuario">
+                    
                     <div class="row">
+                        {{-- Correo --}}
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="text-panaderia">Correo Electrónico <span class="text-danger">*</span></label>
                                 <input type="email" name="correo" id="edit_correo" class="form-control" required>
                             </div>
                         </div>
+                        
+                        {{-- Contraseña --}}
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="text-panaderia">Nueva Contraseña</label>
@@ -27,6 +31,8 @@
                                 <small class="form-text text-muted">Dejar en blanco para mantener la actual</small>
                             </div>
                         </div>
+                        
+                        {{-- Tipo de Usuario --}}
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="text-panaderia">Tipo de Usuario <span class="text-danger">*</span></label>
@@ -36,6 +42,8 @@
                                 </select>
                             </div>
                         </div>
+                        
+                        {{-- Estado --}}
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="text-panaderia">Estado <span class="text-danger">*</span></label>
@@ -45,52 +53,54 @@
                                 </select>
                             </div>
                         </div>
-
-                        <div class="col-md-12">
-                            <div id="edit_empleado_container" style="display: none;">
-                                <div class="form-group">
-                                    <label class="text-panaderia">Empleado <span class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <select name="id_empleado" id="edit_id_empleado" class="form-control">
-                                            <option value="">Seleccione un empleado...</option>
-                                            @foreach($empleados as $empleado)
-                                                <option value="{{ $empleado->id_empleado }}">
-                                                    {{ $empleado->nombre }} {{ $empleado->apellido }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <div class="input-group-append">
-                                            <button type="button" class="btn btn-success" data-target="#createEmpleadoModal">
-                                                <i class="fas fa-plus"></i> Nuevo
-                                            </button>
-                                        </div>
-                                    </div>
+                    </div>
+                    
+                    {{-- Contenedores de Empleado y Cliente FUERA del row anterior --}}
+                    {{-- Empleado --}}
+                    <div id="edit_empleado_container" style="display: none;">
+                        <div class="form-group">
+                            <label class="text-panaderia">Empleado <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <select name="id_empleado" id="edit_id_empleado" class="form-control">
+                                    <option value="">Seleccione un empleado...</option>
+                                    @foreach($empleados as $empleado)
+                                        <option value="{{ $empleado->id_empleado }}">
+                                            {{ $empleado->nombre }} {{ $empleado->apellido }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#createEmpleadoModal">
+                                        <i class="fas fa-plus"></i> Nuevo
+                                    </button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <div id="edit_cliente_container" style="display: none;">
-                                <div class="form-group">
-                                    <label class="text-panaderia">Cliente <span class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <select name="id_cliente" id="edit_id_cliente" class="form-control">
-                                            <option value="">Seleccione un cliente...</option>
-                                            @foreach($clientes as $cliente)
-                                                <option value="{{ $cliente->id_cliente }}">
-                                                    {{ $cliente->nombre }} {{ $cliente->apellido ?? '' }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <div class="input-group-append">
-                                            <button type="button" class="btn btn-success" data-toggle="modal" data-target="#createClienteModal">
-                                                <i class="fas fa-plus"></i> Nuevo
-                                            </button>
-                                        </div>
-                                    </div>
+                    {{-- Cliente --}}
+                    <div id="edit_cliente_container" style="display: none;">
+                        <div class="form-group">
+                            <label class="text-panaderia">Cliente <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <select name="id_cliente" id="edit_id_cliente" class="form-control">
+                                    <option value="">Seleccione un cliente...</option>
+                                    @foreach($clientes as $cliente)
+                                        <option value="{{ $cliente->id_cliente }}">
+                                            {{ $cliente->nombre }} {{ $cliente->apellido ?? '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#createClienteModal">
+                                        <i class="fas fa-plus"></i> Nuevo
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                
                 <div class="modal-footer bg-panaderia-lighter">
                     <button type="button" class="btn btn-cancel" data-dismiss="modal">
                         <i class="fas fa-times mr-1"></i> Cancelar

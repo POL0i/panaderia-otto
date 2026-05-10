@@ -16,7 +16,7 @@
                 <td>
                     <div class="d-flex align-items-center">
                         <img src="{{ $item['imagen'] ? asset('storage/' . $item['imagen']) : 'https://placehold.co/50x50/8B4513/white?text=Pan' }}" 
-                             style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-right: 10px;">
+                                style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-right: 10px;">
                         <div>
                             <strong>{{ $item['nombre'] }}</strong><br>
                             <small class="text-muted">Almacén: {{ $item['almacen_nombre'] }}</small>
@@ -25,12 +25,12 @@
                 </td>
                 <td>Bs. {{ number_format($item['precio'], 2) }}</td>
                 <td>
-                    <input type="number" 
-                           value="{{ $item['cantidad'] }}" 
-                           min="1" 
-                           class="form-control form-control-sm cart-quantity-input" 
-                           style="width: 80px;"
-                           onchange="actualizarCantidad('{{ $key }}', this.value)">
+                        <input type="number" 
+                            value="{{ $item['cantidad'] }}" 
+                            min="1" 
+                            class="form-control form-control-sm cart-quantity-input" 
+                            style="width: 80px;"
+                            onchange="actualizarCantidad('{{ $key }}', this.value)">
                 </td>
                 <td>Bs. {{ number_format($item['precio'] * $item['cantidad'], 2) }}</td>
                 <td>
