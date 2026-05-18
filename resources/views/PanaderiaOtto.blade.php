@@ -16,66 +16,86 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
+        :root {
+            --color-primary: #8B4513;
+            --color-primary-dark: #5D3A1A;
+            --color-primary-medium: #8B4513;
+            --color-accent: #D2B48C;
+            --color-bg-light: #FFF9F0;
+            --color-bg-lighter: #FFF5E6;
+            --color-text-dark: #5D3A1A;
+            --color-text-medium: #A0522D;
+            --color-text-muted: #666;
+            --color-white: #FFFFFF;
+            --color-danger: #c0392b;
+            --color-danger-hover: #e74c3c;
+            --color-whatsapp: #25D366;
+            --border-radius-sm: 15px;
+            --border-radius-md: 20px;
+            --border-radius-lg: 30px;
+            --border-radius-xl: 50px;
+            --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 15px 30px rgba(0, 0, 0, 0.15);
+            --transition-speed: 0.3s;
+        }
+
         * {
             font-family: 'Poppins', sans-serif;
         }
 
         body {
-            background-color: #FFF9F0;
+            background-color: var(--color-bg-light);
         }
 
+        /* ========== NAVBAR ========== */
         .navbar-panaderia {
-            background: linear-gradient(135deg, #5D3A1A 0%, #8B4513 100%);
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary-medium) 100%);
             padding: 1rem 0;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-sm);
         }
-
         .navbar-brand {
             font-size: 1.8rem;
             font-weight: 700;
-            color: white !important;
+            color: var(--color-white) !important;
         }
-
         .navbar-brand i {
-            color: #D2B48C;
+            color: var(--color-accent);
             margin-right: 10px;
         }
-
         .nav-link {
             color: rgba(255, 255, 255, 0.9) !important;
             font-weight: 500;
-            transition: all 0.3s ease;
+            transition: all var(--transition-speed) ease;
         }
-
         .nav-link:hover {
-            color: #D2B48C !important;
+            color: var(--color-accent) !important;
         }
 
+        /* Botones de navegación */
         .btn-login {
-            background: #D2B48C;
-            color: #5D3A1A !important;
-            border-radius: 50px;
+            background: var(--color-accent);
+            color: var(--color-text-dark) !important;
+            border-radius: var(--border-radius-xl);
             padding: 8px 25px !important;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all var(--transition-speed) ease;
         }
-
         .btn-login:hover {
-            background: white;
+            background: var(--color-white);
             transform: translateY(-2px);
         }
 
-        /* ========== ESTILOS MENÚ USUARIO ========== */
+        /* Menú de usuario autenticado */
         .user-menu-wrapper {
             display: flex;
             align-items: center;
             gap: 2px;
         }
-
         .btn-user-info {
-            background: #D2B48C;
-            color: #5D3A1A !important;
-            border-radius: 50px 0 0 50px;
+            background: var(--color-accent);
+            color: var(--color-text-dark) !important;
+            border-radius: var(--border-radius-xl) 0 0 var(--border-radius-xl);
             padding: 8px 18px !important;
             font-weight: 600;
             font-size: 0.9rem;
@@ -86,218 +106,61 @@
             border: none;
             white-space: nowrap;
         }
-
         .btn-user-info i {
             font-size: 1.1rem;
-            color: #5D3A1A;
+            color: var(--color-text-dark);
+        }
+
+        /* Botón Sistema (ir a /home) - SOLO EMPLEADOS */
+        .btn-sistema {
+            background: var(--color-white);
+            color: var(--color-primary-dark) !important;
+            padding: 8px 14px !important;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-sistema:hover {
+            background: var(--color-bg-lighter);
         }
 
         .btn-logout {
-            background: #c0392b;
-            color: white !important;
-            border-radius: 0 50px 50px 0;
+            background: var(--color-danger);
+            color: var(--color-white) !important;
+            border-radius: 0 var(--border-radius-xl) var(--border-radius-xl) 0;
             padding: 8px 14px !important;
             font-weight: 600;
             border: none;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all var(--transition-speed) ease;
         }
-
         .btn-logout:hover {
-            background: #e74c3c;
+            background: var(--color-danger-hover);
             transform: translateY(-2px);
         }
-        /* ========================================== */
 
-        .hero {
-            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-            padding: 80px 0;
-            margin-bottom: 50px;
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            opacity: 0.95;
-        }
-
-        .product-card {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            margin-bottom: 30px;
-            height: 100%;
-        }
-
-        .product-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-        }
-
-        .product-img {
-            height: 220px;
-            background-size: cover;
-            background-position: center;
-            position: relative;
-        }
-
-        .product-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: #8B4513;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 50px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .product-body {
-            padding: 20px;
-        }
-
-        .product-title {
-            font-size: 1.3rem;
+        /* Botón carrito */
+        .btn-cart {
+            background: var(--color-accent);
+            color: var(--color-text-dark) !important;
+            border-radius: var(--border-radius-xl);
+            padding: 8px 25px !important;
             font-weight: 600;
-            color: #5D3A1A;
-            margin-bottom: 10px;
+            transition: all var(--transition-speed) ease;
+            position: relative;
+            border: none;
         }
-
-        .product-desc {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
+        .btn-cart:hover {
+            background: var(--color-white);
+            transform: translateY(-2px);
         }
-
-        .product-price {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #8B4513;
-            margin-bottom: 0;
-        }
-
-        .anuncio {
-            background: linear-gradient(135deg, #D2B48C 0%, #C4A67A 100%);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
-        }
-
-        .anuncio:hover {
-            transform: scale(1.02);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .anuncio h3 {
-            color: #5D3A1A;
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
-
-        .anuncio p {
-            color: #3E2510;
-            margin-bottom: 0;
-        }
-
-        .anuncio i {
-            font-size: 2.5rem;
-            color: #5D3A1A;
-            margin-bottom: 15px;
-        }
-
-        .promo-section {
-            background: linear-gradient(135deg, #FFF5E6 0%, #FFF9F0 100%);
-            padding: 60px 0;
-            margin: 50px 0;
-            border-radius: 30px;
-        }
-
-        .promo-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            height: 100%;
-        }
-
-        .footer {
-            background: linear-gradient(135deg, #5D3A1A 0%, #3E2510 100%);
-            color: white;
-            padding: 50px 0 20px;
-            margin-top: 50px;
-        }
-
-        .footer h5 {
-            color: #D2B48C;
-            margin-bottom: 20px;
-        }
-
-        .footer a {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .footer a:hover {
-            color: #D2B48C;
-        }
-
-        .social-icons i {
-            font-size: 1.5rem;
-            margin-right: 15px;
-            transition: all 0.3s ease;
-        }
-
-        .social-icons i:hover {
-            transform: translateY(-3px);
-            color: #D2B48C !important;
-        }
-
-        .whatsapp-float {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #25D366;
-            color: white;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-
-        .whatsapp-float:hover {
-            transform: scale(1.1);
-            color: white;
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2rem;
-            }
-            .hero {
-                padding: 50px 0;
-            }
-            .product-img {
-                height: 180px;
-            }
-        }
-
         .cart-badge {
             background: #ff4444;
             color: white;
@@ -307,29 +170,185 @@
             margin-left: 5px;
         }
 
+        /* ========== HERO ========== */
+        .hero {
+            background: linear-gradient(135deg, var(--color-primary-medium) 0%, var(--color-text-medium) 100%);
+            padding: 80px 0;
+            margin-bottom: 50px;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        /* ========== PRODUCT CARDS ========== */
+        .product-card {
+            background: var(--color-white);
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            transition: all var(--transition-speed) ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            height: 100%;
+        }
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+        .product-img {
+            height: 220px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .product-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--color-primary-medium);
+            color: var(--color-white);
+            padding: 5px 12px;
+            border-radius: var(--border-radius-xl);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .product-body {
+            padding: 20px;
+        }
+        .product-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--color-text-dark);
+            margin-bottom: 10px;
+        }
+        .product-desc {
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-primary-medium);
+            margin-bottom: 0;
+        }
+
+        /* ========== ANUNCIOS ========== */
+        .anuncio {
+            background: linear-gradient(135deg, var(--color-accent) 0%, #C4A67A 100%);
+            border-radius: var(--border-radius-md);
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: all var(--transition-speed) ease;
+        }
+        .anuncio:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow-md);
+        }
+        .anuncio h3 {
+            color: var(--color-text-dark);
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        .anuncio p {
+            color: #3E2510;
+            margin-bottom: 0;
+        }
+        .anuncio i {
+            font-size: 2.5rem;
+            color: var(--color-text-dark);
+            margin-bottom: 15px;
+        }
+
+        /* ========== PROMOS ========== */
+        .promo-section {
+            background: linear-gradient(135deg, var(--color-bg-lighter) 0%, var(--color-bg-light) 100%);
+            padding: 60px 0;
+            margin: 50px 0;
+            border-radius: var(--border-radius-lg);
+        }
+        .promo-card {
+            background: var(--color-white);
+            border-radius: var(--border-radius-sm);
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            height: 100%;
+        }
+
+        /* ========== FOOTER ========== */
+        .footer {
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, #3E2510 100%);
+            color: var(--color-white);
+            padding: 50px 0 20px;
+            margin-top: 50px;
+        }
+        .footer h5 {
+            color: var(--color-accent);
+            margin-bottom: 20px;
+        }
+        .footer a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color var(--transition-speed) ease;
+        }
+        .footer a:hover {
+            color: var(--color-accent);
+        }
+        .social-icons i {
+            font-size: 1.5rem;
+            margin-right: 15px;
+            transition: all var(--transition-speed) ease;
+        }
+        .social-icons i:hover {
+            transform: translateY(-3px);
+            color: var(--color-accent) !important;
+        }
+
+        /* ========== WHATSAPP FLOAT ========== */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--color-whatsapp);
+            color: var(--color-white);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all var(--transition-speed) ease;
+            z-index: 1000;
+        }
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            color: var(--color-white);
+        }
+
+        /* ========== MODAL CART ========== */
         .modal-cart-item {
             border-bottom: 1px solid #eee;
             padding: 10px 0;
         }
-
         .cart-quantity-input {
             width: 70px;
             text-align: center;
         }
 
-        .btn-cart {
-            background: #D2B48C;
-            color: #5D3A1A !important;
-            border-radius: 50px;
-            padding: 8px 25px !important;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .btn-cart:hover {
-            background: white;
-            transform: translateY(-2px);
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .hero { padding: 50px 0; }
+            .product-img { height: 180px; }
+            .user-menu-wrapper { flex-wrap: wrap; }
         }
     </style>
 </head>
@@ -362,7 +381,7 @@
                         </button>
                     </li>
 
-                    {{-- ========== USUARIO AUTENTICADO ========== --}}
+                    {{-- USUARIO AUTENTICADO --}}
                     @auth
                         <li class="nav-item ms-3">
                             <div class="user-menu-wrapper">
@@ -370,6 +389,14 @@
                                     <i class="fas fa-user-circle"></i>
                                     {{ Auth::user()->getNombreCompletoAttribute() ?? explode('@', Auth::user()->correo)[0] }}
                                 </span>
+
+                                {{-- 🔒 BOTÓN SISTEMA - Solo empleados/admin --}}
+                                @if(Auth::user()->tipo_usuario === 'empleado' || Auth::user()->esAdmin())
+                                <a href="{{ url('/home') }}" class="btn-sistema" title="Ir al sistema de gestión">
+                                    <i class="fas fa-desktop"></i> Sistema
+                                </a>
+                                @endif
+
                                 <form action="{{ route('logout') }}" method="POST" style="display: inline;">
                                     @csrf
                                     <button type="submit" class="btn-logout" title="Cerrar sesión">
@@ -395,7 +422,7 @@
         <div class="container">
             <h1>Pan Artesanal Hecho con Amor</h1>
             <p class="lead">Descubre nuestra selección de productos frescos, horneados diariamente con ingredientes de la mejor calidad</p>
-            <a href="#productos" class="btn btn-light btn-lg mt-3" style="border-radius: 50px; color: #8B4513; font-weight: 600;">
+            <a href="#productos" class="btn btn-light btn-lg mt-3" style="border-radius: var(--border-radius-xl); color: var(--color-primary-medium); font-weight: 600;">
                 Ver Productos <i class="fas fa-arrow-down"></i>
             </a>
         </div>
@@ -415,9 +442,9 @@
 
         <!-- Título de Productos -->
         <div class="text-center mb-5" id="productos">
-            <h2 style="color: #5D3A1A; font-weight: 700;">Nuestros Productos</h2>
-            <p style="color: #A0522D;">Los más deliciosos productos recién horneados</p>
-            <div class="divider" style="width: 80px; height: 3px; background: #D2B48C; margin: 15px auto;"></div>
+            <h2 style="color: var(--color-text-dark); font-weight: 700;">Nuestros Productos</h2>
+            <p style="color: var(--color-text-medium);">Los más deliciosos productos recién horneados</p>
+            <div class="divider" style="width: 80px; height: 3px; background: var(--color-accent); margin: 15px auto;"></div>
         </div>
 
         <!-- Grid de Productos -->
@@ -432,10 +459,8 @@
                             <h3 class="product-title">{{ $producto->nombre }}</h3>
                             <p class="product-desc">{{ Str::limit($producto->descripcion ?? 'Delicioso producto artesanal', 80) }}</p>
                             <div class="d-flex justify-content-between align-items-center">
-                                <div class="product-price">
-                                    Bs. {{ number_format($producto->precio, 2) }}
-                                </div>
-                                <button class="btn btn-sm" style="background: #D2B48C; color: #5D3A1A; border-radius: 50px;"
+                                <div class="product-price">Bs. {{ number_format($producto->precio, 2) }}</div>
+                                <button class="btn btn-sm" style="background: var(--color-accent); color: var(--color-text-dark); border-radius: var(--border-radius-xl);"
                                         onclick='agregarAlCarrito(<?php echo json_encode($producto); ?>)'>
                                     <i class="fas fa-shopping-cart"></i> Agregar
                                 </button>
@@ -463,10 +488,11 @@
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="anuncio text-center h-100 d-flex flex-column justify-content-center" style="background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);">
-                    <i class="fas fa-percent" style="color: white;"></i>
-                    <h3 style="color: white;">Descuento por Volumen</h3>
-                    <p style="color: #D2B48C;">Compra al mayoreo y obtén hasta 20% de descuento.</p>
+                <div class="anuncio text-center h-100 d-flex flex-column justify-content-center" 
+                     style="background: linear-gradient(135deg, var(--color-primary-medium) 0%, var(--color-text-medium) 100%);">
+                    <i class="fas fa-percent" style="color: var(--color-white);"></i>
+                    <h3 style="color: var(--color-white);">Descuento por Volumen</h3>
+                    <p style="color: var(--color-accent);">Compra al mayoreo y obtén hasta 20% de descuento.</p>
                 </div>
             </div>
         </div>
@@ -475,10 +501,8 @@
         <div class="modal fade" id="cartModal" tabindex="-1">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
-                    <div class="modal-header" style="background: linear-gradient(135deg, #5D3A1A 0%, #8B4513 100%);">
-                        <h5 class="modal-title text-white">
-                            <i class="fas fa-shopping-cart"></i> Mi Carrito
-                        </h5>
+                    <div class="modal-header" style="background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary-medium) 100%);">
+                        <h5 class="modal-title text-white"><i class="fas fa-shopping-cart"></i> Mi Carrito</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body" id="cartContent">
@@ -489,7 +513,8 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Seguir Comprando</button>
-                        <button type="button" class="btn" id="btnProcesarPedido" style="background: #8B4513; color: white;">
+                        <button type="button" class="btn" id="btnProcesarPedido" 
+                                style="background: var(--color-primary-medium); color: var(--color-white);">
                             <i class="fas fa-check-circle"></i> Procesar Pedido
                         </button>
                     </div>
@@ -501,34 +526,34 @@
         <div class="promo-section" id="ofertas">
             <div class="container">
                 <div class="text-center mb-5">
-                    <h2 style="color: #5D3A1A; font-weight: 700;">Promociones Especiales</h2>
-                    <p style="color: #A0522D;">Aprovecha nuestras ofertas por tiempo limitado</p>
+                    <h2 style="color: var(--color-text-dark); font-weight: 700;">Promociones Especiales</h2>
+                    <p style="color: var(--color-text-medium);">Aprovecha nuestras ofertas por tiempo limitado</p>
                 </div>
                 <div class="row">
                     <div class="col-md-4">
                         <div class="promo-card">
-                            <i class="fas fa-coffee fa-3x" style="color: #8B4513;"></i>
-                            <h4 class="mt-3" style="color: #5D3A1A;">Café + Pan</h4>
+                            <i class="fas fa-coffee fa-3x" style="color: var(--color-primary-medium);"></i>
+                            <h4 class="mt-3" style="color: var(--color-text-dark);">Café + Pan</h4>
                             <p>Combo de café americano + pan francés</p>
-                            <h3 style="color: #8B4513; font-weight: 700;">Bs. 45.00</h3>
+                            <h3 style="color: var(--color-primary-medium); font-weight: 700;">Bs. 45.00</h3>
                             <small class="text-muted">Precio regular: Bs. 60</small>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="promo-card">
-                            <i class="fas fa-birthday-cake fa-3x" style="color: #8B4513;"></i>
-                            <h4 class="mt-3" style="color: #5D3A1A;">Pastel Personalizado</h4>
+                            <i class="fas fa-birthday-cake fa-3x" style="color: var(--color-primary-medium);"></i>
+                            <h4 class="mt-3" style="color: var(--color-text-dark);">Pastel Personalizado</h4>
                             <p>10% de descuento en tu pastel de cumpleaños</p>
-                            <h3 style="color: #8B4513; font-weight: 700;">-10% OFF</h3>
+                            <h3 style="color: var(--color-primary-medium); font-weight: 700;">-10% OFF</h3>
                             <small class="text-muted">Presenta tu carnet</small>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="promo-card">
-                            <i class="fas fa-gift fa-3x" style="color: #8B4513;"></i>
-                            <h4 class="mt-3" style="color: #5D3A1A;">Lunes de Descuento</h4>
+                            <i class="fas fa-gift fa-3x" style="color: var(--color-primary-medium);"></i>
+                            <h4 class="mt-3" style="color: var(--color-text-dark);">Lunes de Descuento</h4>
                             <p>15% en toda la panadería los lunes</p>
-                            <h3 style="color: #8B4513; font-weight: 700;">15% OFF</h3>
+                            <h3 style="color: var(--color-primary-medium); font-weight: 700;">15% OFF</h3>
                             <small class="text-muted">Aplican términos y condiciones</small>
                         </div>
                     </div>
@@ -539,26 +564,27 @@
         <!-- Sección Nosotros -->
         <div class="row align-items-center mt-5" id="nosotros">
             <div class="col-md-6">
-                <img src="https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=600&h=400&fit=crop" alt="Panadería Otto" class="img-fluid rounded-4 shadow" style="border-radius: 20px;">
+                <img src="https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=600&h=400&fit=crop" 
+                     alt="Panadería Otto" class="img-fluid shadow" style="border-radius: var(--border-radius-md);">
             </div>
             <div class="col-md-6">
-                <h2 style="color: #5D3A1A; font-weight: 700;">Más de 20 años de tradición</h2>
-                <p style="color: #666; line-height: 1.8;">En Panadería Otto nos dedicamos a elaborar productos de panadería y repostería con ingredientes de la más alta calidad. Nuestra tradición familiar y el amor por lo que hacemos nos permiten ofrecerte el mejor sabor en cada bocado.</p>
+                <h2 style="color: var(--color-text-dark); font-weight: 700;">Más de 20 años de tradición</h2>
+                <p style="color: var(--color-text-muted); line-height: 1.8;">En Panadería Otto nos dedicamos a elaborar productos de panadería y repostería con ingredientes de la más alta calidad. Nuestra tradición familiar y el amor por lo que hacemos nos permiten ofrecerte el mejor sabor en cada bocado.</p>
                 <div class="row mt-4">
                     <div class="col-6">
                         <div class="d-flex align-items-center">
-                            <i class="fas fa-check-circle fa-2x" style="color: #8B4513;"></i>
+                            <i class="fas fa-check-circle fa-2x" style="color: var(--color-primary-medium);"></i>
                             <div class="ms-3">
-                                <h5 class="mb-0" style="color: #5D3A1A;">100% Artesanal</h5>
+                                <h5 class="mb-0" style="color: var(--color-text-dark);">100% Artesanal</h5>
                                 <small class="text-muted">Elaboración tradicional</small>
                             </div>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="d-flex align-items-center">
-                            <i class="fas fa-leaf fa-2x" style="color: #8B4513;"></i>
+                            <i class="fas fa-leaf fa-2x" style="color: var(--color-primary-medium);"></i>
                             <div class="ms-3">
-                                <h5 class="mb-0" style="color: #5D3A1A;">Ingredientes Naturales</h5>
+                                <h5 class="mb-0" style="color: var(--color-text-dark);">Ingredientes Naturales</h5>
                                 <small class="text-muted">Sin conservadores</small>
                             </div>
                         </div>

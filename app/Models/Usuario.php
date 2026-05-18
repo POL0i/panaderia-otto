@@ -73,6 +73,19 @@ class Usuario extends Authenticatable
     }
 
     /**
+     * Obtener el nombre del usuario (empleado o cliente)
+     */
+
+    public function getNameAttribute(): string
+    {
+        if ($this->empleado) {
+            return $this->empleado->nombre . ' ' . $this->empleado->apellido;
+        }
+        return explode('@', $this->correo)[0] ?? 'Usuario';
+    }
+
+
+    /**
      * Relación con Empleado
      */
     public function empleado(): BelongsTo
@@ -312,4 +325,6 @@ class Usuario extends Authenticatable
     {
         return $query->where('tipo_usuario', 'cliente');
     }
+
+
 }

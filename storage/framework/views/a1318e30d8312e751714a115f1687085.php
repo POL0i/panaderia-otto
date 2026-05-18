@@ -69,37 +69,12 @@
         </ul>
 
         <ul class="navbar-nav ml-auto">
-            
-            <li class="nav-item dropdown">
-                <a class="nav-link" data-toggle="dropdown" href="#">
-                    <i class="far fa-bell"></i>
-                    <span class="badge badge-warning navbar-badge notification-badge">3</span>
-                </a>
-                <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                    <span class="dropdown-item dropdown-header">3 Notificaciones</span>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-utensils mr-2 dropdown-icon-accent"></i> Nueva receta creada
-                        <span class="float-right text-muted text-sm">hace 2 min</span>
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-box mr-2 dropdown-icon-accent"></i> Inventario bajo
-                        <span class="float-right text-muted text-sm">hace 1 hora</span>
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-users mr-2 dropdown-icon-accent"></i> Nuevo cliente registrado
-                        <span class="float-right text-muted text-sm">hace 3 horas</span>
-                    </a>
-                </div>
-            </li>
 
             
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">
                     <i class="fas fa-user-circle"></i>
-                    <span><?php echo e(Auth::user()->name ?? 'Usuario'); ?></span>
+                    <span><?php echo e(Auth::user()->name); ?></span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right">
                     <a href="#" class="dropdown-item">
@@ -151,7 +126,7 @@
     
     
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
-        <a href="<?php echo e(route('home')); ?>" class="brand-link d-flex align-items-center justify-content-center">
+        <a href="<?php echo e(route('landing')); ?>" class="brand-link d-flex align-items-center justify-content-center">
             <i class="fas fa-bread-slice fa-2x mr-2 brand-icon"></i>
             <span class="brand-text font-weight-bold">Panadería Otto</span>
         </a>
@@ -256,7 +231,7 @@
 
                     
                     <?php if(in_array('gestion_comercial_ver', $userPermissions) || $isAdmin): ?>
-                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('notas-venta.*') || Request::routeIs('detalles-venta.*') || Request::routeIs('notas-compra.*') || Request::routeIs('detalles-compra.*') || Request::routeIs('proveedores.*') || Request::routeIs('ppersona.*') || Request::routeIs('pempresa.*') || Request::routeIs('compras.*') ? 'menu-open' : ''); ?>">
+                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('notas-venta.*') || Request::routeIs('detalles-venta.*') || Request::routeIs('notas-compra.*') || Request::routeIs('detalles-compra.*') || Request::routeIs('proveedores.*') || Request::routeIs('ppersona.*') || Request::routeIs('pempresa.*') || Request::routeIs('compras.*') || Request::routeIs('ventas.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-exchange-alt"></i>
                             <p>Gestión Comercial <i class="right fas fa-angle-left"></i></p>
@@ -367,7 +342,7 @@
                     <?php endif; ?>
 
                     
-                    <?php if(in_array('produccion_ver', $userPermissions) || $isAdmin): ?>
+                    <?php if(in_array('produccion_ver', $userPermissions) || in_array('inventario_ver', $userPermissions) || $isAdmin): ?>
                     <li class="nav-item has-treeview <?php echo e(Request::routeIs('produccion.*') || Request::routeIs('recetas.*') || Request::routeIs('detalles-receta.*') || Request::routeIs('producciones.*') || Request::routeIs('produccion-items.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-industry"></i>
@@ -381,12 +356,15 @@
                                     <p>Panel de Producción</p>
                                 </a>
                             </li>
-                            <?php endif; ?>
+                            
                             <li class="nav-item">
                                 <a href="<?php echo e(route('detalles-receta.index')); ?>" class="nav-link <?php echo e(Request::routeIs('detalles-receta.*') ? 'active' : ''); ?>">
                                     <i class="far fa-circle nav-icon"></i><p>Detalles Receta</p>
                                 </a>
                             </li>
+                            
+                            <?php endif; ?>
+
                             <li class="nav-item">
                                 <a href="<?php echo e(route('producciones.index')); ?>" class="nav-link <?php echo e(Request::routeIs('producciones.*') ? 'active' : ''); ?>">
                                     <i class="far fa-circle nav-icon"></i><p>Producciones</p>

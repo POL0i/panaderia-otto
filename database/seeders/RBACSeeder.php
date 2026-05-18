@@ -1,5 +1,4 @@
 <?php
-// database/seeders/RBACSeeder.php
 
 namespace Database\Seeders;
 
@@ -8,6 +7,7 @@ use App\Models\Rol;
 use App\Models\RolPermiso;
 use App\Models\RolPermisoUsuario;
 use App\Models\Usuario;
+use App\Models\Empleado;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -15,33 +15,27 @@ class RBACSeeder extends Seeder
 {
     public function run(): void
     {
-        // ============================================
-        // 1. CREAR PERMISOS (solo para control de acceso a módulos)
-        // ============================================
-        $permisos = $this->crearPermisos();
-        echo "✓ " . count($permisos) . " permisos de módulo creados\n";
+        // 1. CREAR EMPLEADOS (primero, para poder asignarlos a usuarios)
+        $empleados = $this->crearEmpleados();
+        echo "✓ " . count($empleados) . " empleados creados\n";
 
-        // ============================================
-        // 2. CREAR ROLES
-        // ============================================
+        // 2. CREAR PERMISOS
+        $permisos = $this->crearPermisos();
+        echo "✓ " . count($permisos) . " permisos creados\n";
+
+        // 3. CREAR ROLES
         $roles = $this->crearRoles();
         echo "✓ " . count($roles) . " roles creados\n";
 
-        // ============================================
-        // 3. ASIGNAR PERMISOS A ROLES
-        // ============================================
+        // 4. ASIGNAR PERMISOS A ROLES
         $this->asignarPermisosARoles($roles, $permisos);
         echo "✓ Permisos asignados a roles\n";
 
-        // ============================================
-        // 4. CREAR USUARIOS DE PRUEBA
-        // ============================================
-        $usuarios = $this->crearUsuarios();
+        // 5. CREAR USUARIOS Y ASIGNARLES EMPLEADO
+        $usuarios = $this->crearUsuarios($empleados);
         echo "✓ " . count($usuarios) . " usuarios creados\n";
 
-        // ============================================
-        // 5. ASIGNAR ROLES A USUARIOS
-        // ============================================
+        // 6. ASIGNAR ROLES A USUARIOS
         $this->asignarUsuariosARoles($usuarios, $roles);
         echo "✓ Usuarios asignados a roles\n";
 
@@ -49,43 +43,119 @@ class RBACSeeder extends Seeder
     }
 
     /**
-     * Crear solo permisos de acceso a módulos (vistas/rutas)
+     * Crear empleados para todos los usuarios
+     */
+    private function crearEmpleados(): array
+    {
+        $datosEmpleados = [
+            'admin' => [
+                'nombre' => 'Carlos',
+                'apellido' => 'Mendoza',
+                'telefono' => '70000000',
+                'direccion' => 'Av. Principal #100',
+                'sueldo' => 5000,
+                'fecha_nac' => '1990-05-15',
+                'edad' => 36,
+            ],
+            'venta' => [
+                'nombre' => 'Lizeth',
+                'apellido' => 'García',
+                'telefono' => '70000002',
+                'direccion' => 'Calle 2',
+                'sueldo' => 3200,
+                'fecha_nac' => '1995-08-22',
+                'edad' => 30,
+            ],
+            'compra' => [
+                'nombre' => 'Roberto',
+                'apellido' => 'Flores',
+                'telefono' => '70000003',
+                'direccion' => 'Calle 3',
+                'sueldo' => 3300,
+                'fecha_nac' => '1992-03-10',
+                'edad' => 34,
+            ],
+            'produccion' => [
+                'nombre' => 'Dennis',
+                'apellido' => 'Rodríguez',
+                'telefono' => '70000001',
+                'direccion' => 'Calle 1',
+                'sueldo' => 3500,
+                'fecha_nac' => '1993-11-28',
+                'edad' => 32,
+            ],
+            'inventario' => [
+                'nombre' => 'Mario',
+                'apellido' => 'López',
+                'telefono' => '70000004',
+                'direccion' => 'Calle 4',
+                'sueldo' => 3400,
+                'fecha_nac' => '1991-07-05',
+                'edad' => 34,
+            ],
+            'empleado' => [
+                'nombre' => 'Juan',
+                'apellido' => 'Pérez',
+                'telefono' => '70000005',
+                'direccion' => 'Calle 5',
+                'sueldo' => 2800,
+                'fecha_nac' => '1998-01-19',
+                'edad' => 28,
+            ],
+        ];
+
+        $empleados = [];
+        foreach ($datosEmpleados as $key => $datos) {
+            $empleados[$key] = Empleado::firstOrCreate(
+                ['nombre' => $datos['nombre'], 'apellido' => $datos['apellido']],
+                $datos
+            );
+        }
+
+        return $empleados;
+    }
+
+    /**
+     * Crear permisos de acceso a módulos
      */
     private function crearPermisos(): array
     {
         $listaPermisos = [
-            // Módulos principales (acceso a vistas)
+            // Módulos principales
             'gestion_comercial_ver',
             'almacen_ver',
             'inventario_ver',
             'produccion_ver',
             'reportes_ver',
-            
+
             // Paneles destacados
             'panel_almacen_ver',
             'panel_produccion_ver',
-            
+
+            // 🔒 NUEVO: Permiso para gestionar producciones (aprobar/rechazar/cancelar)
+            'gestionar_produccion',
+
             // Sub-módulos de Gestión Comercial
             'notas_venta_ver',
             'notas_compra_ver',
             'proveedores_ver',
             'clientes_ver',
-            
+
             // Sub-módulos de Almacén
             'almacenes_ver',
             'productos_ver',
             'items_ver',
             'insumos_ver',
-            
+
             // Sub-módulos de Inventario
             'movimientos_ver',
             'traspasos_ver',
             'lotes_ver',
-            
+
             // Sub-módulos de Producción
             'recetas_ver',
             'producciones_ver',
-            
+
             // Módulo de Acceso (solo admin)
             'modulo_acceso_ver',
         ];
@@ -131,11 +201,12 @@ class RBACSeeder extends Seeder
             $this->crearRolPermiso($roles['Administrador'], $permiso);
         }
 
-        // GERENTE - Acceso a todos los módulos principales
+        // GERENTE - Acceso a todos los módulos principales + gestionar_produccion
         $permisosGerente = [
-            'gestion_comercial_ver', 'almacen_ver', 'inventario_ver', 
+            'gestion_comercial_ver', 'almacen_ver', 'inventario_ver',
             'produccion_ver', 'reportes_ver',
             'panel_almacen_ver', 'panel_produccion_ver',
+            'gestionar_produccion',
         ];
         foreach ($permisosGerente as $nombre) {
             if (isset($permisos[$nombre])) {
@@ -160,17 +231,21 @@ class RBACSeeder extends Seeder
         }
 
         // ENCARGADO PRODUCCIÓN
-        $permisosProduccion = ['produccion_ver', 'recetas_ver', 'producciones_ver', 'panel_produccion_ver'];
+        $permisosProduccion = [
+            'produccion_ver', 'recetas_ver', 'producciones_ver', 'panel_produccion_ver'
+        ];
         foreach ($permisosProduccion as $nombre) {
             if (isset($permisos[$nombre])) {
                 $this->crearRolPermiso($roles['Encargado Producción'], $permisos[$nombre]);
             }
         }
 
-        // ENCARGADO INVENTARIO
+        // ENCARGADO INVENTARIO (con permiso para gestionar producciones)
         $permisosInventario = [
-            'inventario_ver', 'almacen_ver', 'movimientos_ver', 'traspasos_ver', 
-            'lotes_ver', 'insumos_ver', 'panel_almacen_ver'
+            'inventario_ver', 'almacen_ver', 'movimientos_ver', 'traspasos_ver',
+            'lotes_ver', 'insumos_ver', 'panel_almacen_ver',
+            'produccion_ver',
+            'gestionar_produccion',    // ← NUEVO: Puede aprobar/rechazar/cancelar
         ];
         foreach ($permisosInventario as $nombre) {
             if (isset($permisos[$nombre])) {
@@ -196,12 +271,12 @@ class RBACSeeder extends Seeder
     }
 
     /**
-     * Crear usuarios de prueba
+     * Crear usuarios de prueba y asignarles empleado
      */
-    private function crearUsuarios(): array
+    private function crearUsuarios(array $empleados): array
     {
         $usuarios = [];
-        
+
         $usuarios['admin'] = Usuario::firstOrCreate(
             ['correo' => 'admin@panaderia.com'],
             [
@@ -209,32 +284,63 @@ class RBACSeeder extends Seeder
                 'contraseña' => Hash::make('admin123'),
                 'estado' => 'activo',
                 'tipo_usuario' => 'empleado',
+                'id_empleado' => $empleados['admin']->id_empleado,
             ]
         );
 
         $usuarios['venta'] = Usuario::firstOrCreate(
             ['correo' => 'venta@panaderia.com'],
-            ['correo' => 'venta@panaderia.com', 'contraseña' => Hash::make('venta123'), 'estado' => 'activo', 'tipo_usuario' => 'empleado']
+            [
+                'correo' => 'venta@panaderia.com',
+                'contraseña' => Hash::make('venta123'),
+                'estado' => 'activo',
+                'tipo_usuario' => 'empleado',
+                'id_empleado' => $empleados['venta']->id_empleado,
+            ]
         );
 
         $usuarios['compra'] = Usuario::firstOrCreate(
             ['correo' => 'compra@panaderia.com'],
-            ['correo' => 'compra@panaderia.com', 'contraseña' => Hash::make('compra123'), 'estado' => 'activo', 'tipo_usuario' => 'empleado']
+            [
+                'correo' => 'compra@panaderia.com',
+                'contraseña' => Hash::make('compra123'),
+                'estado' => 'activo',
+                'tipo_usuario' => 'empleado',
+                'id_empleado' => $empleados['compra']->id_empleado,
+            ]
         );
 
         $usuarios['produccion'] = Usuario::firstOrCreate(
             ['correo' => 'produccion@panaderia.com'],
-            ['correo' => 'produccion@panaderia.com', 'contraseña' => Hash::make('produccion123'), 'estado' => 'activo', 'tipo_usuario' => 'empleado']
+            [
+                'correo' => 'produccion@panaderia.com',
+                'contraseña' => Hash::make('produccion123'),
+                'estado' => 'activo',
+                'tipo_usuario' => 'empleado',
+                'id_empleado' => $empleados['produccion']->id_empleado,
+            ]
         );
 
         $usuarios['inventario'] = Usuario::firstOrCreate(
             ['correo' => 'inventario@panaderia.com'],
-            ['correo' => 'inventario@panaderia.com', 'contraseña' => Hash::make('inventario123'), 'estado' => 'activo', 'tipo_usuario' => 'empleado']
+            [
+                'correo' => 'inventario@panaderia.com',
+                'contraseña' => Hash::make('inventario123'),
+                'estado' => 'activo',
+                'tipo_usuario' => 'empleado',
+                'id_empleado' => $empleados['inventario']->id_empleado,
+            ]
         );
 
         $usuarios['empleado'] = Usuario::firstOrCreate(
             ['correo' => 'empleado@panaderia.com'],
-            ['correo' => 'empleado@panaderia.com', 'contraseña' => Hash::make('empleado123'), 'estado' => 'activo', 'tipo_usuario' => 'empleado']
+            [
+                'correo' => 'empleado@panaderia.com',
+                'contraseña' => Hash::make('empleado123'),
+                'estado' => 'activo',
+                'tipo_usuario' => 'empleado',
+                'id_empleado' => $empleados['empleado']->id_empleado,
+            ]
         );
 
         return $usuarios;
@@ -267,11 +373,11 @@ class RBACSeeder extends Seeder
     private function mostrarCredenciales(): void
     {
         echo "\n--- CREDENCIALES ---\n";
-        echo "Admin: admin@panaderia.com / admin123\n";
-        echo "Venta: venta@panaderia.com / venta123\n";
-        echo "Compra: compra@panaderia.com / compra123\n";
-        echo "Producción: produccion@panaderia.com / produccion123\n";
-        echo "Inventario: inventario@panaderia.com / inventario123\n";
-        echo "Empleado: empleado@panaderia.com / empleado123\n";
+        echo "Admin:      admin@panaderia.com       / admin123       (Carlos Mendoza)\n";
+        echo "Venta:      venta@panaderia.com       / venta123       (Lizeth García)\n";
+        echo "Compra:     compra@panaderia.com      / compra123      (Roberto Flores)\n";
+        echo "Producción: produccion@panaderia.com  / produccion123  (Dennis Rodríguez)\n";
+        echo "Inventario: inventario@panaderia.com  / inventario123  (Mario López)\n";
+        echo "Empleado:   empleado@panaderia.com    / empleado123    (Juan Pérez)\n";
     }
 }

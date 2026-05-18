@@ -199,9 +199,6 @@
                     </h5>
                 </div>
                 <div class="card-body text-center">
-                    <button class="btn btn-info quick-action-btn" data-toggle="modal" data-target="#createInsumoModal">
-                        <i class="fas fa-box-open"></i> Nuevo Insumo
-                    </button>
                     <button class="btn btn-primary quick-action-btn" data-toggle="modal" data-target="#createRecetaModal">
                         <i class="fas fa-book-medical"></i> Nueva Receta
                     </button>
@@ -378,9 +375,6 @@
                                     <td>{{ Str::limit($receta->descripcion, 40) ?: '-' }}</td>
                                     <td>{{ $receta->created_at->diffForHumans() }}</td>
                                     <td>
-                                        <a href="{{ route('recetas.show', $receta) }}" class="btn btn-sm btn-info" title="Ver">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
                                         <a href="{{ route('produccion.recetas.detalles', $receta) }}" class="btn btn-sm btn-success" title="Agregar insumos">
                                             <i class="fas fa-plus-circle"></i>
                                         </a>
@@ -401,8 +395,6 @@
 {{-- ===================================================== --}}
 {{-- MODALES REUTILIZADOS DEL MÓDULO ALMACÉN --}}
 {{-- ===================================================== --}}
-@include('modulo-almacen.partials.modal-categoria-insumo')
-@include('modulo-almacen.partials.modal-insumo', ['categorias' => $categorias])
 @include('modulo-almacen.partials.modal-categoria-producto')
 
 {{-- ===================================================== --}}

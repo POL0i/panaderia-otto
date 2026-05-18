@@ -8,17 +8,16 @@ class Receta extends Model
 {
     protected $table = 'recetas';
     protected $primaryKey = 'id_receta';
-    public $timestamps = true;
-
+    
     protected $fillable = [
         'nombre',
         'descripcion',
+        'id_producto',
         'cantidad_requerida',
-        'id_producto',          // ← nuevo
     ];
 
     /**
-     * Producto que se obtiene al seguir esta receta.
+     * Relación con el producto final
      */
     public function producto()
     {
@@ -26,7 +25,7 @@ class Receta extends Model
     }
 
     /**
-     * Detalles de la receta (ingredientes).
+     * Relación con los detalles de la receta (insumos)
      */
     public function detalles()
     {
@@ -34,25 +33,38 @@ class Receta extends Model
     }
 
     /**
-     * Producciones realizadas con esta receta.
+     * Obtener las producciones que usan esta receta
+     * La relación es a través de detalle_receta -> detalle_produccion
      */
     public function producciones()
     {
-        return $this->hasMany(Produccion::class, 'id_receta', 'id_receta');
+        return $this->hasManyThrough(
+            Produccion::class,          // Modelo final
+            DetalleReceta::class,       // Modelo intermedio
+            'id_receta',                // Foreign key en DetalleReceta
+            'id_produccion',            // Foreign key en Produccion (no se usa directo)
+            'id_receta',                // Local key en Receta
+            'id_detalle_receta'         // Local key en DetalleReceta
+        )->join('detalle_produccion', 'detalle_receta.id_detalle_receta', '=', 'detalle_produccion.id_detalle_receta')
+          ->select('producciones.*')
+          ->distinct();
     }
 
     /**
-     * Insumos a través de los detalles.
+     * Contar producciones asociadas (método alternativo)
      */
-    public function insumos()
+    public function getProduccionesCountAttribute()
     {
-        return $this->hasManyThrough(
-            Insumo::class,
-            DetalleReceta::class,
-            'id_receta',
-            'id_insumo',
-            'id_receta',
-            'id_insumo'
-        );
+        return \App\Models\DetalleProduccion::whereIn('id_detalle_receta', 
+            $this->detalles()->pluck('id_detalle_receta')
+        )->distinct('id_produccion')->count('id_produccion');
+    }
+
+    /**
+     * Verificar si la receta tiene producciones asociadas
+     */
+    public function tieneProducciones()
+    {
+        return $this->producciones_count > 0;
     }
 }

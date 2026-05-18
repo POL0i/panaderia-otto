@@ -222,11 +222,6 @@
                 <i class="fas fa-boxes mr-2"></i>
                 Listado de Items ({{ $items->total() }})
             </h3>
-            <div class="card-tools">
-                <a href="{{ route('items.create') }}" class="btn btn-success btn-sm">
-                    <i class="fas fa-plus mr-1"></i> Nuevo Item
-                </a>
-            </div>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -298,9 +293,6 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('items.show', $item->id_item) }}" class="btn btn-outline-info" title="Ver detalle">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
                                         <a href="{{ route('items.edit', $item->id_item) }}" class="btn btn-outline-primary" title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </a>

@@ -64,9 +64,6 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm" role="group">
-                                    <a href="<?php echo e(route('proveedores.show', $proveedor->id_proveedor)); ?>" class="btn btn-info" title="Ver">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
                                     <a href="<?php echo e(route('proveedores.edit', $proveedor->id_proveedor)); ?>" class="btn btn-warning" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>

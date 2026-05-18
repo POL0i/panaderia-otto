@@ -196,9 +196,6 @@
                     </h5>
                 </div>
                 <div class="card-body text-center">
-                    <button class="btn btn-info quick-action-btn" data-toggle="modal" data-target="#createInsumoModal">
-                        <i class="fas fa-box-open"></i> Nuevo Insumo
-                    </button>
                     <button class="btn btn-primary quick-action-btn" data-toggle="modal" data-target="#createRecetaModal">
                         <i class="fas fa-book-medical"></i> Nueva Receta
                     </button>
@@ -377,9 +374,6 @@
                                     <td><?php echo e(Str::limit($receta->descripcion, 40) ?: '-'); ?></td>
                                     <td><?php echo e($receta->created_at->diffForHumans()); ?></td>
                                     <td>
-                                        <a href="<?php echo e(route('recetas.show', $receta)); ?>" class="btn btn-sm btn-info" title="Ver">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
                                         <a href="<?php echo e(route('produccion.recetas.detalles', $receta)); ?>" class="btn btn-sm btn-success" title="Agregar insumos">
                                             <i class="fas fa-plus-circle"></i>
                                         </a>
@@ -400,8 +394,6 @@
 
 
 
-<?php echo $__env->make('modulo-almacen.partials.modal-categoria-insumo', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-<?php echo $__env->make('modulo-almacen.partials.modal-insumo', ['categorias' => $categorias], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 <?php echo $__env->make('modulo-almacen.partials.modal-categoria-producto', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 

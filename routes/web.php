@@ -343,12 +343,6 @@ Route::middleware(['auth'])->group(function () {
         // =============================================
         // PANEL PRINCIPAL Y GESTIÓN BÁSICA
         // =============================================
-
-        Route::resource('producciones', ProduccionController::class)
-    ->except(['edit', 'update', 'destroy'])
-    ->parameters(['producciones' => 'produccion']);  // ← Agregar esta línea
-
-
         Route::get('/produccion', [ProduccionModuleController::class, 'index'])
             ->name('produccion.index')
             ->middleware('permiso:panel_produccion_ver');
@@ -365,7 +359,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/produccion/recetas', [ProduccionModuleController::class, 'storeReceta'])
             ->name('produccion.recetas.store');
 
-        // Detalles de receta (agregar/ver insumos)
+        // Detalles de receta
         Route::get('/produccion/recetas/{receta}/detalles', [ProduccionModuleController::class, 'detallesReceta'])
             ->name('produccion.recetas.detalles');
         Route::post('/produccion/recetas/{receta}/detalles', [ProduccionModuleController::class, 'storeDetallesReceta'])
@@ -387,32 +381,43 @@ Route::middleware(['auth'])->group(function () {
         // PRODUCCIONES
         // =============================================
 
-        // Cálculo de insumos (AJAX - debe ir ANTES del resource)
+        // Cálculo de insumos (AJAX)
         Route::post('producciones/calcular-insumos', [ProduccionController::class, 'calcularInsumos'])
             ->name('producciones.calcular-insumos');
 
+        // Rutas AJAX para verificación de stock y capacidad
+        Route::get('/almacen/{almacen}/insumos-stock/{produccion}', [ProduccionController::class, 'insumosStock'])
+            ->name('almacen.insumos.stock');
+        Route::get('/almacen/{almacen}/capacidad-disponible/{produccion}', [ProduccionController::class, 'capacidadDisponible'])
+            ->name('almacen.capacidad.disponible');
+
+        // Resource principal de producciones
         Route::resource('producciones', ProduccionController::class)
             ->except(['edit', 'update', 'destroy'])
             ->parameters(['producciones' => 'produccion']);
 
-            // 🔒 Solo Admin o permiso almacen_ver
+        /*
+        |--------------------------------------------------------------------------
+        | 🔒 ACCIONES RESTRINGIDAS
+        | Solo Admin O usuario con inventario_ver puede aprobar/rechazar/cancelar
+        |--------------------------------------------------------------------------
+        */
         Route::post('producciones/{produccion}/aprobar', [ProduccionController::class, 'aprobar'])
             ->name('producciones.aprobar')
-            ->middleware('admin_o_almacen');
+            ->middleware('puede_gestionar_produccion');
 
         Route::post('producciones/{produccion}/rechazar', [ProduccionController::class, 'rechazar'])
             ->name('producciones.rechazar')
-            ->middleware('admin_o_almacen');
+            ->middleware('puede_gestionar_produccion');
 
         Route::post('producciones/{produccion}/cancelar', [ProduccionController::class, 'cancelar'])
             ->name('producciones.cancelar')
-            ->middleware('admin_o_almacen');
-            
-        // Rutas AJAX para stock y capacidad
-        Route::get('/almacen/{almacen}/insumos-stock/{produccion}', [ProduccionController::class, 'insumosStock'])->name('almacen.insumos.stock');
-        Route::get('/almacen/{almacen}/capacidad-disponible/{produccion}', [ProduccionController::class, 'capacidadDisponible'])->name('almacen.capacidad.disponible');
+            ->middleware('puede_gestionar_produccion');
     });
 
+    // =============================================
+    // REPORTES (módulo separado)
+    // =============================================
     Route::middleware(['permiso:reportes_ver'])->group(function () {
         Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
         Route::get('/reportes/comercial', [ReporteController::class, 'comercial'])->name('reportes.comercial');

@@ -1,3 +1,4 @@
+{{-- resources/views/produccion/recetas/index.blade.php --}}
 @extends('layouts.adminlte')
 
 @section('title', 'Recetas')
@@ -33,7 +34,14 @@
         </div>
     @endif
 
-    {{-- Mensaje de éxito --}}
+    {{-- Mensajes --}}
+    @if(session('error'))
+        <div class="alert alert-warning alert-dismissible fade show animate-fade-in">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <i class="fas fa-exclamation-triangle"></i> {!! nl2br(e(session('error'))) !!}
+        </div>
+    @endif
+
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show animate-fade-in">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
@@ -43,8 +51,9 @@
 
     {{-- Tabla de recetas --}}
     <div class="card shadow-sm animate-fade-in-up">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="fas fa-list"></i> Listado de Recetas</h5>
+            <span class="badge badge-primary">{{ $recetas->total() }} recetas</span>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -53,9 +62,9 @@
                         <tr>
                             <th style="width: 70px">ID</th>
                             <th>Nombre</th>
-                            <th style="width: 150px" class="text-center">Cantidad Requerida</th>
+                            <th style="width: 150px" class="text-center">Rinde</th>
                             <th style="width: 100px" class="text-center">Insumos</th>
-                            <th>Descripción</th>
+                            <th>Producto</th>
                             <th style="width: 130px" class="text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -67,10 +76,13 @@
                                 </td>
                                 <td class="align-middle">
                                     <strong>{{ $receta->nombre }}</strong>
+                                    @if($receta->descripcion)
+                                        <br><small class="text-muted">{{ Str::limit($receta->descripcion, 40) }}</small>
+                                    @endif
                                 </td>
                                 <td class="text-center align-middle">
                                     <span class="badge badge-success badge-pill px-3 py-2">
-                                        {{ $receta->cantidad_requerida }} unidades
+                                        {{ $receta->cantidad_requerida }} unid.
                                     </span>
                                 </td>
                                 <td class="text-center align-middle">
@@ -79,36 +91,27 @@
                                     </span>
                                 </td>
                                 <td class="align-middle">
-                                    @if($receta->descripcion)
-                                        {{ Str::limit($receta->descripcion, 50) }}
-                                    @else
-                                        <span class="text-muted">—</span>
-                                    @endif
+                                    {{ $receta->producto->item->nombre ?? 'Sin producto' }}
                                 </td>
                                 <td class="text-center align-middle">
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('recetas.show', $receta) }}" 
+                                        <a href="{{ route('produccion.recetas.detalles', $receta) }}" 
                                            class="btn btn-info" 
-                                           title="Ver detalles">
-                                            <i class="fas fa-eye"></i>
+                                           title="Gestionar insumos">
+                                            <i class="fas fa-boxes"></i>
                                         </a>
                                         <a href="{{ route('recetas.edit', $receta) }}" 
                                            class="btn btn-warning" 
                                            title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <form action="{{ route('recetas.destroy', $receta) }}" 
-                                              method="POST" 
-                                              style="display:inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" 
-                                                    class="btn btn-danger" 
-                                                    onclick="return confirm('¿Está seguro de que desea eliminar esta receta?')" 
-                                                    title="Eliminar">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" 
+                                                class="btn btn-danger btn-delete-receta" 
+                                                data-id="{{ $receta->id_receta }}"
+                                                data-nombre="{{ $receta->nombre }}"
+                                                title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -131,4 +134,52 @@
         </div>
     </div>
 </div>
+
+{{-- Modal de confirmación para eliminar --}}
+<div class="modal fade" id="deleteRecetaModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro de que desea eliminar la receta <strong id="recetaNombre"></strong>?</p>
+                <p class="text-danger mb-0">
+                    <i class="fas fa-info-circle"></i> 
+                    Esta acción no se puede deshacer si la receta no tiene producciones asociadas.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <form id="deleteRecetaForm" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Eliminar Receta
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    // Manejar eliminación con modal
+    $('.btn-delete-receta').on('click', function() {
+        var id = $(this).data('id');
+        var nombre = $(this).data('nombre');
+        
+        $('#recetaNombre').text(nombre);
+        $('#deleteRecetaForm').attr('action', '/recetas/' + id);
+        $('#deleteRecetaModal').modal('show');
+    });
+});
+</script>
+@endpush

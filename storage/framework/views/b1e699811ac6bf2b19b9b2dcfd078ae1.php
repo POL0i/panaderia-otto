@@ -1,11 +1,8 @@
-{{-- resources/views/produccion/recetas/detalles.blade.php --}}
-@extends('layouts.adminlte')
+<?php $__env->startSection('title', 'Detalles de Receta: ' . $receta->nombre); ?>
+<?php $__env->startSection('page-title', 'Gestionar Insumos de Receta'); ?>
+<?php $__env->startSection('page-description', $receta->nombre); ?>
 
-@section('title', 'Detalles de Receta: ' . $receta->nombre)
-@section('page-title', 'Gestionar Insumos de Receta')
-@section('page-description', $receta->nombre)
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
     .insumo-selector {
         border: 1px solid #ddd;
@@ -54,46 +51,47 @@
         font-size: 12px;
     }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid">
     
     <div class="row mb-3">
         <div class="col-md-12">
-            <a href="{{ route('produccion.index') }}" class="btn btn-secondary">
+            <a href="<?php echo e(route('produccion.index')); ?>" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Volver al Panel
             </a>
             
             </a>
-            <a href="{{ route('detalles-receta.index') }}" class="btn btn-outline-secondary">
+            <a href="<?php echo e(route('detalles-receta.index')); ?>" class="btn btn-outline-secondary">
                 <i class="fas fa-list"></i> Todas las Recetas
             </a>
         </div>
     </div>
 
     <div class="row">
-        {{-- Información de la receta --}}
+        
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-utensils"></i> {{ $receta->nombre }}
+                        <i class="fas fa-utensils"></i> <?php echo e($receta->nombre); ?>
+
                     </h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>Descripción:</strong> {{ $receta->descripcion ?: 'Sin descripción' }}</p>
-                    <p><strong>Producto:</strong> {{ $receta->producto->item->nombre ?? 'No asignado' }}</p>
-                    <p><strong>Rinde:</strong> {{ $receta->cantidad_requerida }} unidad(es)</p>
+                    <p><strong>Descripción:</strong> <?php echo e($receta->descripcion ?: 'Sin descripción'); ?></p>
+                    <p><strong>Producto:</strong> <?php echo e($receta->producto->item->nombre ?? 'No asignado'); ?></p>
+                    <p><strong>Rinde:</strong> <?php echo e($receta->cantidad_requerida); ?> unidad(es)</p>
                     <p><strong>Total de insumos:</strong> 
-                        <span class="badge badge-info" id="totalInsumos">{{ $receta->detalles->count() }}</span>
+                        <span class="badge badge-info" id="totalInsumos"><?php echo e($receta->detalles->count()); ?></span>
                     </p>
-                    <p><strong>Creada:</strong> {{ $receta->created_at->format('d/m/Y H:i') }}</p>
+                    <p><strong>Creada:</strong> <?php echo e($receta->created_at->format('d/m/Y H:i')); ?></p>
                 </div>
             </div>
         </div>
 
-        {{-- Agregar nuevos insumos --}}
+        
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header bg-success text-white">
@@ -108,11 +106,11 @@
                                 <label><i class="fas fa-filter"></i> Filtrar por Categoría</label>
                                 <select id="filterCategoria" class="form-control">
                                     <option value="">Todas las categorías</option>
-                                    @foreach($categorias as $categoria)
-                                        <option value="categoria-{{ $categoria->id_cat_insumo }}">
-                                            {{ $categoria->nombre }} ({{ $categoria->insumos->count() }})
+                                    <?php $__currentLoopData = $categorias; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $categoria): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="categoria-<?php echo e($categoria->id_cat_insumo); ?>">
+                                            <?php echo e($categoria->nombre); ?> (<?php echo e($categoria->insumos->count()); ?>)
                                         </option>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
                         </div>
@@ -126,7 +124,7 @@
                     </div>
 
                     <form id="formAddInsumos">
-                        @csrf
+                        <?php echo csrf_field(); ?>
                         <div class="insumos-selector">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <h6>Selecciona los insumos a agregar</h6>
@@ -141,67 +139,67 @@
                             </div>
 
                             <div id="insumosContainer" style="max-height: 350px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
-                                @foreach($categorias as $categoria)
-                                    @if($categoria->insumos->count() > 0)
-                                        <div class="categoria-section mb-3" id="categoria-{{ $categoria->id_cat_insumo }}">
-                                            <div class="categoria-header" data-toggle="collapse" data-target="#collapse-{{ $categoria->id_cat_insumo }}">
+                                <?php $__currentLoopData = $categorias; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $categoria): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <?php if($categoria->insumos->count() > 0): ?>
+                                        <div class="categoria-section mb-3" id="categoria-<?php echo e($categoria->id_cat_insumo); ?>">
+                                            <div class="categoria-header" data-toggle="collapse" data-target="#collapse-<?php echo e($categoria->id_cat_insumo); ?>">
                                                 <i class="fas fa-chevron-down mr-2"></i>
-                                                <strong>{{ $categoria->nombre }}</strong>
-                                                <span class="badge badge-light ml-2">{{ $categoria->insumos->count() }}</span>
+                                                <strong><?php echo e($categoria->nombre); ?></strong>
+                                                <span class="badge badge-light ml-2"><?php echo e($categoria->insumos->count()); ?></span>
                                             </div>
-                                            <div class="collapse show" id="collapse-{{ $categoria->id_cat_insumo }}">
+                                            <div class="collapse show" id="collapse-<?php echo e($categoria->id_cat_insumo); ?>">
                                                 <div class="insumos-list p-2">
-                                                    @foreach($categoria->insumos as $insumo)
-                                                        @if(!in_array($insumo->id_insumo, $insumosEnReceta))
-                                                            @php
+                                                    <?php $__currentLoopData = $categoria->insumos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $insumo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <?php if(!in_array($insumo->id_insumo, $insumosEnReceta)): ?>
+                                                            <?php
                                                                 $nombreInsumo = $insumo->item->nombre ?? 'Insumo #' . $insumo->id_insumo;
                                                                 $unidadInsumo = $insumo->item->unidad_medida ?? 'unidad';
-                                                            @endphp
+                                                            ?>
                                                             <div class="insumo-item mb-2 p-2 border rounded" 
-                                                                 data-categoria="categoria-{{ $categoria->id_cat_insumo }}"
-                                                                 data-nombre="{{ strtolower($nombreInsumo) }}">
+                                                                 data-categoria="categoria-<?php echo e($categoria->id_cat_insumo); ?>"
+                                                                 data-nombre="<?php echo e(strtolower($nombreInsumo)); ?>">
                                                                 <div class="row align-items-center">
                                                                     <div class="col-md-5">
                                                                         <div class="custom-control custom-checkbox">
                                                                             <input type="checkbox" 
                                                                                    class="custom-control-input insumo-checkbox" 
-                                                                                   id="insumo_{{ $insumo->id_insumo }}"
-                                                                                   value="{{ $insumo->id_insumo }}">
-                                                                            <label class="custom-control-label" for="insumo_{{ $insumo->id_insumo }}">
-                                                                                <strong>{{ $nombreInsumo }}</strong>
+                                                                                   id="insumo_<?php echo e($insumo->id_insumo); ?>"
+                                                                                   value="<?php echo e($insumo->id_insumo); ?>">
+                                                                            <label class="custom-control-label" for="insumo_<?php echo e($insumo->id_insumo); ?>">
+                                                                                <strong><?php echo e($nombreInsumo); ?></strong>
                                                                             </label>
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-md-3">
                                                                         <input type="number" 
-                                                                               name="cantidad_{{ $insumo->id_insumo }}" 
+                                                                               name="cantidad_<?php echo e($insumo->id_insumo); ?>" 
                                                                                class="form-control form-control-sm cantidad-insumo"
                                                                                placeholder="Cantidad"
                                                                                step="0.001" min="0.001"
                                                                                disabled>
                                                                     </div>
                                                                     <div class="col-md-3">
-                                                                        <select name="unidad_{{ $insumo->id_insumo }}" 
+                                                                        <select name="unidad_<?php echo e($insumo->id_insumo); ?>" 
                                                                                 class="form-control form-control-sm unidad-insumo"
                                                                                 disabled>
-                                                                            <option value="kg" {{ $unidadInsumo == 'kg' ? 'selected' : '' }}>kg</option>
-                                                                            <option value="g" {{ $unidadInsumo == 'g' ? 'selected' : '' }}>g</option>
-                                                                            <option value="lb" {{ $unidadInsumo == 'lb' ? 'selected' : '' }}>lb</option>
-                                                                            <option value="oz" {{ $unidadInsumo == 'oz' ? 'selected' : '' }}>oz</option>
-                                                                            <option value="L" {{ $unidadInsumo == 'L' ? 'selected' : '' }}>L</option>
-                                                                            <option value="mL" {{ $unidadInsumo == 'mL' ? 'selected' : '' }}>mL</option>
-                                                                            <option value="unidad" {{ $unidadInsumo == 'unidad' ? 'selected' : '' }}>unidad</option>
+                                                                            <option value="kg" <?php echo e($unidadInsumo == 'kg' ? 'selected' : ''); ?>>kg</option>
+                                                                            <option value="g" <?php echo e($unidadInsumo == 'g' ? 'selected' : ''); ?>>g</option>
+                                                                            <option value="lb" <?php echo e($unidadInsumo == 'lb' ? 'selected' : ''); ?>>lb</option>
+                                                                            <option value="oz" <?php echo e($unidadInsumo == 'oz' ? 'selected' : ''); ?>>oz</option>
+                                                                            <option value="L" <?php echo e($unidadInsumo == 'L' ? 'selected' : ''); ?>>L</option>
+                                                                            <option value="mL" <?php echo e($unidadInsumo == 'mL' ? 'selected' : ''); ?>>mL</option>
+                                                                            <option value="unidad" <?php echo e($unidadInsumo == 'unidad' ? 'selected' : ''); ?>>unidad</option>
                                                                         </select>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        @endif
-                                                    @endforeach
+                                                        <?php endif; ?>
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                 </div>
                                             </div>
                                         </div>
-                                    @endif
-                                @endforeach
+                                    <?php endif; ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </div>
                         </div>
 
@@ -217,7 +215,7 @@
         </div>
     </div>
 
-    {{-- Insumos actuales de la receta --}}
+    
     <div class="row mt-4">
         <div class="col-12">
             <div class="card">
@@ -228,45 +226,45 @@
                 </div>
                 <div class="card-body">
                     <div id="detallesContainer">
-                        @forelse($receta->detalles as $detalle)
-                            @php
+                        <?php $__empty_1 = true; $__currentLoopData = $receta->detalles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $detalle): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                            <?php
                                 $nombreInsumoDetalle = $detalle->insumo->item->nombre ?? $detalle->insumo->nombre ?? 'N/A';
                                 $categoriaDetalle = $detalle->insumo->categoria->nombre ?? 'Sin categoría';
                                 $unidadDetalle = $detalle->unidad_medida ?? $detalle->insumo->item->unidad_medida ?? 'unidad';
-                            @endphp
-                            <div class="detalle-card" id="detalle-{{ $detalle->id_detalle_receta }}">
+                            ?>
+                            <div class="detalle-card" id="detalle-<?php echo e($detalle->id_detalle_receta); ?>">
                                 <div class="row align-items-center">
                                     <div class="col-md-4">
-                                        <strong>{{ $nombreInsumoDetalle }}</strong>
+                                        <strong><?php echo e($nombreInsumoDetalle); ?></strong>
                                         <br>
-                                        <small class="text-muted">{{ $categoriaDetalle }}</small>
+                                        <small class="text-muted"><?php echo e($categoriaDetalle); ?></small>
                                     </div>
                                     <div class="col-md-3">
-                                        <span class="cantidad-valor">{{ $detalle->cantidad_requerida }}</span>
-                                        <span class="badge-unidad">{{ $unidadDetalle }}</span>
+                                        <span class="cantidad-valor"><?php echo e($detalle->cantidad_requerida); ?></span>
+                                        <span class="badge-unidad"><?php echo e($unidadDetalle); ?></span>
                                     </div>
                                     <div class="col-md-3">
                                         <button class="btn btn-sm btn-warning btn-edit-detalle" 
-                                                data-id="{{ $detalle->id_detalle_receta }}"
-                                                data-cantidad="{{ $detalle->cantidad_requerida }}"
-                                                data-unidad="{{ $unidadDetalle }}">
+                                                data-id="<?php echo e($detalle->id_detalle_receta); ?>"
+                                                data-cantidad="<?php echo e($detalle->cantidad_requerida); ?>"
+                                                data-unidad="<?php echo e($unidadDetalle); ?>">
                                             <i class="fas fa-edit"></i> Editar
                                         </button>
                                     </div>
                                     <div class="col-md-2 text-right">
                                         <button class="btn btn-sm btn-danger btn-delete-detalle" 
-                                                data-id="{{ $detalle->id_detalle_receta }}">
+                                                data-id="<?php echo e($detalle->id_detalle_receta); ?>">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </div>
                             </div>
-                        @empty
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <div class="text-center text-muted py-4" id="noInsumosMsg">
                                 <i class="fas fa-box-open fa-3x mb-3"></i>
                                 <p>No hay insumos agregados a esta receta.</p>
                             </div>
-                        @endforelse
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -274,7 +272,7 @@
     </div>
 </div>
 
-{{-- Modal Editar Detalle --}}
+
 <div class="modal fade" id="editDetalleModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -283,8 +281,8 @@
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
             <form id="formEditDetalle">
-                @csrf
-                @method('PUT')
+                <?php echo csrf_field(); ?>
+                <?php echo method_field('PUT'); ?>
                 <input type="hidden" name="detalle_id" id="editDetalleId">
                 <div class="modal-body">
                     <div class="row">
@@ -320,7 +318,7 @@
     </div>
 </div>
 
-{{-- Modal de confirmación para eliminar insumo --}}
+
 <div class="modal fade" id="confirmDeleteInsumoModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -347,12 +345,12 @@
     </div>
 </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
-    const recetaId = {{ $receta->id_receta }};
+    const recetaId = <?php echo e($receta->id_receta); ?>;
 
     // Habilitar/deshabilitar campos de cantidad
     $(document).on('change', '.insumo-checkbox', function() {
@@ -429,10 +427,10 @@ $(document).ready(function() {
         }
         
         $.ajax({
-            url: '{{ route("produccion.recetas.detalles.store", $receta) }}',
+            url: '<?php echo e(route("produccion.recetas.detalles.store", $receta)); ?>',
             method: 'POST',
             data: {
-                _token: '{{ csrf_token() }}',
+                _token: '<?php echo e(csrf_token()); ?>',
                 insumos: insumos
             },
             success: function(response) {
@@ -460,10 +458,10 @@ $(document).ready(function() {
         var detalleId = $('#editDetalleId').val();
         
         $.ajax({
-            url: '{{ url("/produccion/detalles-receta") }}/' + detalleId,
+            url: '<?php echo e(url("/produccion/detalles-receta")); ?>/' + detalleId,
             method: 'POST',
             data: {
-                _token: '{{ csrf_token() }}',
+                _token: '<?php echo e(csrf_token()); ?>',
                 _method: 'PUT',
                 cantidad: $('#editCantidad').val(),
                 unidad: $('#editUnidad').val()
@@ -499,10 +497,10 @@ $(document).ready(function() {
         $('#confirmDeleteInsumoModal').modal('hide');
         
         $.ajax({
-            url: '{{ url("/produccion/detalles-receta") }}/' + detalleToDelete.id,
+            url: '<?php echo e(url("/produccion/detalles-receta")); ?>/' + detalleToDelete.id,
             method: 'POST',
             data: {
-                _token: '{{ csrf_token() }}',
+                _token: '<?php echo e(csrf_token()); ?>',
                 _method: 'DELETE'
             },
             success: function(response) {
@@ -541,4 +539,5 @@ $(document).ready(function() {
     });
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.adminlte', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /opt/lampp/htdocs/panaderia-otto/resources/views/produccion/recetas/detalles.blade.php ENDPATH**/ ?>

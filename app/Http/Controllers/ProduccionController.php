@@ -418,21 +418,35 @@ class ProduccionController extends Controller
      */
     public function insumosStock(Almacen $almacen, Produccion $produccion)
     {
-        // Solo tomamos los movimientos de tipo 'egreso' (insumos)
+        \Log::info('🔍 insumosStock llamado', [
+            'almacen_id' => $almacen->id_almacen,
+            'produccion_id' => $produccion->id_produccion
+        ]);
+
         $detallesEgreso = $produccion->detalles()
                             ->where('tipo_movimiento', 'egreso')
                             ->with('item')
                             ->get();
 
+        if ($detallesEgreso->isEmpty()) {
+            \Log::warning('No hay detalles de egreso para producción #' . $produccion->id_produccion);
+            return response()->json(['insumos' => []]);
+        }
+
         $resultado = [];
 
         foreach ($detallesEgreso as $detalle) {
+            // Verifica el nombre real del campo stock
             $stock = AlmacenItem::where('id_almacen', $almacen->id_almacen)
                         ->where('id_item', $detalle->id_item)
-                        ->value('stock') ?? 0;
+                        ->value('stock') ?? 0; // ← Cambia 'stock' por 'cantidad_disponible' si es necesario
+
+            $itemNombre = $detalle->item->nombre ?? 'Item #' . $detalle->id_item;
+
+            \Log::info("📦 $itemNombre: stock=$stock, requerido=$detalle->cantidad");
 
             $resultado[] = [
-                'nombre'      => $detalle->item->nombre ?? 'Item #' . $detalle->id_item,
+                'nombre'      => $itemNombre,
                 'requerido'   => $detalle->cantidad,
                 'stock'       => $stock,
                 'suficiente'  => $stock >= $detalle->cantidad

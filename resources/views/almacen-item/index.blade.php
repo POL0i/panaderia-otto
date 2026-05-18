@@ -198,11 +198,6 @@
             <h3 class="card-title">
                 <i class="fas fa-warehouse mr-2"></i> Stock por Almacén
             </h3>
-            <div class="card-tools">
-                <a href="{{ route('almacen-items.create') }}" class="btn btn-success btn-sm">
-                    <i class="fas fa-plus mr-1"></i> Agregar Stock
-                </a>
-            </div>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -238,10 +233,6 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('almacen-items.edit', [$ai->id_almacen, $ai->id_item]) }}" 
-                                       class="btn btn-outline-primary" title="Editar stock">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
                                     <form action="{{ route('almacen-items.destroy', [$ai->id_almacen, $ai->id_item]) }}" 
                                           method="POST" class="d-inline"
                                           onsubmit="return confirm('¿Eliminar este stock?');">

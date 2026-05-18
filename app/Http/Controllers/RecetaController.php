@@ -82,7 +82,7 @@ class RecetaController extends Controller
     {
         $receta->load(['detalles.insumo.categoria']);
         $categorias = CategoriaInsumo::orderBy('nombre')->get();
-        $insumos = Insumo::with('categoria')->orderBy('nombre')->get();
+        $insumos = Insumo::with('categoria')->orderBy('id_insumo')->get();  
         
         return view('produccion.recetas.show', compact('receta', 'categorias', 'insumos'));
     }
@@ -91,7 +91,7 @@ class RecetaController extends Controller
     {
         $receta->load(['detalles.insumo.categoria']);
         $categorias = CategoriaInsumo::orderBy('nombre')->get();
-        $insumos = Insumo::with('categoria')->orderBy('nombre')->get();
+        $insumos = Insumo::with('categoria')->orderBy('id_insumo')->get();
         
         return view('produccion.recetas.edit', compact('receta', 'categorias', 'insumos'));
     }
@@ -111,20 +111,38 @@ class RecetaController extends Controller
 
     public function destroy(Receta $receta)
     {
-        if ($receta->producciones()->count() > 0) {
-            return back()->with('error', 'No se puede eliminar una receta con producciones asociadas');
+        // Verificar si hay producciones que usen esta receta
+        $produccionesCount = $receta->producciones_count;
+        
+        if ($produccionesCount > 0) {
+            // Obtener información de las producciones
+            $produccionesIds = \App\Models\DetalleProduccion::whereIn('id_detalle_receta', 
+                $receta->detalles()->pluck('id_detalle_receta')
+            )->distinct('id_produccion')->pluck('id_produccion');
+            
+            return back()->with('error', 
+                "No se puede eliminar la receta '{$receta->nombre}' porque está asociada a {$produccionesCount} producción(es): #" . 
+                $produccionesIds->join(', #') . 
+                ". Elimine o modifique las producciones primero."
+            );
         }
 
         DB::beginTransaction();
         try {
+            // Eliminar todos los detalles de la receta
             $receta->detalles()->delete();
+            
+            // Eliminar la receta
             $receta->delete();
+            
             DB::commit();
             
             return redirect()->route('recetas.index')
-                ->with('success', 'Receta eliminada correctamente');
+                ->with('success', "Receta '{$receta->nombre}' eliminada correctamente");
+                
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Error al eliminar receta: ' . $e->getMessage());
             return back()->with('error', 'Error al eliminar receta: ' . $e->getMessage());
         }
     }
