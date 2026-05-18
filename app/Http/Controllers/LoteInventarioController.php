@@ -5,20 +5,76 @@ namespace App\Http\Controllers;
 use App\Models\LoteInventario;
 use App\Models\Almacen;
 use App\Models\Item;
+use App\Models\ConfiguracionInventario;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LoteInventarioController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-public function index()
-{
-    $lotes = LoteInventario::orderBy('fecha_entrada', 'desc')
-        ->paginate(15);
+    public function index(Request $request)
+    {
+        $config = ConfiguracionInventario::obtener();
+        $metodo = $config->metodo_valuacion_predeterminado ?? 'PEPS';
 
-    return view('inventario.lotes.index', compact('lotes'));
-}
+        $query = LoteInventario::query();
+
+        // Búsqueda por nombre de item
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('item', function($q) use ($search) {
+                $q->where('nombre', 'like', "%{$search}%");
+            });
+        }
+
+        // Filtro por almacén
+        if ($request->filled('almacen')) {
+            $query->where('id_almacen', $request->almacen);
+        }
+
+        // Filtro por estado
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+
+        // Filtro por vencimiento
+        if ($request->filled('vencimiento')) {
+            $hoy = now()->startOfDay();
+            switch ($request->vencimiento) {
+                case 'vencido':
+                    $query->where('fecha_vencimiento', '<', $hoy)
+                        ->where('estado', 'disponible');
+                    break;
+                case 'proximo':
+                    $query->whereBetween('fecha_vencimiento', [$hoy, $hoy->copy()->addDays(7)])
+                        ->where('estado', 'disponible');
+                    break;
+                case 'vigente':
+                    $query->where('fecha_vencimiento', '>', $hoy->copy()->addDays(7))
+                        ->where('estado', 'disponible');
+                    break;
+                case 'sin_vencimiento':
+                    $query->whereNull('fecha_vencimiento');
+                    break;
+            }
+        }
+
+        // Ordenamiento
+        $sort = $request->get('sort', 'fecha_entrada');
+        $order = $request->get('order', 'desc');
+        $allowedSorts = ['id', 'fecha_entrada', 'fecha_vencimiento', 'cantidad_disponible'];
+        if (in_array($sort, $allowedSorts)) {
+            $query->orderBy($sort, $order);
+        } else {
+            $query->orderBy('fecha_entrada', 'desc');
+        }
+
+$lotes = $query->paginate(15)->appends($request->query());
+
+        return view('inventario.lotes.index', compact('lotes', 'metodo'));
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -116,7 +172,7 @@ public function show(LoteInventario $lote)
     /**
      * Filtrar lotes por almacén, item o método de valuación
      */
-  public function filtrar(Request $request)
+    public function filtrar(Request $request)
 {
     $query = LoteInventario::query();
 

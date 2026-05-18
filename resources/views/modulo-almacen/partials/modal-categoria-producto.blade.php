@@ -2,15 +2,15 @@
 <div class="modal fade" id="createCategoriaProductoModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-info">
-                <h5 class="modal-title"><i class="fas fa-tags"></i> Nueva Categoría de Producto</h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <div class="modal-header modal-header-info">
+                <h5 class="modal-title"><i class="fas fa-tags mr-2"></i> Nueva Categoría de Producto</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
             </div>
             <form id="formCreateCategoriaProducto" action="{{ route('modulo-almacen.categorias-producto.store') }}" method="POST">
                 @csrf
                 <div class="modal-body">
                     <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> 
+                        <i class="fas fa-info-circle mr-1"></i> 
                         <strong>Instrucciones:</strong> Agrupa tus productos en categorías para organizarlos mejor.
                     </div>
                     
@@ -30,10 +30,10 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancelar
+                        <i class="fas fa-times mr-1"></i> Cancelar
                     </button>
                     <button type="submit" class="btn btn-info">
-                        <i class="fas fa-save"></i> Crear Categoría
+                        <i class="fas fa-save mr-1"></i> Crear Categoría
                     </button>
                 </div>
             </form>

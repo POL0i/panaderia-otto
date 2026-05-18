@@ -2,15 +2,15 @@
 <div class="modal fade" id="createAlmacenModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-success">
-                <h5 class="modal-title"><i class="fas fa-warehouse"></i> Nuevo Almacén</h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <div class="modal-header modal-header-success">
+                <h5 class="modal-title"><i class="fas fa-warehouse mr-2"></i> Nuevo Almacén</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
             </div>
             <form id="formCreateAlmacen" action="{{ route('modulo-almacen.almacenes.store') }}" method="POST">
                 @csrf
                 <div class="modal-body">
                     <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> 
+                        <i class="fas fa-info-circle mr-1"></i> 
                         <strong>Instrucciones:</strong> Crea un nuevo almacén para organizar tu inventario.
                     </div>
                     
@@ -29,7 +29,7 @@
                             <option value="producto">📦 Solo Productos</option>
                         </select>
                         <small class="text-muted">
-                            <i class="fas fa-info-circle"></i> Define qué tipo de items podrás almacenar aquí.
+                            <i class="fas fa-info-circle mr-1"></i> Define qué tipo de items podrás almacenar aquí.
                         </small>
                     </div>
                     
@@ -49,10 +49,10 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancelar
+                        <i class="fas fa-times mr-1"></i> Cancelar
                     </button>
                     <button type="submit" class="btn btn-success">
-                        <i class="fas fa-save"></i> Crear Almacén
+                        <i class="fas fa-save mr-1"></i> Crear Almacén
                     </button>
                 </div>
             </form>

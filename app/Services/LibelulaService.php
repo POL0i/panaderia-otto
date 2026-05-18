@@ -22,12 +22,12 @@ class LibelulaService
 
     public function registrarPago(NotaVenta $notaVenta)
     {
-        // ✅ Generar identificador ÚNICO cada vez
-        $identificadorUnico = 'OTTO-' . $notaVenta->id_nota_venta . '-' . time();
+        // 1. Cargar relaciones una sola vez
+        $notaVenta->load('detalles.item', 'cliente');
 
-        // 1. Verificar si ya existe transacción en BD con URL válida
+        // 2. Verificar si ya existe transacción en BD con URL válida
         $transaccionExistente = TransaccionLibelula::where('nota_venta_id', $notaVenta->id_nota_venta)
-            ->whereNotNull('url_pasarela')
+            ->whereNotNull('id_transaccion_libelula')
             ->latest()
             ->first();
 
@@ -42,36 +42,29 @@ class LibelulaService
             ];
         }
 
-        // 2. Preparar items con el nombre REAL del producto
+        // 3. Preparar items (sin cargar relaciones nuevamente)
         $items = [];
-        // Cargar relaciones necesarias
-$notaVenta->load('detalles.item');
+        foreach ($notaVenta->detalles as $detalle) {
+            $nombreProducto = $detalle->item->nombre ?? 'Producto';
 
-$items = [];
-foreach ($notaVenta->detalles as $detalle) {
-    // Obtener nombre del item directamente
-    $nombreProducto = $detalle->item->nombre ?? 'Producto';
+            if (empty($nombreProducto) || $nombreProducto == 'Producto') {
+                $producto = \App\Models\Producto::where('id_item', $detalle->id_item)->first();
+                if ($producto) {
+                    $nombreProducto = $producto->nombre;
+                }
+            }
 
-    // Si no tiene item, buscar en productos por id_item
-    if (empty($nombreProducto) || $nombreProducto == 'Producto') {
-        $producto = \App\Models\Producto::where('id_item', $detalle->id_item)->first();
-        if ($producto) {
-            $nombreProducto = $producto->nombre;
+            if (empty($nombreProducto)) {
+                $nombreProducto = 'Producto Panadería Otto';
+            }
+
+            $items[] = [
+                "concepto" => $nombreProducto,
+                "cantidad" => (int) $detalle->cantidad,
+                "costo_unitario" => (float) $detalle->precio,
+                "descuento_unitario" => 0
+            ];
         }
-    }
-
-    // NUNCA enviar null o vacío
-    if (empty($nombreProducto)) {
-        $nombreProducto = 'Producto Panadería Otto';
-    }
-
-    $items[] = [
-        "concepto" => $nombreProducto,
-        "cantidad" => (int) $detalle->cantidad,
-        "costo_unitario" => (float) $detalle->precio,
-        "descuento_unitario" => 0
-    ];
-}
 
         if (empty($items)) {
             $items[] = [
@@ -82,7 +75,8 @@ foreach ($notaVenta->detalles as $detalle) {
             ];
         }
 
-        // 3. Datos del cliente
+        // 4. Datos del cliente
+        $identificadorUnico = 'OTTO-' . $notaVenta->id_nota_venta . '-' . uniqid();
         $nombreCliente = $notaVenta->cliente->nombre ?? 'Cliente';
         $apellidoCliente = $notaVenta->cliente->apellido ?? '';
         $emailCliente = 'cliente@panaderiaotto.com';
@@ -91,7 +85,7 @@ foreach ($notaVenta->detalles as $detalle) {
             $emailCliente = $notaVenta->cliente->usuarios()->first()->correo ?? $emailCliente;
         }
 
-        // 4. Payload con identificador ÚNICO
+        // 5. Payload
         $payload = [
             "appkey" => $this->appkey,
             "email_cliente" => $emailCliente,
@@ -106,13 +100,14 @@ foreach ($notaVenta->detalles as $detalle) {
             "lineas_detalle_deuda" => $items
         ];
 
+        Log::info('Payload completo a Libélula', $payload);
         Log::info('Enviando a Libélula:', [
             'identificador' => $identificadorUnico,
             'nota_id' => $notaVenta->id_nota_venta,
             'productos' => array_column($items, 'concepto')
         ]);
 
-        // 5. Llamada a la API
+        // 6. Llamada a la API
         try {
             $response = Http::timeout(30)->post("{$this->baseUrl}/deuda/registrar", $payload);
             $data = $response->json();
@@ -124,22 +119,20 @@ foreach ($notaVenta->detalles as $detalle) {
                 'tiene_url' => isset($data['url_pasarela_pagos']) ? 'SI' : 'NO'
             ]);
 
-            // 6. Si hay URL de pago, GUARDAR Y RETORNAR ÉXITO
             $urlPasarela = $data['url_pasarela_pagos'] ?? null;
 
             if ($urlPasarela) {
-                //  Usar updateOrCreate para no duplicar
-               $transaccion = TransaccionLibelula::create([
-    'nota_venta_id' => $notaVenta->id_nota_venta,
-    'identificador' => $identificadorUnico,
-    'id_transaccion_libelula' => $data['id_transaccion'] ?? null,
-    'codigo_recaudacion' => $data['codigo_recaudacion'] ?? null,
-    'monto' => $notaVenta->monto_total,
-    'qr_url' => $data['qr_simple_url'] ?? null,
-    'url_pasarela' => $urlPasarela,
-    'respuesta_api' => $data,
-    'estado' => 'pendiente'
-]);
+                $transaccion = TransaccionLibelula::create([
+                    'nota_venta_id' => $notaVenta->id_nota_venta,
+                    'identificador' => $identificadorUnico,
+                    'id_transaccion_libelula' => $data['id_transaccion'] ?? null,
+                    'codigo_recaudacion' => $data['codigo_recaudacion'] ?? null,
+                    'monto' => $notaVenta->monto_total,
+                    'qr_url' => $data['qr_simple_url'] ?? null,
+                    'url_pasarela' => $urlPasarela,
+                    'respuesta_api' => $data,
+                    'estado' => 'pendiente'
+                ]);
 
                 Log::info('Transacción guardada/actualizada', [
                     'id' => $transaccion->id,
@@ -157,7 +150,6 @@ foreach ($notaVenta->detalles as $detalle) {
                 ];
             }
 
-            // 7. Si no hay URL, error real
             Log::error('Libélula no devolvió URL de pago', ['respuesta' => $data]);
             return [
                 'success' => false,
@@ -172,7 +164,7 @@ foreach ($notaVenta->detalles as $detalle) {
             ];
         }
     }
-
+    
     public function consultarPago($identificador)
     {
         $payload = [

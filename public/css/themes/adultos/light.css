@@ -1,0 +1,110 @@
+/* public/css/themes/adultos/light.css */
+[data-theme="adultos"][data-mode="light"] {
+    /* Paleta adulta: elegante, sobria, profesional */
+    --color-primary: #2C3E50;
+    --color-primary-dark: #1A252F;
+    --color-primary-medium: #34495E;
+    --color-primary-light: #4A6A8A;
+    --color-secondary: #7F8C8D;
+    --color-accent: #C19A6B;
+    --color-bg-light: #F8F9FA;
+    --color-bg-lighter: #F0F2F5;
+    --color-bg-lightest: #FFFFFF;
+    --color-focus-ring: rgba(52, 73, 94, 0.25);
+    --color-border: #C19A6B;
+    
+    /* Sidebar - sobrio y elegante */
+    --bg-sidebar: linear-gradient(180deg, #2C3E50 0%, #1A252F 100%);
+    --bg-sidebar-brand: linear-gradient(135deg, #34495E 0%, #2C3E50 100%);
+    --sidebar-text: rgba(255, 255, 255, 0.8);
+    --sidebar-icon: #C19A6B;
+    --sidebar-active-bg: linear-gradient(90deg, #34495E 0%, #2C3E50 100%);
+    --sidebar-active-border: #C19A6B;
+    --sidebar-hover-bg: rgba(193, 154, 107, 0.15);
+    --sidebar-treeview-text: rgba(255, 255, 255, 0.7);
+    --sidebar-treeview-active-bg: rgba(193, 154, 107, 0.15);
+    --sidebar-treeview-active-text: #C19A6B;
+    --sidebar-treeview-active-border: #C19A6B;
+    --sidebar-treeview-hover-bg: rgba(193, 154, 107, 0.08);
+    
+    /* Sidebar footer */
+    --sidebar-footer-bg: rgba(0, 0, 0, 0.25);
+    --sidebar-footer-border: rgba(193, 154, 107, 0.3);
+    --sidebar-footer-text: rgba(255, 255, 255, 0.7);
+    --sidebar-footer-link: #C19A6B;
+    --sidebar-footer-link-hover: #D4B896;
+    
+    /* User panel */
+    --user-panel-border: rgba(193, 154, 107, 0.3);
+    --user-panel-icon: #C19A6B;
+    --user-panel-text: white;
+    --user-panel-text-hover: #C19A6B;
+    --user-role-badge-bg: rgba(193, 154, 107, 0.2);
+    --user-role-badge-text: #C19A6B;
+    --user-status-color: #27AE60;
+    
+    /* Navbar - limpio y profesional */
+    --navbar-bg: white;
+    --navbar-border: #C19A6B;
+    --navbar-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    --navbar-link: #2C3E50;
+    --navbar-link-hover: #34495E;
+    
+    /* Dropdown */
+    --dropdown-bg: white;
+    --dropdown-border: #2C3E50;
+    --dropdown-item-text: #2C3E50;
+    --dropdown-item-hover-bg: #F0F2F5;
+    --dropdown-item-hover-text: #34495E;
+    
+    /* Content */
+    --content-header-text: #2C3E50;
+    --breadcrumb-link: #34495E;
+    --breadcrumb-active: #2C3E50;
+    
+    /* Footer */
+    --footer-bg: #F0F2F5;
+    --footer-text: #2C3E50;
+    --footer-border: #C19A6B;
+    
+    /* Scrollbar */
+    --scrollbar-track: #1A252F;
+    --scrollbar-thumb: #C19A6B;
+    --scrollbar-thumb-hover: #D4B896;
+    
+    /* Acceso */
+    --acceso-bg: rgba(39, 174, 96, 0.1);
+    --acceso-border: #27AE60;
+    --acceso-hover-bg: rgba(39, 174, 96, 0.2);
+    
+    /* Módulo destacado */
+    --modulo-destacado-bg: linear-gradient(90deg, rgba(44, 62, 80, 0.05) 0%, rgba(52, 73, 94, 0.05) 100%);
+    --modulo-destacado-border: #2C3E50;
+    --modulo-destacado-icon: #2C3E50;
+    --modulo-destacado-hover-bg: linear-gradient(90deg, rgba(44, 62, 80, 0.1) 0%, rgba(52, 73, 94, 0.1) 100%);
+    --modulo-destacado-active-bg: linear-gradient(90deg, #2C3E50 0%, #34495E 100%);
+    --modulo-destacado-active-text: white;
+    
+    /* Texto sobre fondos oscuros */
+    --text-on-primary: white;
+    
+    /* Badges */
+    --badge-success: #27AE60;
+    --badge-warning: #F39C12;
+    --badge-danger: #E74C3C;
+    --badge-info: #34495E;
+    
+    /* Bordes más cuadrados para adultos */
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+
+    --bg-input: #fff;
+    --bg-card: #fff;
+
+    --color-accent-light: #a08060;
+
+    --badge-warning-rgb: 243, 156, 18;
+    --badge-danger-rgb: 231, 76, 60;
+
+}

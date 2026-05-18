@@ -560,8 +560,33 @@ unset($__errorArgs, $__bag); ?>
                         
                         <div class="mb-3">
                             <label>Contraseña <span class="text-danger">*</span></label>
-                            <input type="password" name="contraseña" class="form-control" minlength="8" required>
-                            <small class="text-muted">Mínimo 8 caracteres</small>
+                            <div class="input-group">
+                                <input type="password" name="contraseña" id="registroPassword" class="form-control" required>
+                                <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="mt-2">
+                                
+                                <small class="text-muted">La contraseña debe cumplir:</small>
+                                <ul class="list-unstyled mt-1 mb-0" style="font-size: 0.85rem;">
+                                    <li id="req-length" class="text-danger">
+                                        <i class="fas fa-times-circle"></i> Mínimo 8 caracteres
+                                    </li>
+                                    <li id="req-uppercase" class="text-danger">
+                                        <i class="fas fa-times-circle"></i> Al menos 1 mayúscula
+                                    </li>
+                                    <li id="req-lowercase" class="text-danger">
+                                        <i class="fas fa-times-circle"></i> Al menos 1 minúscula
+                                    </li>
+                                    <li id="req-number" class="text-danger">
+                                        <i class="fas fa-times-circle"></i> Al menos 2 números
+                                    </li>
+                                    <li id="req-special" class="text-danger">
+                                        <i class="fas fa-times-circle"></i> Al menos 1 carácter especial (!@#$%^&*)
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                         
                         <div class="mb-3">
@@ -621,26 +646,95 @@ unset($__errorArgs, $__bag); ?>
     <?php echo $__env->yieldPushContent('scripts'); ?>
     <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Modal de registro
     const btnRegistro = document.getElementById('btnRegistroRapido');
-    const modal = new bootstrap.Modal(document.getElementById('registroRapidoModal'));
+    const registroModal = new bootstrap.Modal(document.getElementById('registroRapidoModal'));
     
     if (btnRegistro) {
         btnRegistro.addEventListener('click', function() {
-            modal.show();
+            registroModal.show();
         });
     }
     
-    // Validar confirmación de contraseña
+    // Toggle mostrar/ocultar contraseña
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('registroPassword');
+    
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+    }
+    
+    // Validación en tiempo real de la contraseña
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            
+            // Verificar requisitos
+            const hasLength = password.length >= 8;
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasLowercase = /[a-z]/.test(password);
+            const hasNumbers = (password.match(/\d/g) || []).length >= 2;
+            const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+            
+            // Actualizar indicadores visuales
+            updateRequirement('req-length', hasLength);
+            updateRequirement('req-uppercase', hasUppercase);
+            updateRequirement('req-lowercase', hasLowercase);
+            updateRequirement('req-number', hasNumbers);
+            updateRequirement('req-special', hasSpecial);
+        });
+    }
+    
+    function updateRequirement(elementId, isValid) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        if (isValid) {
+            element.className = 'text-success';
+            element.querySelector('i').className = 'fas fa-check-circle';
+        } else {
+            element.className = 'text-danger';
+            element.querySelector('i').className = 'fas fa-times-circle';
+        }
+    }
+    
+    // Validación final al enviar
     const form = document.getElementById('formRegistroRapido');
     if (form) {
         form.addEventListener('submit', function(e) {
-            const password = form.querySelector('[name="contraseña"]');
-            const confirm = form.querySelector('[name="contraseña_confirmation"]');
+            const password = passwordInput.value;
+            const confirm = form.querySelector('[name="contraseña_confirmation"]').value;
+            let errors = [];
             
-            if (password.value !== confirm.value) {
+            // Validar requisitos de contraseña
+            if (password.length < 8) {
+                errors.push('La contraseña debe tener al menos 8 caracteres');
+            }
+            if (!/[A-Z]/.test(password)) {
+                errors.push('La contraseña debe tener al menos 1 mayúscula');
+            }
+            if (!/[a-z]/.test(password)) {
+                errors.push('La contraseña debe tener al menos 1 minúscula');
+            }
+            if ((password.match(/\d/g) || []).length < 2) {
+                errors.push('La contraseña debe tener al menos 2 números');
+            }
+            if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+                errors.push('La contraseña debe tener al menos 1 carácter especial');
+            }
+            if (password !== confirm) {
+                errors.push('Las contraseñas no coinciden');
+            }
+            
+            if (errors.length > 0) {
                 e.preventDefault();
-                alert('Las contraseñas no coinciden');
-                confirm.focus();
+                alert(errors.join('\n'));
+                return false;
             }
         });
     }

@@ -6,6 +6,8 @@ use App\Models\NotaVenta;
 use App\Models\Cliente;
 use App\Models\Empleado;
 use App\Models\DetalleVenta;
+use App\Models\Producto;
+use App\Models\Almacen;
 use Illuminate\Http\Request;
 
 class NotaVentaController extends Controller
@@ -19,7 +21,7 @@ class NotaVentaController extends Controller
             ->orderBy('fecha_venta', 'desc')
             ->paginate(15);
         
-        return view('notaventa.index', compact('notasVenta'));
+        return view('notas-venta.index', compact('notasVenta'));
     }
 
     /**
@@ -30,7 +32,7 @@ class NotaVentaController extends Controller
         $clientes = Cliente::all();
         $empleados = Empleado::all();
         
-        return view('notaventa.create', compact('clientes', 'empleados'));
+        return view('notas-venta.create', compact('clientes', 'empleados'));
     }
 
     /**
@@ -55,13 +57,13 @@ class NotaVentaController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(NotaVenta $notaVenta)
-    {
-        $notaVenta->load(['cliente', 'empleado', 'detalles.producto']);
-        
-        return view('notaventa.show', compact('notaVenta'));
-    }
-
+public function show($id)
+{
+    $notaVenta = NotaVenta::with(['cliente', 'empleado', 'detalles.item', 'detalles.almacen'])
+        ->findOrFail($id);
+    
+    return view('notas-venta.show', compact('notaVenta'));
+}
     /**
      * Show the form for editing the specified resource.
      */

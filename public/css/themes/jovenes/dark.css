@@ -1,0 +1,154 @@
+/* public/css/themes/jovenes/dark.css */
+[data-theme="jovenes"][data-mode="dark"] {
+    /* Paleta base */
+    --color-primary: #A0522D;
+    --color-primary-dark: #3E2510;
+    --color-primary-medium: #A0522D;
+    --color-primary-light: #6B4226;
+    --color-secondary: #A09080;
+    --color-accent: #D2B48C;
+    --color-bg-light: #1E1E1E;
+    --color-bg-lighter: #252525;
+    --color-bg-lightest: #2A2A2A;
+    --color-focus-ring: rgba(162, 92, 45, 0.4);
+    --color-border: #5D3A1A;
+    
+    /* Sidebar */
+    --bg-sidebar: linear-gradient(180deg, #2A1A0E 0%, #1A0E05 100%);
+    --bg-sidebar-brand: linear-gradient(135deg, #5D3A1A 0%, #3E2510 100%);
+    --sidebar-text: rgba(255, 255, 255, 0.75);
+    --sidebar-icon: #D2B48C;
+    --sidebar-active-bg: linear-gradient(90deg, #8B4513 0%, #5D3A1A 100%);
+    --sidebar-active-border: #D2B48C;
+    --sidebar-hover-bg: rgba(162, 92, 45, 0.4);
+    --sidebar-treeview-text: rgba(255, 255, 255, 0.65);
+    --sidebar-treeview-active-bg: rgba(210, 180, 140, 0.15);
+    --sidebar-treeview-active-text: #D2B48C;
+    --sidebar-treeview-active-border: #D2B48C;
+    --sidebar-treeview-hover-bg: rgba(210, 180, 140, 0.08);
+    
+    /* Sidebar footer */
+    --sidebar-footer-bg: rgba(0, 0, 0, 0.5);
+    --sidebar-footer-border: rgba(210, 180, 140, 0.25);
+    --sidebar-footer-text: rgba(255, 255, 255, 0.65);
+    --sidebar-footer-link: #D2B48C;
+    --sidebar-footer-link-hover: white;
+    
+    /* User panel */
+    --user-panel-border: rgba(210, 180, 140, 0.25);
+    --user-panel-icon: #D2B48C;
+    --user-panel-text: white;
+    --user-panel-text-hover: #D2B48C;
+    --user-role-badge-bg: rgba(210, 180, 140, 0.15);
+    --user-role-badge-text: #D2B48C;
+    --user-status-color: #4caf50;
+    
+    /* Navbar */
+    --navbar-bg: #2A2A2A;
+    --navbar-border: #5D3A1A;
+    --navbar-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
+    --navbar-link: #E6D5B8;
+    --navbar-link-hover: #D2B48C;
+    
+    /* Dropdown */
+    --dropdown-bg: #333333;
+    --dropdown-border: #8B4513;
+    --dropdown-item-text: #E6D5B8;
+    --dropdown-item-hover-bg: #3E2510;
+    --dropdown-item-hover-text: #D2B48C;
+    
+    /* Content */
+    --content-header-text: #E6D5B8;
+    --breadcrumb-link: #D2B48C;
+    --breadcrumb-active: #E6D5B8;
+    
+    /* Footer */
+    --footer-bg: #252525;
+    --footer-text: #A09080;
+    --footer-border: #5D3A1A;
+    
+    /* Scrollbar */
+    --scrollbar-track: #1A0E05;
+    --scrollbar-thumb: #D2B48C;
+    --scrollbar-thumb-hover: #E8C9A0;
+    
+    /* Acceso */
+    --acceso-bg: rgba(76, 175, 80, 0.15);
+    --acceso-border: #4caf50;
+    --acceso-hover-bg: rgba(76, 175, 80, 0.25);
+    
+    /* Módulo destacado */
+    --modulo-destacado-bg: linear-gradient(90deg, rgba(46, 93, 58, 0.2) 0%, rgba(26, 61, 42, 0.15) 100%);
+    --modulo-destacado-border: #2E5D3A;
+    --modulo-destacado-icon: #4caf50;
+    --modulo-destacado-hover-bg: linear-gradient(90deg, rgba(46, 93, 58, 0.3) 0%, rgba(26, 61, 42, 0.25) 100%);
+    --modulo-destacado-active-bg: linear-gradient(90deg, #2E5D3A 0%, #1A3D2A 100%);
+    --modulo-destacado-active-text: white;
+    
+    /* Texto */
+    --text-on-primary: white;
+    --text-muted: #A09080;
+    
+    /* Badges */
+    --badge-success: #4caf50;
+    --badge-warning: #ff9800;
+    --badge-danger: #f44336;
+    --badge-info: var(--color-primary-medium);
+    
+    /* Fondos */
+    --bg-input: #333333;
+    --bg-card: #2A2A2A;
+    
+    /* Otros */
+    --btn-hover-dark: #2A1508;
+    --btn-secondary-hover: #B8946E;
+
+    --color-accent-dark: #b8946e;
+
+    --badge-warning-rgb: 255, 152, 0;
+    --badge-danger-rgb: 244, 67, 54;
+
+      /* ========== VARIABLES DE TEXTO (¡AGREGAR!) ========== */
+    --text-on-primary: #FFFFFF;
+    --text-muted: #B0A090;
+    --text-primary: #E6D5B8;
+    --text-secondary: #D2B48C;
+    --text-dark: #F5F0E8;
+    
+    /* Asegurar que estas variables existan */
+    --color-primary-dark: #3E2510;
+    --color-secondary: #D2B48C;
+    
+    /* Fondos claros para contraste */
+    --bg-input: #3A3A3A;
+    --bg-card: #2A2A2A;
+    --color-bg-light: #1E1E1E;
+    --color-bg-lighter: #252525;
+    --color-bg-lightest: #2A2A2A;
+
+
+    /* Tablas - Versión oscura (solo borde coloreado, fondo oscuro) */
+--table-success-bg: rgba(40, 167, 69, 0.15);
+--table-success-text: #8FD9A0;
+--table-success-border: rgba(40, 167, 69, 0.4);
+--table-success-hover: rgba(40, 167, 69, 0.25);
+
+--table-warning-bg: rgba(255, 193, 7, 0.12);
+--table-warning-text: #FFD970;
+--table-warning-border: rgba(255, 193, 7, 0.4);
+--table-warning-hover: rgba(255, 193, 7, 0.2);
+
+--table-danger-bg: rgba(220, 53, 69, 0.12);
+--table-danger-text: #F09098;
+--table-danger-border: rgba(220, 53, 69, 0.4);
+--table-danger-hover: rgba(220, 53, 69, 0.2);
+
+--table-info-bg: rgba(23, 162, 184, 0.12);
+--table-info-text: #7FD8E8;
+--table-info-border: rgba(23, 162, 184, 0.4);
+--table-info-hover: rgba(23, 162, 184, 0.2);
+
+--table-secondary-bg: rgba(108, 117, 125, 0.12);
+--table-secondary-text: #B0B8BF;
+--table-secondary-border: rgba(108, 117, 125, 0.4);
+}

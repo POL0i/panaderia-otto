@@ -15,7 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'permiso' => \App\Http\Middleware\CheckPermission::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'webhook/libelula/pago-exitoso',
+            '/webhook/libelula/pago-exitoso',
+        ]);
     })
+    
     
     ->withExceptions(function (Exceptions $exceptions): void {
         //

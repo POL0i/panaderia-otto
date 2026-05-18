@@ -1,0 +1,146 @@
+/* public/css/themes/adultos/dark.css */
+[data-theme="adultos"][data-mode="dark"] {
+    /* Paleta adulta oscura: elegante, sobria */
+    --color-primary: #4A6A8A;
+    --color-primary-dark: #1A1A2E;
+    --color-primary-medium: #5B7FA5;
+    --color-primary-light: #7BA3C7;
+    --color-secondary: #95A5A6;
+    --color-accent: #D4B896;
+    --color-bg-light: #1E1E2E;
+    --color-bg-lighter: #252535;
+    --color-bg-lightest: #2A2A3A;
+    --color-focus-ring: rgba(74, 106, 138, 0.4);
+    --color-border: #5B7FA5;
+    
+    /* Sidebar */
+    --bg-sidebar: linear-gradient(180deg, #1A1A2E 0%, #12121F 100%);
+    --bg-sidebar-brand: linear-gradient(135deg, #2C3E50 0%, #1A1A2E 100%);
+    --sidebar-text: rgba(255, 255, 255, 0.75);
+    --sidebar-icon: #D4B896;
+    --sidebar-active-bg: linear-gradient(90deg, #2C3E50 0%, #1A2530 100%);
+    --sidebar-active-border: #D4B896;
+    --sidebar-hover-bg: rgba(212, 184, 150, 0.1);
+    --sidebar-treeview-text: rgba(255, 255, 255, 0.65);
+    --sidebar-treeview-active-bg: rgba(212, 184, 150, 0.12);
+    --sidebar-treeview-active-text: #D4B896;
+    --sidebar-treeview-active-border: #D4B896;
+    --sidebar-treeview-hover-bg: rgba(212, 184, 150, 0.06);
+    
+    /* Sidebar footer */
+    --sidebar-footer-bg: rgba(0, 0, 0, 0.4);
+    --sidebar-footer-border: rgba(212, 184, 150, 0.25);
+    --sidebar-footer-text: rgba(255, 255, 255, 0.65);
+    --sidebar-footer-link: #D4B896;
+    --sidebar-footer-link-hover: #E8D5C0;
+    
+    /* User panel */
+    --user-panel-border: rgba(212, 184, 150, 0.25);
+    --user-panel-icon: #D4B896;
+    --user-panel-text: white;
+    --user-panel-text-hover: #D4B896;
+    --user-role-badge-bg: rgba(212, 184, 150, 0.15);
+    --user-role-badge-text: #D4B896;
+    --user-status-color: #27AE60;
+    
+    /* Navbar */
+    --navbar-bg: #1E1E2E;
+    --navbar-border: #34495E;
+    --navbar-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
+    --navbar-link: #D4B896;
+    --navbar-link-hover: #E8D5C0;
+    
+    /* Dropdown */
+    --dropdown-bg: #2A2A3A;
+    --dropdown-border: #5B7FA5;
+    --dropdown-item-text: #EEE;
+    --dropdown-item-hover-bg: #353545;
+    --dropdown-item-hover-text: #D4B896;
+    
+    /* Content */
+    --content-header-text: #D4B896;
+    --breadcrumb-link: #E8D5C0;
+    --breadcrumb-active: #D4B896;
+    
+    /* Footer */
+    --footer-bg: #252535;
+    --footer-text: #95A5A6;
+    --footer-border: #34495E;
+    
+    /* Scrollbar */
+    --scrollbar-track: #12121F;
+    --scrollbar-thumb: #D4B896;
+    --scrollbar-thumb-hover: #E8D5C0;
+    
+    /* Acceso */
+    --acceso-bg: rgba(39, 174, 96, 0.15);
+    --acceso-border: #27AE60;
+    --acceso-hover-bg: rgba(39, 174, 96, 0.25);
+    
+    /* Módulo destacado */
+    --modulo-destacado-bg: linear-gradient(90deg, rgba(74, 106, 138, 0.1) 0%, rgba(91, 127, 165, 0.1) 100%);
+    --modulo-destacado-border: #4A6A8A;
+    --modulo-destacado-icon: #7BA3C7;
+    --modulo-destacado-hover-bg: linear-gradient(90deg, rgba(74, 106, 138, 0.2) 0%, rgba(91, 127, 165, 0.2) 100%);
+    --modulo-destacado-active-bg: linear-gradient(90deg, #2C3E50 0%, #4A6A8A 100%);
+    --modulo-destacado-active-text: white;
+    
+    /* Texto sobre fondos oscuros */
+    --text-on-primary: white;
+    
+    /* Badges */
+    --badge-success: #27AE60;
+    --badge-warning: #F39C12;
+    --badge-danger: #C0392B;
+    --badge-info: #34495E;
+    
+    /* Bordes más cuadrados para adultos */
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+
+    --bg-input: #2A2A3A;
+    --bg-card: #2A2A3A;
+
+    --color-accent-dark: #c0a880;
+
+    --badge-warning-rgb: 243, 156, 18;
+    --badge-danger-rgb: 192, 57, 43;
+
+    --text-on-primary: #FFFFFF;
+    --text-muted: #A0A8B0;
+    --text-primary: #E8E8E8;
+    --text-secondary: #D4B896;
+    --text-dark: #F0EDE8;
+    
+    --bg-input: #3A3A3E;
+    --bg-card: #2A2A2E;
+    --color-bg-light: #1E1E2E;
+    --color-bg-lighter: #252535;
+    --color-bg-lightest: #2E2E3E;
+
+    /* Tablas - Versión adulta oscura */
+--table-success-bg: rgba(39, 174, 96, 0.12);
+--table-success-text: #7ED0A0;
+--table-success-border: rgba(39, 174, 96, 0.35);
+--table-success-hover: rgba(39, 174, 96, 0.2);
+
+--table-warning-bg: rgba(243, 156, 18, 0.1);
+--table-warning-text: #F0C870;
+--table-warning-border: rgba(243, 156, 18, 0.35);
+--table-warning-hover: rgba(243, 156, 18, 0.18);
+
+--table-danger-bg: rgba(231, 76, 60, 0.1);
+--table-danger-text: #F0A098;
+--table-danger-border: rgba(231, 76, 60, 0.35);
+--table-danger-hover: rgba(231, 76, 60, 0.18);
+
+--table-info-bg: rgba(52, 73, 94, 0.1);
+--table-info-text: #A0B8C8;
+--table-info-border: rgba(52, 73, 94, 0.35);
+--table-info-hover: rgba(52, 73, 94, 0.18);
+
+--table-secondary-bg: rgba(127, 140, 141, 0.1);
+--table-secondary-text: #C0C8CA;
+--table-secondary-border: rgba(127, 140, 141, 0.35);
+}

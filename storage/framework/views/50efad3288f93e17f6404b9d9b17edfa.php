@@ -1,18 +1,17 @@
 
-<div class="modal fade" id="createProductoModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+<div class="modal fade" id="createProductoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-primary">
+            <div class="modal-header modal-header-primary">
                 <h5 class="modal-title">
-                    <i class="fas fa-box"></i> Nuevo Producto
+                    <i class="fas fa-box mr-2"></i> Nuevo Producto
                 </h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
             </div>
             <form id="formCreateProducto" action="<?php echo e(route('modulo-almacen.productos.store')); ?>" method="POST" enctype="multipart/form-data">
                 <?php echo csrf_field(); ?>
                 <div class="modal-body">
                     <div class="row">
-                        
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Nombre del Producto <span class="text-danger">*</span></label>
@@ -20,7 +19,6 @@
                                        placeholder="Ej: Pan Francés, Tarta de Manzana..." required>
                             </div>
                         </div>
-                        
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label>Precio de Venta <span class="text-danger">*</span></label>
@@ -28,7 +26,6 @@
                                        step="0.01" min="0" placeholder="0.00" required>
                             </div>
                         </div>
-                        
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label>Unidad de Medida <span class="text-danger">*</span></label>
@@ -46,7 +43,6 @@
                     </div>
 
                     <div class="row">
-                        
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Categoría <span class="text-danger">*</span></label>
@@ -75,7 +71,6 @@
                         <label>Imagen del Producto</label>
                         <div class="card">
                             <div class="card-body">
-                                
                                 <div class="mb-3">
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="imagen_tipo" id="tipoArchivo" value="file" checked>
@@ -87,25 +82,20 @@
                                     </div>
                                 </div>
 
-                                
                                 <div class="image-preview mb-2 text-center" id="localImagePreview" style="display: none;">
-                                    <img id="localPreviewImg" src="" alt="Vista previa" style="max-width: 150px; max-height: 150px; border-radius: 5px;">
+                                    <img id="localPreviewImg" src="" alt="Vista previa" style="max-width: 150px; max-height: 150px; border-radius: var(--border-radius-sm);">
                                 </div>
 
-                                
                                 <div id="grupoArchivo">
                                     <div class="custom-file">
                                         <input type="file" class="custom-file-input" id="productoImagen" name="imagen" accept="image/*">
                                         <label class="custom-file-label" for="productoImagen">
-                                            <i class="fas fa-upload"></i> Seleccionar imagen
+                                            <i class="fas fa-upload mr-1"></i> Seleccionar imagen
                                         </label>
                                     </div>
-                                    <small class="text-muted">
-                                        Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 2MB.
-                                    </small>
+                                    <small class="text-muted">Formatos: JPG, PNG, GIF. Máx: 2MB.</small>
                                 </div>
 
-                                
                                 <div id="grupoUrl" style="display: none;">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -113,23 +103,21 @@
                                         </div>
                                         <input type="url" class="form-control" id="productoImagenUrl" name="imagen_url" placeholder="https://ejemplo.com/imagen.jpg">
                                     </div>
-                                    <small class="text-muted">
-                                        Pegue la URL completa de una imagen (jpg, png, gif).
-                                    </small>
+                                    <small class="text-muted">Pegue la URL completa de una imagen.</small>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i>
-                        Se creará automáticamente un registro en Items como "producto" con la unidad de medida seleccionada.
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Se creará automáticamente un registro en Items como "producto".
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Crear Producto
+                        <i class="fas fa-save mr-1"></i> Crear Producto
                     </button>
                 </div>
             </form>
@@ -137,47 +125,26 @@
     </div>
 </div>
 
-<style>
-.image-preview {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 10px;
-    margin-bottom: 10px;
-}
-.custom-file-label::after {
-    content: "Examinar";
-}
-</style>
-
 <?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
-    // Cambiar entre archivo y URL
     $('input[name="imagen_tipo"]').on('change', function() {
         const tipo = $(this).val();
         if (tipo === 'file') {
             $('#grupoArchivo').show();
             $('#grupoUrl').hide();
-            // Limpiar el campo de URL para no enviar ambos
             $('#productoImagenUrl').val('');
-            // Reactivar el input file
             $('#productoImagen').prop('disabled', false);
-            // La vista previa se actualizará si se selecciona un archivo nuevamente
             actualizarVistaPrevia();
         } else {
             $('#grupoArchivo').hide();
             $('#grupoUrl').show();
-            // Limpiar el input file para no subir archivo
-            $('#productoImagen').val('');
-            $('#productoImagen').prop('disabled', true);
-            // Actualizar label del file input
-            $('.custom-file-label').html('<i class="fas fa-upload"></i> Seleccionar imagen');
-            // Mostrar vista previa desde URL si tiene algo
+            $('#productoImagen').val('').prop('disabled', true);
+            $('.custom-file-label').html('<i class="fas fa-upload mr-1"></i> Seleccionar imagen');
             actualizarVistaPreviaUrl();
         }
     });
 
-    // Previsualizar imagen desde archivo
     $('#productoImagen').on('change', function(e) {
         if ($('input[name="imagen_tipo"]:checked').val() !== 'file') return;
         const file = e.target.files[0];
@@ -186,14 +153,13 @@ $(document).ready(function() {
             reader.onload = function(e) {
                 $('#localPreviewImg').attr('src', e.target.result);
                 $('#localImagePreview').show();
-            }
+            };
             reader.readAsDataURL(file);
         } else {
             $('#localImagePreview').hide();
         }
     });
 
-    // Previsualizar imagen desde URL
     $('#productoImagenUrl').on('input', function() {
         if ($('input[name="imagen_tipo"]:checked').val() !== 'url') return;
         actualizarVistaPreviaUrl();
@@ -204,7 +170,6 @@ $(document).ready(function() {
         if (url === '') {
             $('#localImagePreview').hide();
         } else {
-            // Intentar cargar la imagen; si falla, ocultar
             $('#localPreviewImg').attr('src', url).off('error').on('error', function() {
                 $(this).attr('src', '');
                 $('#localImagePreview').hide();
@@ -219,7 +184,6 @@ $(document).ready(function() {
         if (tipo === 'file') {
             const fileInput = $('#productoImagen')[0];
             if (fileInput.files && fileInput.files[0]) {
-                // Disparar el evento change manualmente o usar FileReader
                 $('#productoImagen').trigger('change');
             } else {
                 $('#localImagePreview').hide();
@@ -229,25 +193,21 @@ $(document).ready(function() {
         }
     }
 
-    // Actualizar el label del custom file input
     $('.custom-file-input').on('change', function() {
         const fileName = $(this).val().split('\\').pop();
-        $(this).next('.custom-file-label').html(fileName ? fileName : '<i class="fas fa-upload"></i> Seleccionar imagen');
+        $(this).next('.custom-file-label').html(fileName || '<i class="fas fa-upload mr-1"></i> Seleccionar imagen');
     });
 
-    // Limpiar vista previa al abrir el modal
     $('#createProductoModal').on('show.bs.modal', function() {
-        // Resetear al estado inicial: archivo
         $('#tipoArchivo').prop('checked', true);
         $('#grupoArchivo').show();
         $('#grupoUrl').hide();
         $('#productoImagen').val('');
         $('#productoImagenUrl').val('');
-        $('.custom-file-label').html('<i class="fas fa-upload"></i> Seleccionar imagen');
+        $('.custom-file-label').html('<i class="fas fa-upload mr-1"></i> Seleccionar imagen');
         $('#localImagePreview').hide();
         $('#localPreviewImg').attr('src', '');
     });
 });
 </script>
-<?php $__env->stopPush(); ?>
-<?php /**PATH /opt/lampp/htdocs/panaderia-otto/resources/views/modulo-almacen/partials/modal-producto.blade.php ENDPATH**/ ?>
+<?php $__env->stopPush(); ?><?php /**PATH /opt/lampp/htdocs/panaderia-otto/resources/views/modulo-almacen/partials/modal-producto.blade.php ENDPATH**/ ?>

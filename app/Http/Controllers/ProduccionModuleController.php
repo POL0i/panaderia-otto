@@ -106,19 +106,20 @@ class ProduccionModuleController extends Controller
             'nombre' => 'required|string|max:100|unique:recetas,nombre',
             'descripcion' => 'nullable|string',
             'id_producto' => 'required|exists:productos,id_producto',
+            'cantidad_producida' => 'required|numeric|min:0.1',  // ← nuevo campo
         ]);
 
         $receta = Receta::create([
             'nombre' => $validated['nombre'],
             'descripcion' => $validated['descripcion'] ?? null,
-            'cantidad_requerida' => 0,
             'id_producto' => $validated['id_producto'],
+            'cantidad_requerida' => $validated['cantidad_producida'], 
         ]);
 
         return response()->json([
             'success' => true,
             'receta' => $receta,
-            'message' => 'Receta creada correctamente. Ahora puedes agregar insumos.',
+            'message' => 'Receta creada correctamente.',
             'redirect' => route('recetas.show', $receta)
         ]);
     }
@@ -164,9 +165,6 @@ class ProduccionModuleController extends Controller
                 }
             }
 
-            $totalInsumos = $receta->detalles()->count();
-            $receta->update(['cantidad_requerida' => $totalInsumos]);
-
             DB::commit();
 
             return response()->json([
@@ -206,9 +204,6 @@ class ProduccionModuleController extends Controller
         $receta = $detalle->receta;
         $detalle->delete();
 
-        $totalInsumos = $receta->detalles()->count();
-        $receta->update(['cantidad_requerida' => $totalInsumos]);
-
         return response()->json([
             'success' => true,
             'message' => 'Insumo removido de la receta',
@@ -232,11 +227,11 @@ class ProduccionModuleController extends Controller
         ]);
 
         $receta = Receta::with('detalles.insumo.item')->findOrFail($request->id_receta);
-        $factor = $request->cantidad;
+
+        $factor = $request->cantidad / $receta->cantidad_requerida;
 
         $insumos = $receta->detalles->map(function ($detalle) use ($factor) {
             return [
-                'id_detalle_receta' => $detalle->id_detalle_receta,
                 'insumo' => $detalle->insumo->nombre,
                 'cantidad_teorica' => $detalle->cantidad_requerida,
                 'cantidad_requerida' => $detalle->cantidad_requerida * $factor,
@@ -267,7 +262,7 @@ class ProduccionModuleController extends Controller
                 throw new \Exception('La receta seleccionada no tiene un producto asociado.');
             }
 
-            $factor = $validated['cantidad_producida'];
+            $factor = $validated['cantidad_producida'] / $receta->cantidad_requerida;
 
             // Obtener empleado del usuario autenticado
             $usuario = Auth::user();

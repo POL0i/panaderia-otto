@@ -88,6 +88,7 @@ function addItemToCart() {
     const itemId = document.getElementById('itemSelect')?.value;
     const cantidad = parseInt(document.getElementById('itemCantidad')?.value);
     const precio = parseFloat(document.getElementById('itemPrecio')?.value);
+    const fecha_vencimiento = document.getElementById('itemFechaVencimiento')?.value || null;
     const itemSelect = document.getElementById('itemSelect');
     const itemNombre = itemSelect?.options[itemSelect.selectedIndex]?.getAttribute('data-nombre') || '';
     const almacenNombre = document.getElementById('itemAlmacen')?.options[document.getElementById('itemAlmacen')?.selectedIndex]?.text || '';
@@ -106,6 +107,7 @@ function addItemToCart() {
         id_item: parseInt(itemId),
         cantidad: cantidad,
         precio: precio,
+        fecha_vencimiento: fecha_vencimiento || null,
         nombre: itemNombre,
         almacen_nombre: almacenNombre
     });
@@ -114,6 +116,7 @@ function addItemToCart() {
     document.getElementById('itemCantidad').value = '';
     document.getElementById('itemPrecio').value = '';
     document.getElementById('itemSelect').value = '';
+    document.getElementById('itemFechaVencimiento').value = '';
     toastr.success('Item agregado');
 }
 
@@ -141,6 +144,7 @@ function updateCartDisplay() {
                     <strong>${item.nombre}</strong><br>
                     <small>${item.almacen_nombre}</small><br>
                     <small>${item.cantidad} x Bs. ${item.precio.toFixed(2)}</small>
+                    <small>${item.fecha_vencimiento ? ` | Vence: ${new Date(item.fecha_vencimiento + 'T00:00:00').toLocaleDateString()}` : ''}</small>
                 </div>
                 <div class="text-right">
                     <strong>Bs. ${subtotal.toFixed(2)}</strong><br>
@@ -187,7 +191,8 @@ function confirmPurchase() {
             id_almacen: item.id_almacen,
             id_item: item.id_item,
             cantidad: item.cantidad,
-            precio: item.precio
+            precio: item.precio,
+            fecha_vencimiento: item.fecha_vencimiento || null  // ← NUEVO CAMPO
         }))
     };
     
@@ -453,6 +458,7 @@ function updateCartVentaDisplay() {
                     <strong>${item.nombre}</strong><br>
                     <small>${item.almacen_nombre}</small><br>
                     <small>${item.cantidad} x Bs. ${item.precio.toFixed(2)}</small>
+                    <small>${item.fechaVencimiento ? ` | Vence: ${new Date(item.fechaVencimiento).toLocaleDateString()}` : ''}</small>
                 </div>
                 <div class="text-right">
                     <strong>Bs. ${subtotal.toFixed(2)}</strong><br>

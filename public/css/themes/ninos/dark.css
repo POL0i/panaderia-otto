@@ -1,0 +1,149 @@
+/* public/css/themes/ninos/dark.css */
+[data-theme="ninos"][data-mode="dark"] {
+    /* Paleta infantil oscura pero manteniendo alegría */
+    --color-primary: #FF8E8E;
+    --color-primary-dark: #2A1A2E;
+    --color-primary-medium: #FF8E8E;
+    --color-primary-light: #FFB3B3;
+    --color-secondary: #7EDCD6;
+    --color-accent: #FFF3B0;
+    --color-bg-light: #1A1A2E;
+    --color-bg-lighter: #252540;
+    --color-bg-lightest: #2A2A45;
+    --color-focus-ring: rgba(255, 142, 142, 0.4);
+    --color-border: #FFD93D;
+    
+    /* Sidebar */
+    --bg-sidebar: linear-gradient(180deg, #2A1A2E 0%, #1A0E2E 100%);
+    --bg-sidebar-brand: linear-gradient(135deg, #E55A5A 0%, #2A1A2E 100%);
+    --sidebar-text: rgba(255, 255, 255, 0.9);
+    --sidebar-icon: #FFE66D;
+    --sidebar-active-bg: linear-gradient(90deg, #4ECDC4 0%, #3AAFA9 100%);
+    --sidebar-active-border: #FFE66D;
+    --sidebar-hover-bg: rgba(255, 230, 109, 0.15);
+    --sidebar-treeview-text: rgba(255, 255, 255, 0.8);
+    --sidebar-treeview-active-bg: rgba(78, 205, 196, 0.2);
+    --sidebar-treeview-active-text: #FFE66D;
+    --sidebar-treeview-active-border: #FFE66D;
+    --sidebar-treeview-hover-bg: rgba(255, 230, 109, 0.1);
+    
+    /* Sidebar footer */
+    --sidebar-footer-bg: rgba(0, 0, 0, 0.3);
+    --sidebar-footer-border: rgba(255, 230, 109, 0.3);
+    --sidebar-footer-text: rgba(255, 255, 255, 0.8);
+    --sidebar-footer-link: #FFE66D;
+    --sidebar-footer-link-hover: white;
+    
+    /* User panel */
+    --user-panel-border: rgba(255, 230, 109, 0.3);
+    --user-panel-icon: #FFE66D;
+    --user-panel-text: white;
+    --user-panel-text-hover: #FFE66D;
+    --user-role-badge-bg: rgba(255, 230, 109, 0.2);
+    --user-role-badge-text: #FFE66D;
+    --user-status-color: #4ECDC4;
+    
+    /* Navbar */
+    --navbar-bg: #252540;
+    --navbar-border: #FFD93D;
+    --navbar-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    --navbar-link: #FFE66D;
+    --navbar-link-hover: #FF8E8E;
+    
+    /* Dropdown */
+    --dropdown-bg: #2A2A45;
+    --dropdown-border: #FF6B6B;
+    --dropdown-item-text: #EEE;
+    --dropdown-item-hover-bg: #353555;
+    --dropdown-item-hover-text: #FF8E8E;
+    
+    /* Content */
+    --content-header-text: #FF8E8E;
+    --breadcrumb-link: #FFE66D;
+    --breadcrumb-active: #FF8E8E;
+    
+    /* Footer */
+    --footer-bg: #252540;
+    --footer-text: #FFE66D;
+    --footer-border: #FFD93D;
+    
+    /* Scrollbar */
+    --scrollbar-track: #1A0E2E;
+    --scrollbar-thumb: #FFE66D;
+    --scrollbar-thumb-hover: #FFF;
+    
+    /* Acceso */
+    --acceso-bg: rgba(78, 205, 196, 0.2);
+    --acceso-border: #4ECDC4;
+    --acceso-hover-bg: rgba(78, 205, 196, 0.3);
+    
+    /* Módulo destacado */
+    --modulo-destacado-bg: linear-gradient(90deg, rgba(255, 142, 142, 0.15) 0%, rgba(126, 220, 214, 0.15) 100%);
+    --modulo-destacado-border: #FF8E8E;
+    --modulo-destacado-icon: #FF8E8E;
+    --modulo-destacado-hover-bg: linear-gradient(90deg, rgba(255, 142, 142, 0.25) 0%, rgba(126, 220, 214, 0.25) 100%);
+    --modulo-destacado-active-bg: linear-gradient(90deg, #FF8E8E 0%, #7EDCD6 100%);
+    --modulo-destacado-active-text: white;
+    
+    /* Texto sobre fondos oscuros */
+    --text-on-primary: white;
+    
+    /* Badges */
+    --badge-success: #3AAFA9;
+    --badge-warning: #FFD93D;
+    --badge-danger: #FF6B6B;
+    --badge-info: #7EDCD6;
+    
+    /* Cards y headers más redondeados para niños */
+    --border-radius-sm: 12px;
+    --border-radius-md: 20px;
+    --border-radius-lg: 25px;
+
+    --bg-input: #2A2A45;
+    --bg-card: #2A2A45;
+
+    --color-accent-dark: #e6c200;
+
+    --badge-warning-rgb: 255, 217, 61;
+    --badge-danger-rgb: 255, 107, 107;
+
+     
+    /* ========== VARIABLES DE TEXTO ========== */
+    --text-on-primary: #FFFFFF;
+    --text-muted: #C0B8D0;
+    --text-primary: #F0E8FF;
+    --text-secondary: #FFE66D;
+    --text-dark: #F5F0FF;
+    
+    --bg-input: #3A3550;
+    --bg-card: #2A2540;
+    --color-bg-light: #1A1A2E;
+    --color-bg-lighter: #252540;
+    --color-bg-lightest: #2E2E4A;
+
+
+    /* Tablas - Versión niños oscura */
+--table-success-bg: rgba(78, 205, 196, 0.12);
+--table-success-text: #A0E8E0;
+--table-success-border: rgba(78, 205, 196, 0.4);
+--table-success-hover: rgba(78, 205, 196, 0.2);
+
+--table-warning-bg: rgba(255, 217, 61, 0.1);
+--table-warning-text: #FFE890;
+--table-warning-border: rgba(255, 217, 61, 0.4);
+--table-warning-hover: rgba(255, 217, 61, 0.18);
+
+--table-danger-bg: rgba(255, 107, 107, 0.1);
+--table-danger-text: #FFB0B0;
+--table-danger-border: rgba(255, 107, 107, 0.4);
+--table-danger-hover: rgba(255, 107, 107, 0.18);
+
+--table-info-bg: rgba(69, 183, 170, 0.1);
+--table-info-text: #B0E0D8;
+--table-info-border: rgba(69, 183, 170, 0.4);
+--table-info-hover: rgba(69, 183, 170, 0.18);
+
+--table-secondary-bg: rgba(160, 140, 180, 0.1);
+--table-secondary-text: #D0C8E0;
+--table-secondary-border: rgba(160, 140, 180, 0.4);
+}

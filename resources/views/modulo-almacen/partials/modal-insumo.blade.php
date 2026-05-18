@@ -1,12 +1,12 @@
 {{-- resources/views/modulo-almacen/partials/modal-insumo.blade.php --}}
-<div class="modal fade" id="createInsumoModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="createInsumoModal" tabindex="-1">
+    <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-secondary">
+            <div class="modal-header modal-header-secondary">
                 <h5 class="modal-title">
-                    <i class="fas fa-flask"></i> Nuevo Insumo
+                    <i class="fas fa-flask mr-2"></i> Nuevo Insumo
                 </h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
             </div>
             <form id="formCreateInsumo" action="{{ route('modulo-almacen.insumos.store') }}" method="POST">
                 @csrf
@@ -60,14 +60,14 @@
                     </div>
                     
                     <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> 
+                        <i class="fas fa-info-circle mr-1"></i> 
                         Se creará automáticamente un registro en Items como "insumo".
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-secondary">
-                        <i class="fas fa-save"></i> Crear Insumo
+                        <i class="fas fa-save mr-1"></i> Crear Insumo
                     </button>
                 </div>
             </form>

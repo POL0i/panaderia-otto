@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DetalleVenta extends Model
 {
     protected $table = 'detalles_venta';
-    protected $primaryKey = 'id_detalle_venta';  // ← nueva clave
-    public $incrementing = true;
-    protected $keyType = 'int';
+    protected $primaryKey = ['id_nota_venta', 'id_almacen', 'id_item']; // Clave compuesta
+    public $incrementing = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'id_nota_venta',
@@ -20,37 +19,43 @@ class DetalleVenta extends Model
         'precio',
     ];
 
-    protected $casts = [
-        'cantidad' => 'integer',
-        'precio' => 'decimal:2',
-    ];
-
-    public function notaVenta(): BelongsTo
+    // Relación con NotaVenta
+    public function notaVenta()
     {
         return $this->belongsTo(NotaVenta::class, 'id_nota_venta', 'id_nota_venta');
     }
 
-    public function almacen(): BelongsTo
+    // Relación con Almacen
+    public function almacen()
     {
         return $this->belongsTo(Almacen::class, 'id_almacen', 'id_almacen');
     }
 
-    public function item(): BelongsTo
+    // Relación con Item (insumo/producto genérico)
+    public function item()
     {
         return $this->belongsTo(Item::class, 'id_item', 'id_item');
     }
 
+    // Relación con AlmacenItem (para obtener stock y producto)
     public function almacenItem()
     {
-        return $this->belongsTo(
-            AlmacenItem::class,
-            ['id_almacen', 'id_item'],
-            ['id_almacen', 'id_item']
-        );
+        return $this->hasOne(AlmacenItem::class, 'id_item', 'id_item')
+                    ->where('id_almacen', $this->id_almacen);
     }
 
-    public function producto()
+    // Acceso al nombre del producto a través de la cadena de relaciones
+    public function getProductoNombreAttribute()
     {
-        return $this->item->producto();
+        if ($this->item && $this->item->producto) {
+            return $this->item->producto->nombre ?? $this->item->nombre;
+        }
+        return $this->item->nombre ?? 'N/A';
+    }
+
+    // Acceso al nombre del almacén
+    public function getAlmacenNombreAttribute()
+    {
+        return $this->almacen->nombre ?? 'N/A';
     }
 }

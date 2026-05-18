@@ -69,7 +69,17 @@ class CompraController extends Controller
     try {
         \Log::info('=== INICIO COMPRA ===', ['request' => $request->except(['detalles'])]);
         
-        // 1. Validación
+        // 1. Validación previa para manejar fecha_vencimiento vacía
+        $request->merge([
+            'detalles' => collect($request->detalles)->map(function ($detalle) {
+                if (empty($detalle['fecha_vencimiento'])) {
+                    $detalle['fecha_vencimiento'] = null;
+                }
+                return $detalle;
+            })->toArray()
+        ]);
+
+        // Luego validamos
         $validated = $request->validate([
             'id_proveedor' => 'required|exists:proveedores,id_proveedor',
             'detalles' => 'required|array|min:1',
@@ -77,9 +87,8 @@ class CompraController extends Controller
             'detalles.*.id_item' => 'required|exists:items,id_item',
             'detalles.*.cantidad' => 'required|integer|min:1',
             'detalles.*.precio' => 'required|numeric|min:0.01',
+            'detalles.*.fecha_vencimiento' => 'nullable|date|after_or_equal:today',
         ]);
-        
-        \Log::info('Validación OK', ['detalles_count' => count($validated['detalles'])]);
 
         DB::beginTransaction();
 
@@ -170,9 +179,15 @@ class CompraController extends Controller
                 throw $e;
             }
 
+            \Log::info('Fecha vencimiento para lote', [
+                'id_item'     => $detalle['id_item'],
+                'fecha'       => $detalle['fecha_vencimiento'] ?? 'NO ENVIADA',
+                'raw_detalle' => $detalle
+            ]);
+
             // Lote
             try {
-                \App\Models\LoteInventario::desdeCompra($detalleCompra);
+                \App\Models\LoteInventario::desdeCompra($detalleCompra, $detalle['fecha_vencimiento'] ?? null);
                 \Log::info("Lote creado OK");
             } catch (\Exception $e) {
                 \Log::error("ERROR en Lote: " . $e->getMessage());
@@ -224,7 +239,7 @@ class CompraController extends Controller
         ], 500);
     }
 }
-
+ 
     /**
      * Get items by almacen.
      */

@@ -43,6 +43,13 @@ use App\Http\Controllers\PempresaController;
 use App\Http\Controllers\CompraController;
 use App\Http\Controllers\VentaController;
 
+// Dashboard
+use App\Http\Controllers\DashboardController;
+
+//modulo reportes
+use App\Http\Controllers\ReporteController;
+use Illuminate\Http\Request;
+
 // Landing pública
 Route::get('/', [VentaController::class, 'landingPage'])->name('landing');
 
@@ -66,6 +73,7 @@ Route::post('/webhook/libelula/pago-exitoso', [VentaController::class, 'webhookP
 Route::post('/registro/cliente/rapido', [UsuarioController::class, 'registroClienteRapido'])
     ->name('registro.cliente.rapido');
 
+Route::post('/completar-venta/{id}', [VentaController::class, 'completarVenta'])->name('completar.venta');
 // Pago verificación
 Route::get('/pago/verificar/{id}', [VentaController::class, 'verificarPago'])->name('pago.verificar');
 Route::get('/pago/exito/{id}', [VentaController::class, 'pagoExito'])->name('pago.exito');
@@ -74,7 +82,26 @@ Route::get('/pago/exito/{id}', [VentaController::class, 'pagoExito'])->name('pag
 // Rutas protegidas por autenticación
 Route::middleware(['auth'])->group(function () {
 
+    Route::post('/theme/change', function (Request $request) {
+        $request->validate([
+            'theme' => 'sometimes|in:ninos,jovenes,adultos',
+            'mode'  => 'sometimes|in:light,dark,auto'
+        ]);
+        
+        if ($request->has('theme')) {
+            session(['theme' => $request->theme]);
+        }
+        if ($request->has('mode')) {
+            session(['mode' => $request->mode]);
+        }
+        
+        return response()->json(['status' => 'ok']);
+    })->middleware('auth');
+
     // Sección de Ventas
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
     Route::prefix('ventas')->name('ventas.')->group(function () {
         Route::get('/', [VentaController::class, 'index'])->name('index');
         Route::post('/store', [VentaController::class, 'store'])->name('store');
@@ -125,7 +152,7 @@ Auth::routes();
 Route::middleware(['auth'])->group(function () {
 
     // Dashboard
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/home', [DashboardController::class, 'index'])->name('home');
 
     /*
     |--------------------------------------------------------------------------
@@ -361,19 +388,36 @@ Route::middleware(['auth'])->group(function () {
         // =============================================
 
         // Cálculo de insumos (AJAX - debe ir ANTES del resource)
-Route::post('producciones/calcular-insumos', [ProduccionController::class, 'calcularInsumos'])
-    ->name('producciones.calcular-insumos');
+        Route::post('producciones/calcular-insumos', [ProduccionController::class, 'calcularInsumos'])
+            ->name('producciones.calcular-insumos');
 
-Route::resource('producciones', ProduccionController::class)
-    ->except(['edit', 'update', 'destroy'])
-    ->parameters(['producciones' => 'produccion']);  // ← CORRECCIÓN
+        Route::resource('producciones', ProduccionController::class)
+            ->except(['edit', 'update', 'destroy'])
+            ->parameters(['producciones' => 'produccion']);
 
-Route::post('producciones/{produccion}/aprobar', [ProduccionController::class, 'aprobar'])
-    ->name('producciones.aprobar');
-Route::post('producciones/{produccion}/rechazar', [ProduccionController::class, 'rechazar'])
-    ->name('producciones.rechazar');
-Route::post('producciones/{produccion}/cancelar', [ProduccionController::class, 'cancelar'])
-    ->name('producciones.cancelar');
+            // 🔒 Solo Admin o permiso almacen_ver
+        Route::post('producciones/{produccion}/aprobar', [ProduccionController::class, 'aprobar'])
+            ->name('producciones.aprobar')
+            ->middleware('admin_o_almacen');
 
+        Route::post('producciones/{produccion}/rechazar', [ProduccionController::class, 'rechazar'])
+            ->name('producciones.rechazar')
+            ->middleware('admin_o_almacen');
+
+        Route::post('producciones/{produccion}/cancelar', [ProduccionController::class, 'cancelar'])
+            ->name('producciones.cancelar')
+            ->middleware('admin_o_almacen');
+            
+        // Rutas AJAX para stock y capacidad
+        Route::get('/almacen/{almacen}/insumos-stock/{produccion}', [ProduccionController::class, 'insumosStock'])->name('almacen.insumos.stock');
+        Route::get('/almacen/{almacen}/capacidad-disponible/{produccion}', [ProduccionController::class, 'capacidadDisponible'])->name('almacen.capacidad.disponible');
+    });
+
+    Route::middleware(['permiso:reportes_ver'])->group(function () {
+        Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
+        Route::get('/reportes/comercial', [ReporteController::class, 'comercial'])->name('reportes.comercial');
+        Route::get('/reportes/inventario', [ReporteController::class, 'inventario'])->name('reportes.inventario');
+        Route::get('/reportes/produccion', [ReporteController::class, 'produccion'])->name('reportes.produccion');
+        Route::post('/reportes/enviar-pdf', [ReporteController::class, 'enviarPDF'])->name('reportes.enviar-pdf');
     });
 });

@@ -6,6 +6,10 @@ use App\Models\NotaCompra;
 use App\Models\Empleado;
 use App\Models\Proveedor;
 use App\Models\DetalleCompra;
+use App\Models\Almacen;
+use App\Models\Item;
+use App\Models\AlmacenItem;
+use App\Models\Producto;
 use Illuminate\Http\Request;
 
 class NotaCompraController extends Controller
@@ -55,12 +59,13 @@ class NotaCompraController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(NotaCompra $notaCompra)
-    {
-        $notaCompra->load(['empleado', 'proveedor', 'detalles.insumo']);
-        
-        return view('notacompra.show', compact('notaCompra'));
-    }
+public function show($id)
+{
+    $notaCompra = NotaCompra::with(['empleado', 'proveedor', 'detalles.item', 'detalles.almacen'])
+        ->findOrFail($id);
+    
+    return view('notas-compra.show', compact('notaCompra'));
+}
 
     /**
      * Show the form for editing the specified resource.

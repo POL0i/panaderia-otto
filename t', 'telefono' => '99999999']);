@@ -1,0 +1,12 @@
+[90m= [39m[34;4mApp\Models\Empleado[39;24m {#8891
+    [34mid_empleado[39m: [35m1[39m,
+    [34mnombre[39m: [32m"[39m[32mdennis[39m[32m"[39m,
+    [34mapellido[39m: [32m"[39m[32mpol[39m[32m"[39m,
+    [34mtelefono[39m: [35m12312[39m,
+    [34mdireccion[39m: [32m"[39m[32mcalle zeta[39m[32m"[39m,
+    [34mfecha_nac[39m: [32m"[39m[32m2000-12-12[39m[32m"[39m,
+    [34msueldo[39m: [35m12[39m,
+    [34medad[39m: [35m19[39m,
+    [34mcreated_at[39m: [32m"[39m[32m2026-05-07 18:51:49[39m[32m"[39m,
+    [34mupdated_at[39m: [32m"[39m[32m2026-05-07 18:51:49[39m[32m"[39m,
+  }

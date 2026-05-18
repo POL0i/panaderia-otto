@@ -65,4 +65,9 @@ class NotaCompra extends Model
             'id_insumo'
         );
     }
+    public function getRouteKeyName()
+{
+    return 'id_nota_compra';
+}
+
 }

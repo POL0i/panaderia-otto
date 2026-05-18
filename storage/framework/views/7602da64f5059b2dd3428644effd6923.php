@@ -2,10 +2,115 @@
 <?php $__env->startSection('page-title', 'Panel de Control'); ?>
 <?php $__env->startSection('page-description', 'Bienvenido al sistema de gestión de Panadería Otto'); ?>
 
-<?php $__env->startSection('breadcrumb'); ?>
-<li class="breadcrumb-item"><a href="<?php echo e(route('home')); ?>" style="color: #8B4513;">Inicio</a></li>
-<li class="breadcrumb-item active" style="color: #5D3A1A;">Dashboard</li>
-<?php $__env->stopSection(); ?>
+<?php $__env->startPush('styles'); ?>
+<style>
+    /* ==========================================
+       ESTILOS ESPECÍFICOS DEL DASHBOARD
+       (solo estructura, los colores van por variables)
+       ========================================== */
+    .welcome-alert {
+        border-radius: var(--border-radius-md);
+        border-left: 4px solid var(--color-primary);
+        background: linear-gradient(135deg, var(--color-bg-lighter) 0%, var(--color-bg-light) 100%);
+    }
+    .welcome-alert h5 { color: var(--color-primary-dark); }
+    .welcome-alert small { color: var(--color-secondary); }
+    .welcome-alert .welcome-icon { color: var(--color-primary); }
+
+    /* Small boxes del dashboard */
+    .small-box {
+        border-radius: var(--border-radius-md);
+        color: var(--text-on-primary);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+    }
+    .small-box:hover { transform: translateY(-3px); }
+    .small-box .inner { padding: 1.5rem; }
+    .small-box .inner h3 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+    .small-box .inner p { font-size: 0.9rem; opacity: 0.9; }
+    .small-box .icon {
+        position: absolute;
+        top: -10px;
+        right: 10px;
+        font-size: 70px;
+        opacity: 0.15;
+    }
+    .small-box .small-box-footer {
+        display: block;
+        padding: 0.5rem 1rem;
+        background: rgba(0,0,0,0.1);
+        color: inherit;
+        text-decoration: none;
+        text-align: center;
+        transition: background 0.2s;
+    }
+    .small-box .small-box-footer:hover {
+        background: rgba(0,0,0,0.2);
+        color: inherit;
+    }
+
+    /* Variantes de color para small boxes */
+    .small-box-primary {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    }
+    .small-box-accent {
+        background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark, #c9a871) 100%);
+    }
+    .small-box-accent .inner h3,
+    .small-box-accent .inner p { color: var(--color-primary-dark); }
+    .small-box-accent .icon { color: var(--color-primary-dark); }
+    .small-box-secondary {
+        background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary-dark) 100%);
+    }
+    .small-box-tertiary {
+        background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+    }
+
+    /* Top productos */
+    .top-product-item {
+        transition: background 0.2s;
+        padding: 0.5rem;
+        border-radius: var(--border-radius-sm);
+    }
+    .top-product-item:hover { background: var(--color-bg-lighter); }
+    .top-product-icon { color: var(--color-primary); }
+    .top-product-badge {
+        background: var(--color-accent);
+        color: var(--color-primary-dark);
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+    /* Notificaciones */
+    .notification-item {
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    /* Tabla de actividad */
+    .activity-time-badge {
+        background: var(--color-accent);
+        color: var(--color-primary-dark);
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+    }
+    .activity-user-icon { color: var(--color-primary); }
+
+    /* Gráfico */
+    .chart-container {
+        position: relative;
+        height: 250px;
+        width: 100%;
+    }
+</style>
+<?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="container-fluid">
@@ -13,14 +118,14 @@
     
     <div class="row mb-4">
         <div class="col-12">
-            <div class="alert" style="background: linear-gradient(135deg, #FFF5E6 0%, #FFF9F0 100%); border-left: 4px solid #8B4513; border-radius: 12px;">
+            <div class="alert welcome-alert">
                 <div class="d-flex align-items-center">
                     <div class="mr-3">
-                        <i class="fas fa-bread-slice fa-2x" style="color: #8B4513;"></i>
+                        <i class="fas fa-bread-slice fa-2x welcome-icon"></i>
                     </div>
                     <div>
-                        <h5 class="mb-0" style="color: #5D3A1A;">¡Bienvenido de vuelta, <?php echo e(Auth::user()->name ?? 'Administrador'); ?>!</h5>
-                        <small style="color: #A0522D;">Hoy es <?php echo e(\Carbon\Carbon::now()->locale('es')->isoFormat('dddd D [de] MMMM [de] YYYY')); ?></small>
+                        <h5 class="mb-0">¡Bienvenido de vuelta, <?php echo e(Auth::user()->name ?? 'Administrador'); ?>!</h5>
+                        <small>Hoy es <?php echo e(\Carbon\Carbon::now()->locale('es')->isoFormat('dddd D [de] MMMM [de] YYYY')); ?></small>
                     </div>
                 </div>
             </div>
@@ -29,117 +134,89 @@
 
     
     <div class="row">
-        <!-- Productos -->
         <div class="col-lg-3 col-6">
-            <div class="small-box" style="background: linear-gradient(135deg, #8B4513 0%, #6B4226 100%); border-radius: 16px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: transform 0.2s ease;">
+            <div class="small-box small-box-primary">
                 <div class="inner">
-                    <h3 style="color: white; font-weight: 700;"><?php echo e($totalProductos ?? '150'); ?></h3>
-                    <p style="color: rgba(255,255,255,0.9); font-weight: 500;">Productos Registrados</p>
+                    <h3><?php echo e($totalProductos); ?></h3>
+                    <p>Productos Registrados</p>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-bread-slice" style="color: rgba(255,255,255,0.2); font-size: 70px;"></i>
-                </div>
-                <a href="<?php echo e(route('productos.index')); ?>" class="small-box-footer" style="background: rgba(0,0,0,0.1); color: white; border-radius: 0 0 16px 16px; padding: 10px;">
-                    Ver detalles <i class="fas fa-arrow-circle-right ml-1"></i>
+                <div class="icon"><i class="fas fa-bread-slice"></i></div>
+                <a href="<?php echo e(route('productos.index')); ?>" class="small-box-footer">
+                    Ver detalles <i class="fas fa-arrow-circle-right"></i>
                 </a>
             </div>
         </div>
-
-        <!-- Ventas Hoy -->
         <div class="col-lg-3 col-6">
-            <div class="small-box" style="background: linear-gradient(135deg, #D2B48C 0%, #C4A67A 100%); border-radius: 16px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: transform 0.2s ease;">
+            <div class="small-box small-box-accent">
                 <div class="inner">
-                    <h3 style="color: #5D3A1A; font-weight: 700;"><?php echo e($ventasHoy ?? '53'); ?></h3>
-                    <p style="color: #5D3A1A; font-weight: 500;">Ventas de Hoy</p>
+                    <h3>Bs. <?php echo e(number_format($ventasHoy, 2)); ?></h3>
+                    <p>Ventas de Hoy</p>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-shopping-cart" style="color: rgba(93,58,26,0.2); font-size: 70px;"></i>
-                </div>
-                <a href="<?php echo e(route('notas-venta.index')); ?>" class="small-box-footer" style="background: rgba(93,58,26,0.1); color: #5D3A1A; border-radius: 0 0 16px 16px; padding: 10px;">
-                    Ver detalles <i class="fas fa-arrow-circle-right ml-1"></i>
+                <div class="icon"><i class="fas fa-shopping-cart"></i></div>
+                <a href="<?php echo e(route('notas-venta.index')); ?>" class="small-box-footer">
+                    Ver detalles <i class="fas fa-arrow-circle-right"></i>
                 </a>
             </div>
         </div>
-
-        <!-- Clientes -->
         <div class="col-lg-3 col-6">
-            <div class="small-box" style="background: linear-gradient(135deg, #A0522D 0%, #8B4513 100%); border-radius: 16px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: transform 0.2s ease;">
+            <div class="small-box small-box-secondary">
                 <div class="inner">
-                    <h3 style="color: white; font-weight: 700;"><?php echo e($totalClientes ?? '44'); ?></h3>
-                    <p style="color: rgba(255,255,255,0.9); font-weight: 500;">Clientes Activos</p>
+                    <h3><?php echo e($totalClientes); ?></h3>
+                    <p>Clientes Activos</p>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-users" style="color: rgba(255,255,255,0.2); font-size: 70px;"></i>
-                </div>
-                <a href="<?php echo e(route('clientes.index')); ?>" class="small-box-footer" style="background: rgba(0,0,0,0.1); color: white; border-radius: 0 0 16px 16px; padding: 10px;">
-                    Ver detalles <i class="fas fa-arrow-circle-right ml-1"></i>
+                <div class="icon"><i class="fas fa-users"></i></div>
+                <a href="<?php echo e(route('clientes.index')); ?>" class="small-box-footer">
+                    Ver detalles <i class="fas fa-arrow-circle-right"></i>
                 </a>
             </div>
         </div>
-
-        <!-- Pedidos Pendientes -->
         <div class="col-lg-3 col-6">
-            <div class="small-box" style="background: linear-gradient(135deg, #D2691E 0%, #B85C1A 100%); border-radius: 16px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: transform 0.2s ease;">
+            <div class="small-box small-box-tertiary">
                 <div class="inner">
-                    <h3 style="color: white; font-weight: 700;"><?php echo e($pedidosPendientes ?? '65'); ?></h3>
-                    <p style="color: rgba(255,255,255,0.9); font-weight: 500;">Pedidos Pendientes</p>
+                    <h3><?php echo e($pedidosPendientes); ?></h3>
+                    <p>Pedidos Pendientes</p>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-chart-pie" style="color: rgba(255,255,255,0.2); font-size: 70px;"></i>
-                </div>
-                <a href="#" class="small-box-footer" style="background: rgba(0,0,0,0.1); color: white; border-radius: 0 0 16px 16px; padding: 10px;">
-                    Ver detalles <i class="fas fa-arrow-circle-right ml-1"></i>
+                <div class="icon"><i class="fas fa-chart-pie"></i></div>
+                <a href="#" class="small-box-footer">
+                    Ver detalles <i class="fas fa-arrow-circle-right"></i>
                 </a>
             </div>
         </div>
     </div>
 
-    
+       
     <div class="row mt-4">
-        <!-- Gráfico de ventas -->
         <div class="col-md-8">
-            <div class="card shadow-sm" style="border-radius: 16px; overflow: hidden;">
-                <div class="card-header" style="background: linear-gradient(135deg, #5D3A1A 0%, #8B4513 100%); color: white; border: none;">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-line"></i> Ventas de los últimos 7 días
-                    </h5>
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Ventas de los últimos 7 días</h5>
                 </div>
-                <div class="card-body" style="background-color: #FFF9F0;">
-                    <canvas id="ventasChart" style="height: 250px; width: 100%;"></canvas>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="ventasChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <!-- Productos más vendidos -->
         <div class="col-md-4">
-            <div class="card shadow-sm" style="border-radius: 16px; overflow: hidden;">
-                <div class="card-header" style="background: linear-gradient(135deg, #5D3A1A 0%, #8B4513 100%); color: white; border: none;">
-                    <h5 class="mb-0">
-                        <i class="fas fa-crown"></i> Top Productos
-                    </h5>
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-crown"></i> Top Productos</h5>
                 </div>
-                <div class="card-body" style="background-color: #FFF9F0;">
+                <div class="card-body">
                     <ul class="list-unstyled mb-0">
-                        <li class="mb-3 d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-bread-slice" style="color: #8B4513;"></i> Pan Francés</span>
-                            <span class="badge" style="background: #D2B48C; color: #5D3A1A; padding: 8px 12px; border-radius: 20px;">156 ventas</span>
+                        <?php $__currentLoopData = $productosTop; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $producto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <li class="mb-3 d-flex justify-content-between align-items-center top-product-item">
+                            <span>
+                                <i class="fas fa-bread-slice top-product-icon"></i> 
+                                <?php echo e($producto->nombre); ?>
+
+                            </span>
+                            <span class="top-product-badge">
+                                <?php echo e($producto->total_vendido); ?> ventas
+                            </span>
                         </li>
-                        <li class="mb-3 d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-birthday-cake" style="color: #8B4513;"></i> Pastel de Chocolate</span>
-                            <span class="badge" style="background: #D2B48C; color: #5D3A1A; padding: 8px 12px; border-radius: 20px;">89 ventas</span>
-                        </li>
-                        <li class="mb-3 d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-cookie" style="color: #8B4513;"></i> Galletas de Mantequilla</span>
-                            <span class="badge" style="background: #D2B48C; color: #5D3A1A; padding: 8px 12px; border-radius: 20px;">67 ventas</span>
-                        </li>
-                        <li class="mb-3 d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-mug-hot" style="color: #8B4513;"></i> Pan Integral</span>
-                            <span class="badge" style="background: #D2B48C; color: #5D3A1A; padding: 8px 12px; border-radius: 20px;">45 ventas</span>
-                        </li>
-                        <li class="d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-croissant" style="color: #8B4513;"></i> Croissant</span>
-                            <span class="badge" style="background: #D2B48C; color: #5D3A1A; padding: 8px 12px; border-radius: 20px;">38 ventas</span>
-                        </li>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </ul>
                 </div>
             </div>
@@ -149,48 +226,70 @@
     
     <div class="row mt-4">
         <div class="col-12">
-            <div class="card shadow-sm" style="border-radius: 16px; overflow: hidden;">
-                <div class="card-header" style="background: linear-gradient(135deg, #5D3A1A 0%, #8B4513 100%); color: white; border: none;">
-                    <h5 class="mb-0">
-                        <i class="fas fa-history"></i> Actividad Reciente
-                    </h5>
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bell"></i> Notificaciones Recientes (últimas 24h)</h5>
                 </div>
-                <div class="card-body" style="background-color: #FFF9F0;">
+                <div class="card-body">
+                    <?php if($notificaciones->count()): ?>
+                        <ul class="list-unstyled">
+                            <?php $__currentLoopData = $notificaciones; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $notif): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <li class="mb-2 pb-2 notification-item">
+                                    <i class="<?php echo e($notif->icono); ?>" style="color: <?php echo e($notif->color); ?>; width: 30px;"></i>
+                                    <?php echo e($notif->mensaje); ?>
+
+                                    <small class="text-muted float-right"><?php echo e($notif->fecha->diffForHumans()); ?></small>
+                                </li>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </ul>
+                    <?php else: ?>
+                        <p class="text-muted">No hay notificaciones recientes.</p>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Actividad Reciente</h5>
+                </div>
+                <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th style="color: #5D3A1A;">Hora</th>
-                                    <th style="color: #5D3A1A;">Usuario</th>
-                                    <th style="color: #5D3A1A;">Acción</th>
-                                    <th style="color: #5D3A1A;">Detalle</th>
+                                    <th>Fecha/Hora</th>
+                                    <th>Usuario</th>
+                                    <th>Acción</th>
+                                    <th>Detalle</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                <?php $__empty_1 = true; $__currentLoopData = $actividades; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $act): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                 <tr>
-                                    <td><span class="badge" style="background: #D2B48C; color: #5D3A1A;">10:30 AM</span></td>
-                                    <td><i class="fas fa-user-circle" style="color: #8B4513;"></i> Admin</td>
-                                    <td>Nueva venta</td>
-                                    <td>Venta #0001 - $1,250.00</td>
+                                    <td>
+                                        <span class="activity-time-badge">
+                                            <?php echo e($act->fecha->format('H:i A')); ?>
+
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-user-circle activity-user-icon"></i> 
+                                        <?php echo e($act->usuario); ?>
+
+                                    </td>
+                                    <td><?php echo e($act->accion); ?></td>
+                                    <td><?php echo e($act->descripcion); ?></td>
                                 </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <tr>
-                                    <td><span class="badge" style="background: #D2B48C; color: #5D3A1A;">09:15 AM</span></td>
-                                    <td><i class="fas fa-user-circle" style="color: #8B4513;"></i> María López</td>
-                                    <td>Producto actualizado</td>
-                                    <td>Pan Francés - Stock actualizado</td>
+                                    <td colspan="4" class="text-center text-muted">No hay actividad reciente.</td>
                                 </tr>
-                                <tr>
-                                    <td><span class="badge" style="background: #D2B48C; color: #5D3A1A;">08:45 AM</span></td>
-                                    <td><i class="fas fa-user-circle" style="color: #8B4513;"></i> Carlos Ruiz</td>
-                                    <td>Nueva receta</td>
-                                    <td>Receta "Pan de Masa Madre" creada</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="badge" style="background: #D2B48C; color: #5D3A1A;">08:00 AM</span></td>
-                                    <td><i class="fas fa-user-circle" style="color: #8B4513;"></i> Sistema</td>
-                                    <td>Inventario actualizado</td>
-                                    <td>Insumos bajos: Harina, Levadura</td>
-                                </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -198,94 +297,149 @@
             </div>
         </div>
     </div>
+
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-alt"></i> Reporte de Ventas por Rango</h5>
+                </div>
+                <div class="card-body">
+                    <form action="<?php echo e(route('dashboard')); ?>" method="GET" class="form-inline mb-4">
+                        <div class="form-group mr-2">
+                            <label class="mr-1">Desde:</label>
+                            <input type="date" name="fecha_inicio" class="form-control" value="<?php echo e(request('fecha_inicio')); ?>">
+                        </div>
+                        <div class="form-group mr-2">
+                            <label class="mr-1">Hasta:</label>
+                            <input type="date" name="fecha_fin" class="form-control" value="<?php echo e(request('fecha_fin')); ?>">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter mr-1"></i> Filtrar
+                        </button>
+                    </form>
+                    
+                    <?php if($ventasPorFechas): ?>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Fecha</th>
+                                        <th>Cliente</th>
+                                        <th>Empleado</th>
+                                        <th>Monto total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php $__currentLoopData = $ventasPorFechas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $venta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <tr>
+                                        <td><?php echo e($venta->id_nota_venta); ?></td>
+                                        <td><?php echo e($venta->fecha_venta->format('d/m/Y')); ?></td>
+                                        <td><?php echo e($venta->cliente->nombre ?? 'N/A'); ?></td>
+                                        <td><?php echo e($venta->empleado->nombre ?? 'N/A'); ?></td>
+                                        <td>Bs. <?php echo e(number_format($venta->monto_total, 2)); ?></td>
+                                    </tr>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </tbody>
+                            </table>
+                            <?php echo e($ventasPorFechas->appends(request()->query())->links()); ?>
+
+                        </div>
+                    <?php else: ?>
+                        <p class="text-muted">Seleccione un rango de fechas y haga clic en Filtrar.</p>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <?php $__env->stopSection(); ?>
 
-<?php $__env->startSection('css'); ?>
-<style>
-    .small-box {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    
-    .small-box:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
-    }
-    
-    .small-box .inner h3 {
-        font-size: 2.2rem;
-    }
-    
-    .small-box .icon i {
-        transition: all 0.2s ease;
-    }
-    
-    .small-box:hover .icon i {
-        transform: scale(1.05);
-    }
-    
-    .table tbody tr {
-        border-bottom: 1px solid #E6D5B8;
-    }
-    
-    .table tbody tr:last-child {
-        border-bottom: none;
-    }
-    
-    /* Efecto hover en filas de tabla */
-    .table tbody tr:hover {
-        background-color: #FFF5E6 !important;
-    }
-</style>
-<?php $__env->stopSection(); ?>
-
-<?php $__env->startSection('js'); ?>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<?php $__env->startPush('scripts'); ?>
 <script>
-    // Gráfico de ventas
-    const ctx = document.getElementById('ventasChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-            datasets: [{
-                label: 'Ventas',
-                data: [12, 19, 15, 17, 24, 32, 28],
-                borderColor: '#8B4513',
-                backgroundColor: 'rgba(139, 69, 19, 0.1)',
-                borderWidth: 3,
-                pointBackgroundColor: '#D2B48C',
-                pointBorderColor: '#5D3A1A',
-                pointRadius: 5,
-                pointHoverRadius: 7,
-                fill: true,
-                tension: 0.3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#5D3A1A',
-                        font: { weight: 'bold' }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: '#E6D5B8' },
-                    ticks: { color: '#5D3A1A' }
-                },
-                x: {
-                    grid: { color: '#E6D5B8' },
-                    ticks: { color: '#5D3A1A', weight: 'bold' }
-                }
-            }
+    (function() {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initChart);
+        } else {
+            initChart();
         }
-    });
+        
+        function initChart() {
+            const canvas = document.getElementById('ventasChart');
+            if (!canvas) {
+                console.error('Canvas no encontrado');
+                return;
+            }
+            
+            // Cargar Chart.js dinámicamente
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+            script.onload = function() {
+                const datos = <?php echo e(json_encode($ventasPorDia)); ?>;
+                const ctx = canvas.getContext('2d');
+                
+                // Obtener colores del tema activo
+                const style = getComputedStyle(document.body);
+                const primaryColor = style.getPropertyValue('--color-primary').trim() || '#8B4513';
+                const accentColor = style.getPropertyValue('--color-accent').trim() || '#D2B48C';
+                
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Hace 6d', 'Hace 5d', 'Hace 4d', 'Hace 3d', 'Hace 2d', 'Ayer', 'Hoy'],
+                        datasets: [{
+                            label: 'Ventas (Bs.)',
+                            data: datos,
+                            borderColor: primaryColor,
+                            backgroundColor: accentColor + '40',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3,
+                            pointBackgroundColor: primaryColor,
+                            pointBorderColor: '#fff',
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: primaryColor,
+                                    font: { family: 'Poppins', size: 12 }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { 
+                                    color: primaryColor,
+                                    font: { family: 'Poppins' }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: accentColor + '30' },
+                                ticks: {
+                                    color: primaryColor,
+                                    font: { family: 'Poppins' },
+                                    callback: function(value) {
+                                        return 'Bs. ' + value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+            document.head.appendChild(script);
+        }
+    })();
 </script>
-<?php $__env->stopSection(); ?>
+<?php $__env->stopPush(); ?>
 <?php echo $__env->make('layouts.adminlte', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /opt/lampp/htdocs/panaderia-otto/resources/views/home.blade.php ENDPATH**/ ?>

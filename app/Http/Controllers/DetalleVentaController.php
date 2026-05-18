@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\DetalleVenta;
 use App\Models\NotaVenta;
+use App\Models\Cliente;
+use App\Models\Empleado;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 
@@ -14,12 +16,16 @@ class DetalleVentaController extends Controller
      */
     public function index()
     {
-        $detallesVenta = DetalleVenta::with(['notaVenta', 'producto'])
-            ->paginate(15);
-        
-        return view('detalleventa.index', compact('detallesVenta'));
-    }
+        $notasVenta = NotaVenta::with(['cliente', 'empleado'])
+            ->orderBy('fecha_venta', 'desc')
+            ->paginate(15, ['*'], 'notas_page');
 
+        $detallesVenta = DetalleVenta::with(['notaVenta', 'almacen', 'item'])
+            ->orderBy('id_nota_venta', 'desc')
+            ->paginate(15, ['*'], 'detalles_page');
+
+        return view('detalleventa.index', compact('notasVenta', 'detallesVenta'));
+    }
     /**
      * Show the form for creating a new resource.
      */

@@ -4,7 +4,10 @@
 
 <?php $__env->startPush('styles'); ?>
 <style>
-        .btn-completar-venta {
+    /* ==========================================
+       ESTILOS ESPECÍFICOS DEL PANEL DE VENTAS
+       ========================================== */
+    .btn-completar-venta {
         transition: all 0.3s ease;
     }
     .btn-completar-venta:hover {
@@ -14,29 +17,55 @@
         opacity: 0.6;
         cursor: not-allowed;
     }
+
+    /* Tarjeta de cliente */
+    .cliente-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: var(--border-radius-md);
+        border: 2px solid transparent;
+    }
+    .cliente-card:hover {
+        border-color: var(--color-primary);
+        background-color: var(--color-bg-lighter);
+        transform: translateY(-2px);
+    }
+    .cliente-card.selected {
+        border-color: var(--color-primary);
+        background-color: var(--color-bg-lighter);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .cliente-icon {
+        color: var(--color-primary);
+    }
+
+    /* Tarjeta de producto en modal */
     .producto-card-modal {
         cursor: pointer;
         transition: all 0.3s ease;
-        border-radius: 10px;
+        border-radius: var(--border-radius-sm);
         overflow: hidden;
         margin-bottom: 15px;
-        border: 1px solid #e0e0e0;
+        border: 1px solid var(--color-border);
+        background-color: var(--bg-card, white);
     }
     .producto-card-modal:hover {
         transform: translateY(-3px);
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        border-color: #8B4513;
+        border-color: var(--color-primary);
     }
     .producto-card-modal.selected {
-        border: 2px solid #28a745;
-        background-color: #f0fff0;
+        border: 2px solid var(--badge-success);
+        background-color: var(--color-bg-lighter);
     }
     .producto-imagen-modal {
         width: 80px;
         height: 80px;
         object-fit: cover;
-        border-radius: 8px;
+        border-radius: var(--border-radius-sm);
     }
+
+    /* Badges de stock */
     .stock-badge {
         font-size: 11px;
         padding: 3px 8px;
@@ -45,19 +74,92 @@
     .stock-suficiente { background: #d4edda; color: #155724; }
     .stock-bajo { background: #fff3cd; color: #856404; }
     .stock-agotado { background: #f8d7da; color: #721c24; }
+
+    /* Carrito */
+    .cart-empty {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-muted);
+    }
+    .cart-item {
+        background: var(--color-bg-lighter);
+        border-radius: var(--border-radius-sm);
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        border-left: 3px solid var(--color-primary);
+    }
+    .cart-item-remove {
+        color: var(--badge-danger);
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .cart-item-remove:hover {
+        transform: scale(1.2);
+    }
+    .cart-total-card {
+        background: var(--color-bg-lighter);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        border: 2px solid var(--color-accent);
+    }
+
+    /* Botón agregar item */
+    .btn-add-item {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        color: var(--text-on-primary);
+        border-radius: 25px;
+        transition: all 0.3s;
+    }
+    .btn-add-item:hover {
+        filter: brightness(1.1);
+        color: var(--text-on-primary);
+    }
+    .btn-add-item:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Recibo (modal detalle) */
+    .recibo-header {
+        background-color: var(--color-bg-lighter);
+    }
+    .recibo-footer {
+        background-color: var(--color-bg-lighter);
+        border-top: 1px solid var(--color-border);
+    }
+    .recibo-empresa {
+        color: var(--color-primary-dark);
+    }
+
+    /* Panel de producto seleccionado */
+    .producto-seleccionado-panel {
+        background: var(--color-bg-lighter);
+        border-radius: var(--border-radius-sm);
+        border: 2px solid var(--color-accent);
+    }
+
+    /* Grid de productos en modal */
+    .productos-grid-container {
+        max-height: 400px;
+        overflow-y: auto;
+    }
 </style>
 <?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="container-fluid">
     <div class="row">
+        
+        
+        
         <div class="col-md-7">
-            <!-- Selección de Cliente -->
+            
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-user"></i> Seleccionar Cliente
-                        <button type="button" class="btn btn-sm btn-success float-right" data-toggle="modal" data-target="#createClienteModal">
+                        <button type="button" class="btn btn-sm btn-success float-right" 
+                                data-toggle="modal" data-target="#createClienteModal">
                             <i class="fas fa-plus"></i> Nuevo Cliente
                         </button>
                     </h5>
@@ -66,17 +168,17 @@
                     <div class="row" id="clientesList">
                         <?php $__currentLoopData = $clientes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cliente): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="col-md-6 mb-3">
-                            <div class="card cliente-card" data-id="<?php echo e($cliente->id_cliente); ?>" data-nombre="<?php echo e($cliente->nombre); ?>">
-                                <div class="card-body p-3">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-user-circle fa-2x mr-3" style="color: #8B4513;"></i>
-                                        <div>
-                                            <h6 class="mb-0"><?php echo e($cliente->nombre); ?></h6>
-                                            <small class="text-muted">
-                                                <i class="fas fa-phone"></i> <?php echo e($cliente->telefono ?? 'N/A'); ?>
+                            <div class="card cliente-card p-3" 
+                                 data-id="<?php echo e($cliente->id_cliente); ?>" 
+                                 data-nombre="<?php echo e($cliente->nombre); ?>">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-user-circle fa-2x mr-3 cliente-icon"></i>
+                                    <div>
+                                        <h6 class="mb-0"><?php echo e($cliente->nombre); ?></h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-phone"></i> <?php echo e($cliente->telefono ?? 'N/A'); ?>
 
-                                            </small>
-                                        </div>
+                                        </small>
                                     </div>
                                 </div>
                             </div>
@@ -86,19 +188,19 @@
                     <input type="hidden" id="selectedCliente" value="">
                     <div id="clienteSeleccionadoInfo" class="mt-2" style="display: none;">
                         <div class="alert alert-info">
-                            <i class="fas fa-check-circle"></i> Cliente seleccionado: <strong id="clienteSeleccionadoNombre"></strong>
+                            <i class="fas fa-check-circle"></i> 
+                            Cliente seleccionado: <strong id="clienteSeleccionadoNombre"></strong>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Agregar Productos -->
+            
             <div class="card mt-3">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="fas fa-cart-plus"></i> Agregar Productos</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Botón para abrir el modal de selección -->
                     <div class="row">
                         <div class="col-12">
                             <button type="button" class="btn btn-primary btn-block" id="btnSeleccionarProducto">
@@ -107,12 +209,13 @@
                         </div>
                     </div>
 
-                    <!-- Información del producto seleccionado -->
+                    
                     <div class="row mt-3" id="productoSeleccionadoInfo" style="display: none;">
                         <div class="col-12">
-                            <div class="alert alert-info">
+                            <div class="producto-seleccionado-panel p-3">
                                 <div class="d-flex align-items-center">
-                                    <img id="productoSeleccionadoImg" src="" alt="" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-right: 15px;">
+                                    <img id="productoSeleccionadoImg" src="" alt="" 
+                                         style="width: 50px; height: 50px; object-fit: cover; border-radius: var(--border-radius-sm); margin-right: 15px;">
                                     <div class="flex-grow-1">
                                         <strong id="productoSeleccionadoNombre"></strong><br>
                                         <small>Almacén: <span id="productoSeleccionadoAlmacen"></span></small><br>
@@ -126,7 +229,6 @@
                         </div>
                     </div>
 
-                    <!-- Campos ocultos para almacenar IDs seleccionados -->
                     <input type="hidden" id="selectedAlmacenId" value="">
                     <input type="hidden" id="selectedItemId" value="">
                     <input type="hidden" id="selectedStock" value="0">
@@ -134,18 +236,21 @@
                     <div class="row mt-3">
                         <div class="col-md-6">
                             <label>Cantidad <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="itemCantidad" placeholder="Cantidad" min="1" required>
+                            <input type="number" class="form-control" id="itemCantidad" 
+                                   placeholder="Cantidad" min="1" required>
                             <small class="text-muted" id="maxStockMsg"></small>
                         </div>
                         <div class="col-md-6">
                             <label>Precio Unitario (Bs.) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" class="form-control" id="itemPrecio" placeholder="Precio unitario" required>
+                            <input type="number" step="0.01" class="form-control" id="itemPrecio" 
+                                   placeholder="Precio unitario" required>
                         </div>
                     </div>
 
                     <div class="row mt-3">
                         <div class="col-12">
-                            <button type="button" class="btn btn-add-item btn-block" onclick="addItemToCart()" id="btnAgregarCarrito" disabled>
+                            <button type="button" class="btn btn-add-item btn-block" 
+                                    onclick="addItemToCart()" id="btnAgregarCarrito" disabled>
                                 <i class="fas fa-plus-circle"></i> Agregar a la Venta
                             </button>
                         </div>
@@ -154,7 +259,9 @@
             </div>
         </div>
 
-        <!-- Carrito -->
+        
+        
+        
         <div class="col-md-5">
             <div class="card">
                 <div class="card-header">
@@ -164,16 +271,17 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div id="cartItems" class="table-detalles">
-                        <p class="text-muted text-center">No hay productos agregados</p>
+                    <div id="cartItems">
+                        <p class="cart-empty">No hay productos agregados</p>
                     </div>
-                    <div class="total-card mt-3">
+                    <div class="cart-total-card mt-3">
                         <div class="row">
                             <div class="col-6"><strong>Total:</strong></div>
                             <div class="col-6 text-right"><strong id="cartTotal">Bs. 0.00</strong></div>
                         </div>
                     </div>
-                    <button class="btn btn-success btn-block mt-3" onclick="confirmSale()" id="btnConfirmarVenta" disabled>
+                    <button class="btn btn-success btn-block mt-3" onclick="confirmSale()" 
+                            id="btnConfirmarVenta" disabled>
                         <i class="fas fa-check-circle"></i> Confirmar Venta
                     </button>
                 </div>
@@ -181,7 +289,9 @@
         </div>
     </div>
 
-    <!-- Historial -->
+    
+    
+    
     <div class="row mt-4">
         <div class="col-12">
             <div class="card">
@@ -190,59 +300,89 @@
                 </div>
                 <div class="card-body">
                     <ul class="nav nav-tabs" role="tablist">
-                        <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#notasVenta">Notas de Venta</a></li>
-                        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#detallesVenta">Detalles de Venta</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link active" data-toggle="tab" href="#notasVenta">
+                                Notas de Venta
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#detallesVenta">
+                                Detalles de Venta
+                            </a>
+                        </li>
                     </ul>
                     <div class="tab-content mt-3">
+                        
                         <div class="tab-pane fade show active" id="notasVenta">
                             <div class="table-responsive">
                                 <table class="table table-hover">
-                                    <thead><tr><th>ID</th><th>Fecha</th><th>Cliente</th><th>Empleado</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
-                                    
-<tbody>
-    <?php $__currentLoopData = $notasVenta; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $nota): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-    <tr>
-        <td><?php echo e($nota->id_nota_venta); ?></td>
-        <td><?php echo e(\Carbon\Carbon::parse($nota->fecha_venta)->format('d/m/Y H:i')); ?></td>
-        <td><?php echo e($nota->cliente->nombre ?? 'N/A'); ?></td>
-        <td><?php echo e($nota->empleado->nombre ?? 'Sin asignar'); ?></td>
-        <td>Bs. <?php echo e(number_format($nota->monto_total, 2)); ?></td>
-        <td>
-            <?php if($nota->estado === 'completado'): ?>
-                <span class="badge badge-success">Completado</span>
-            <?php elseif($nota->estado === 'pendiente'): ?>
-                <span class="badge badge-warning">Pendiente</span>
-            <?php elseif($nota->estado === 'cancelado'): ?>
-                <span class="badge badge-danger">Cancelado</span>
-            <?php else: ?>
-                <span class="badge badge-secondary"><?php echo e($nota->estado); ?></span>
-            <?php endif; ?>
-        </td>
-        <td>
-            <div class="btn-group btn-group-sm">
-                <button class="btn btn-info" onclick="verDetalleNota(<?php echo e($nota->id_nota_venta); ?>)" title="Ver detalle">
-                    <i class="fas fa-eye"></i>
-                </button>
-
-                <?php if($nota->estado === 'pendiente'): ?>
-                <button class="btn btn-success btn-completar-venta"
-                        data-id="<?php echo e($nota->id_nota_venta); ?>"
-                        title="Completar venta">
-                    <i class="fas fa-check"></i>
-                </button>
-                <?php endif; ?>
-            </div>
-        </td>
-    </tr>
-    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-</tbody>
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Fecha</th>
+                                            <th>Cliente</th>
+                                            <th>Empleado</th>
+                                            <th>Total</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php $__currentLoopData = $notasVenta; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $nota): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <tr>
+                                            <td><?php echo e($nota->id_nota_venta); ?></td>
+                                            <td><?php echo e(\Carbon\Carbon::parse($nota->fecha_venta)->format('d/m/Y H:i')); ?></td>
+                                            <td><?php echo e($nota->cliente->nombre ?? 'N/A'); ?></td>
+                                            <td><?php echo e($nota->empleado->nombre ?? 'Sin asignar'); ?></td>
+                                            <td>Bs. <?php echo e(number_format($nota->monto_total, 2)); ?></td>
+                                            <td>
+                                                <?php if($nota->estado === 'completado'): ?>
+                                                    <span class="badge badge-success">Completado</span>
+                                                <?php elseif($nota->estado === 'pendiente'): ?>
+                                                    <span class="badge badge-warning">Pendiente</span>
+                                                <?php elseif($nota->estado === 'cancelado'): ?>
+                                                    <span class="badge badge-danger">Cancelado</span>
+                                                <?php else: ?>
+                                                    <span class="badge badge-secondary"><?php echo e($nota->estado); ?></span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-info" 
+                                                            onclick="verDetalleNota(<?php echo e($nota->id_nota_venta); ?>)" 
+                                                            title="Ver detalle">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <?php if($nota->estado === 'pendiente'): ?>
+                                                    <button class="btn btn-success btn-completar-venta"
+                                                            data-id="<?php echo e($nota->id_nota_venta); ?>"
+                                                            title="Completar venta">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
+
+                        
                         <div class="tab-pane fade" id="detallesVenta">
                             <div class="table-responsive">
                                 <table class="table table-hover">
-                                    <thead><tr><th>Nota</th><th>Almacén</th><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr></thead>
+                                    <thead>
+                                        <tr>
+                                            <th>Nota</th>
+                                            <th>Almacén</th>
+                                            <th>Producto</th>
+                                            <th>Cantidad</th>
+                                            <th>Precio</th>
+                                            <th>Subtotal</th>
+                                        </tr>
+                                    </thead>
                                     <tbody>
                                         <?php $__currentLoopData = $detallesVenta; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $detalle): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <tr>
@@ -263,61 +403,65 @@
             </div>
         </div>
     </div>
+</div>
 
-    
-    <div class="modal fade" id="seleccionProductoModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">
-                        <i class="fas fa-boxes"></i> Seleccionar Producto por Almacén
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Filtrar por Almacén</label>
-                                <select id="filtroAlmacenModal" class="form-control">
-                                    <option value="">Todos los almacenes</option>
-                                    <?php $__currentLoopData = $almacenes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $almacen): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <option value="<?php echo e($almacen->id_almacen); ?>"><?php echo e($almacen->nombre); ?></option>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Buscar Producto</label>
-                                <input type="text" id="buscarProductoModal" class="form-control" placeholder="Nombre del producto...">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>&nbsp;</label>
-                                <button type="button" class="btn btn-secondary btn-block" id="btnLimpiarFiltros">
-                                    <i class="fas fa-eraser"></i> Limpiar Filtros
-                                </button>
-                            </div>
+
+
+
+<div class="modal fade" id="seleccionProductoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-boxes"></i> Seleccionar Producto por Almacén
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Filtrar por Almacén</label>
+                            <select id="filtroAlmacenModal" class="form-control">
+                                <option value="">Todos los almacenes</option>
+                                <?php $__currentLoopData = $almacenes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $almacen): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($almacen->id_almacen); ?>"><?php echo e($almacen->nombre); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </select>
                         </div>
                     </div>
-
-                    <div class="row" id="productosGrid" style="max-height: 400px; overflow-y: auto;">
-                        <!-- Los productos se cargarán aquí dinámicamente -->
-                        <div class="col-12 text-center py-5">
-                            <i class="fas fa-spinner fa-spin fa-2x"></i>
-                            <p>Cargando productos...</p>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Buscar Producto</label>
+                            <input type="text" id="buscarProductoModal" class="form-control" 
+                                   placeholder="Nombre del producto...">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="button" class="btn btn-secondary btn-block" id="btnLimpiarFiltros">
+                                <i class="fas fa-eraser"></i> Limpiar Filtros
+                            </button>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+
+                <div class="row productos-grid-container" id="productosGrid">
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p>Cargando productos...</p>
+                    </div>
                 </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
             </div>
         </div>
     </div>
 </div>
+
+
 
 
 <?php echo $__env->make('usuarios.partials.modal-create-cliente', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
@@ -326,10 +470,13 @@
 <?php echo $__env->make('modulo-almacen.partials.modal-producto', ['categorias' => $categoriasProducto], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 
-<div class="modal fade" id="modalDetalleNotaVenta" tabindex="-1" aria-labelledby="modalDetalleNotaVentaLabel" aria-hidden="true">
+
+
+<div class="modal fade" id="modalDetalleNotaVenta" tabindex="-1" 
+     aria-labelledby="modalDetalleNotaVentaLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-gradient-dark text-white" style="background: linear-gradient(135deg, #5D3A1A 0%, #8B4513 100%);">
+            <div class="modal-header">
                 <h5 class="modal-title" id="modalDetalleNotaVentaLabel">
                     <i class="fas fa-receipt"></i> Comprobante de Venta
                 </h5>
@@ -339,10 +486,10 @@
             </div>
             <div class="modal-body p-0">
                 
-                <div class="p-3 border-bottom" style="background-color: #f8f9fa;">
+                <div class="p-3 border-bottom recibo-header">
                     <div class="row">
                         <div class="col-6">
-                            <h4 class="mb-0"><strong>PANADERÍA OTTO</strong></h4>
+                            <h4 class="mb-0 recibo-empresa"><strong>PANADERÍA OTTO</strong></h4>
                             <small class="text-muted">NIT: 123456789</small><br>
                             <small class="text-muted">Av. Principal #123, Santa Cruz</small><br>
                             <small class="text-muted">Tel: (591) 123-45678</small>
@@ -385,9 +532,7 @@
                                     <th class="text-right">Subtotal</th>
                                 </tr>
                             </thead>
-                            <tbody id="reciboVentaItemsBody">
-                                
-                            </tbody>
+                            <tbody id="reciboVentaItemsBody"></tbody>
                             <tfoot>
                                 <tr>
                                     <td colspan="4" class="text-right"><strong>Total:</strong></td>
@@ -399,7 +544,7 @@
                 </div>
 
                 
-                <div class="p-3 bg-light border-top">
+                <div class="p-3 recibo-footer">
                     <div class="row">
                         <div class="col-6">
                             <small class="text-muted">Gracias por su compra</small><br>
@@ -432,18 +577,25 @@
 </div>
 
 
+
+
 <div class="modal fade" id="modalEnvioCorreoVenta" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-envelope"></i> Enviar Comprobante</h5>
+                <h5 class="modal-title">
+                    <i class="fas fa-envelope"></i> Enviar Comprobante
+                </h5>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
                     <label>Correo electrónico</label>
-                    <input type="email" class="form-control" id="correoDestinoVenta" placeholder="ejemplo@correo.com" required>
-                    <small class="form-text text-muted">Se enviará una copia del comprobante a esta dirección.</small>
+                    <input type="email" class="form-control" id="correoDestinoVenta" 
+                           placeholder="ejemplo@correo.com" required>
+                    <small class="form-text text-muted">
+                        Se enviará una copia del comprobante a esta dirección.
+                    </small>
                 </div>
                 <input type="hidden" id="idNotaVentaEnvio">
             </div>
@@ -458,10 +610,10 @@
 </div>
 
 <?php $__env->stopSection(); ?>
+
 <?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
-    // Variables globales
     let productosData = [];
 
     // Cargar productos al abrir el modal
@@ -470,9 +622,12 @@ $(document).ready(function() {
         $('#seleccionProductoModal').modal('show');
     });
 
-    // Función para cargar productos
     function cargarProductosParaModal() {
-        $('#productosGrid').html('<div class="col-12 text-center py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Cargando productos...</p></div>');
+        $('#productosGrid').html(
+            '<div class="col-12 text-center py-5">' +
+            '<i class="fas fa-spinner fa-spin fa-2x"></i>' +
+            '<p>Cargando productos...</p></div>'
+        );
 
         $.ajax({
             url: '<?php echo e(route("ventas.getProductosConStock")); ?>',
@@ -482,27 +637,32 @@ $(document).ready(function() {
                     productosData = response.productos;
                     renderProductosGrid(productosData);
                 } else {
-                    $('#productosGrid').html('<div class="col-12 text-center text-danger">Error al cargar productos</div>');
+                    $('#productosGrid').html(
+                        '<div class="col-12 text-center text-danger">Error al cargar productos</div>'
+                    );
                 }
             },
             error: function() {
-                $('#productosGrid').html('<div class="col-12 text-center text-danger">Error al cargar productos</div>');
+                $('#productosGrid').html(
+                    '<div class="col-12 text-center text-danger">Error al cargar productos</div>'
+                );
             }
         });
     }
 
-    // Renderizar productos en grid
     function renderProductosGrid(productos) {
         if (productos.length === 0) {
-            $('#productosGrid').html('<div class="col-12 text-center text-muted py-5">No hay productos disponibles</div>');
+            $('#productosGrid').html(
+                '<div class="col-12 text-center text-muted py-5">No hay productos disponibles</div>'
+            );
             return;
         }
 
         let html = '';
         productos.forEach(function(producto) {
-            const stockClass = producto.stock > 10 ? 'stock-suficiente' : (producto.stock > 0 ? 'stock-bajo' : 'stock-agotado');
+            const stockClass = producto.stock > 10 ? 'stock-suficiente' : 
+                              (producto.stock > 0 ? 'stock-bajo' : 'stock-agotado');
             const stockText = producto.stock > 0 ? `${producto.stock} unidades` : 'Agotado';
-
             const imagenUrl = producto.imagen && producto.imagen !== ''
                 ? producto.imagen
                 : 'https://placehold.co/80x80/8B4513/white?text=Producto';
@@ -522,7 +682,6 @@ $(document).ready(function() {
                                 <img src="${imagenUrl}"
                                     alt="${producto.producto_nombre}"
                                     class="producto-imagen-modal"
-                                    style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;"
                                     onerror="this.src='https://placehold.co/80x80/8B4513/white?text=Producto'">
                             </div>
                             <div class="flex-grow-1">
@@ -541,37 +700,22 @@ $(document).ready(function() {
 
         $('#productosGrid').html(html);
 
-        // Agregar evento de clic a las tarjetas
         $('.producto-card-modal').on('click', function() {
             $('.producto-card-modal').removeClass('selected');
             $(this).addClass('selected');
 
-            const almacenId = $(this).data('almacen-id');
-            const almacenNombre = $(this).data('almacen-nombre');
-            const itemId = $(this).data('item-id');
-            const productoNombre = $(this).data('producto-nombre');
-            const stock = $(this).data('stock');
-            const precio = $(this).data('precio');
-            const imagen = $(this).data('imagen');
-
-            $('#selectedAlmacenId').val(almacenId);
-            $('#selectedItemId').val(itemId);
-            $('#selectedStock').val(stock);
-
-            $('#productoSeleccionadoImg').attr('src', imagen || '/images/default-product.png');
-            $('#productoSeleccionadoNombre').text(productoNombre);
-            $('#productoSeleccionadoAlmacen').text(almacenNombre);
-            $('#productoSeleccionadoStock').text(stock + ' unidades');
-
-            $('#itemPrecio').val(precio);
-
-            $('#itemCantidad').prop('disabled', false);
-            $('#itemCantidad').attr('max', stock);
-            $('#maxStockMsg').text(`Máximo disponible: ${stock} unidades`);
-
+            $('#selectedAlmacenId').val($(this).data('almacen-id'));
+            $('#selectedItemId').val($(this).data('item-id'));
+            $('#selectedStock').val($(this).data('stock'));
+            $('#productoSeleccionadoImg').attr('src', $(this).data('imagen') || '/images/default-product.png');
+            $('#productoSeleccionadoNombre').text($(this).data('producto-nombre'));
+            $('#productoSeleccionadoAlmacen').text($(this).data('almacen-nombre'));
+            $('#productoSeleccionadoStock').text($(this).data('stock') + ' unidades');
+            $('#itemPrecio').val($(this).data('precio'));
+            $('#itemCantidad').prop('disabled', false).attr('max', $(this).data('stock'));
+            $('#maxStockMsg').text(`Máximo disponible: ${$(this).data('stock')} unidades`);
             $('#productoSeleccionadoInfo').show();
             $('#btnAgregarCarrito').prop('disabled', false);
-
             $('#seleccionProductoModal').modal('hide');
         });
     }
@@ -588,20 +732,16 @@ $(document).ready(function() {
     function aplicarFiltros() {
         const almacenFiltro = $('#filtroAlmacenModal').val();
         const busqueda = $('#buscarProductoModal').val().toLowerCase();
-
         let productosFiltrados = productosData;
-
         if (almacenFiltro) {
             productosFiltrados = productosFiltrados.filter(p => p.id_almacen == almacenFiltro);
         }
-
         if (busqueda) {
             productosFiltrados = productosFiltrados.filter(p =>
                 p.producto_nombre.toLowerCase().includes(busqueda) ||
                 p.almacen_nombre.toLowerCase().includes(busqueda)
             );
         }
-
         renderProductosGrid(productosFiltrados);
     }
 
@@ -609,28 +749,24 @@ $(document).ready(function() {
     $('#itemCantidad').on('input', function() {
         const cantidad = parseInt($(this).val());
         const stock = parseInt($('#selectedStock').val());
-        const maxStockMsg = $('#maxStockMsg');
-
         if (cantidad > stock) {
             $(this).addClass('is-invalid');
-            maxStockMsg.html(`<span class="text-danger">⚠️ La cantidad excede el stock disponible (${stock} unidades)</span>`);
+            $('#maxStockMsg').html(`<span class="text-danger">⚠️ La cantidad excede el stock disponible (${stock} unidades)</span>`);
             $('#btnAgregarCarrito').prop('disabled', true);
         } else if (cantidad <= 0 || isNaN(cantidad)) {
             $(this).addClass('is-invalid');
-            maxStockMsg.html(`<span class="text-danger">⚠️ Ingrese una cantidad válida</span>`);
+            $('#maxStockMsg').html(`<span class="text-danger">⚠️ Ingrese una cantidad válida</span>`);
             $('#btnAgregarCarrito').prop('disabled', true);
         } else {
             $(this).removeClass('is-invalid');
-            maxStockMsg.html(`✅ Stock disponible: ${stock} unidades`);
+            $('#maxStockMsg').html(`✅ Stock disponible: ${stock} unidades`);
             $('#btnAgregarCarrito').prop('disabled', false);
         }
     });
 
     // Limpiar selección
     $('#btnLimpiarSeleccion').on('click', function() {
-        $('#selectedAlmacenId').val('');
-        $('#selectedItemId').val('');
-        $('#selectedStock').val('');
+        $('#selectedAlmacenId, #selectedItemId, #selectedStock').val('');
         $('#itemCantidad').val('').prop('disabled', true);
         $('#itemPrecio').val('');
         $('#productoSeleccionadoInfo').hide();
@@ -638,14 +774,10 @@ $(document).ready(function() {
         $('#maxStockMsg').empty();
     });
 
-    // ==========================================
-    // BOTÓN COMPLETAR VENTA - CORREGIDO
-    // ==========================================
+    // Completar venta
     $(document).on('click', '.btn-completar-venta', function() {
         const idVenta = $(this).data('id');
         const btn = $(this);
-
-        console.log('Click en completar venta #' + idVenta); // Debug
 
         Swal.fire({
             title: '¿Completar venta?',
@@ -660,8 +792,6 @@ $(document).ready(function() {
             if (result.isConfirmed) {
                 btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
-                console.log('Enviando petición POST a: /ventas/' + idVenta + '/completar'); // Debug
-
                 $.ajax({
                     url: '/ventas/' + idVenta + '/completar',
                     method: 'POST',
@@ -670,8 +800,6 @@ $(document).ready(function() {
                         'Accept': 'application/json'
                     },
                     success: function(response) {
-                        console.log('Respuesta:', response); // Debug
-
                         if (response.success) {
                             Swal.fire({
                                 icon: 'success',
@@ -680,27 +808,17 @@ $(document).ready(function() {
                                 timer: 2000,
                                 showConfirmButton: false
                             });
-
-                            setTimeout(() => {
-                                location.reload();
-                            }, 2000);
+                            setTimeout(() => location.reload(), 2000);
                         } else {
                             Swal.fire('Error', response.message, 'error');
                             btn.prop('disabled', false).html('<i class="fas fa-check"></i>');
                         }
                     },
                     error: function(xhr) {
-                        console.log('Error:', xhr); // Debug
-
                         let message = 'Error al completar la venta';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            message = xhr.responseJSON.message;
-                        } else if (xhr.status === 404) {
-                            message = 'Ruta no encontrada. Verifica que la URL sea correcta.';
-                        } else if (xhr.status === 419) {
-                            message = 'Sesión expirada. Recarga la página.';
-                        }
-
+                        if (xhr.responseJSON?.message) message = xhr.responseJSON.message;
+                        else if (xhr.status === 404) message = 'Ruta no encontrada';
+                        else if (xhr.status === 419) message = 'Sesión expirada. Recarga la página.';
                         Swal.fire('Error', message, 'error');
                         btn.prop('disabled', false).html('<i class="fas fa-check"></i>');
                     }
@@ -710,7 +828,6 @@ $(document).ready(function() {
     });
 });
 
-// Variables globales para rutas
 window.routes = {
     ventasStore: '<?php echo e(route("ventas.store")); ?>',
     ventasClientes: '<?php echo e(route("ventas.clientes")); ?>',
@@ -719,5 +836,4 @@ window.routes = {
 </script>
 <script src="<?php echo e(asset('js/gestion-comercial.js')); ?>"></script>
 <?php $__env->stopPush(); ?>
-
 <?php echo $__env->make('layouts.adminlte', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /opt/lampp/htdocs/panaderia-otto/resources/views/seccion-ventas/index.blade.php ENDPATH**/ ?>

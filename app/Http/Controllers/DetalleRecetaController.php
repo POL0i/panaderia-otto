@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DetalleReceta;
 use App\Models\Receta;
 use App\Models\Insumo;
+use App\Models\CategoriaInsumo;
 use Illuminate\Http\Request;
 
 class DetalleRecetaController extends Controller
@@ -14,11 +15,20 @@ class DetalleRecetaController extends Controller
      */
     public function index()
     {
-        $detalles = DetalleReceta::with('receta', 'insumo')
-            ->orderBy('id_receta')
+        $recetas = Receta::with(['detalles.insumo.categoria'])
+            ->withCount('detalles')
+            ->orderBy('nombre')
             ->paginate(15);
+        
+        // Para el modal de agregar detalle
+        $insumos = Insumo::with(['categoria', 'item'])
+        ->join('items', 'insumos.id_item', '=', 'items.id_item')
+        ->orderBy('items.nombre', 'asc')
+        ->select('insumos.*')
+        ->get();
+        $categorias = CategoriaInsumo::orderBy('nombre')->get();
 
-        return view('produccion.detalles-receta.index', compact('detalles'));
+        return view('produccion.recetas.index', compact('recetas', 'insumos', 'categorias'));
     }
 
     /**

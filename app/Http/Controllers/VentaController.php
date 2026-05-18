@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Models\ConfiguracionInventario;
 use App\Models\TransaccionLibelula;
 use App\Services\LibelulaService;
 
@@ -135,11 +136,13 @@ class VentaController extends Controller
 
                 if (class_exists(\App\Models\LoteInventario::class)) {
                     try {
+                        $metodoValuacion = ConfiguracionInventario::obtener()->metodo_valuacion_predeterminado;
+
                         \App\Models\LoteInventario::consumir(
                             $detalle['id_almacen'],
                             $detalle['id_item'],
                             $detalle['cantidad'],
-                            'PEPS'
+                            $metodoValuacion
                         );
                     } catch (\Exception $e) {
                         Log::warning('Error al consumir lote: ' . $e->getMessage());
@@ -231,7 +234,7 @@ class VentaController extends Controller
 
     public function getNotaVenta($id)
     {
-        $nota = NotaVenta::with(['cliente', 'emploedo'])->findOrFail($id);
+        $nota = NotaVenta::with(['cliente', 'empleado'])->findOrFail($id);
         $detalles = DB::table('detalles_venta')
             ->join('almacenes', 'detalles_venta.id_almacen', '=', 'almacenes.id_almacen')
             ->join('items', 'detalles_venta.id_item', '=', 'items.id_item')
@@ -484,90 +487,90 @@ class VentaController extends Controller
     }
 
     public function procesarPedido(Request $request, LibelulaService $libelula)
-{
-    $cart = session()->get('cart', []);
-    if (empty($cart)) {
-        return redirect()->route('landing')->with('error', 'Carrito vacío');
-    }
+    {
+        $cart = session()->get('cart', []);
+        if (empty($cart)) {
+            return redirect()->route('landing')->with('error', 'Carrito vacío');
+        }
 
-    $total = $this->calcularTotal($cart);
-    $clienteId = null;
-    $empleadoId = null;
+        $total = $this->calcularTotal($cart);
+        $clienteId = null;
+        $empleadoId = null;
 
-    if (Auth::check()) {
-        $usuario = Auth::user();
-        if ($usuario->id_cliente) {
-            $clienteId = $usuario->id_cliente;
-        } elseif ($usuario->id_empleado) {
-            $empleadoId = $usuario->id_empleado;
-            $clienteAnonimo = $this->obtenerOCrearClienteAnonimo();
-            $clienteId = $clienteAnonimo->id_cliente;
+        if (Auth::check()) {
+            $usuario = Auth::user();
+            if ($usuario->id_cliente) {
+                $clienteId = $usuario->id_cliente;
+            } elseif ($usuario->id_empleado) {
+                $empleadoId = $usuario->id_empleado;
+                $clienteAnonimo = $this->obtenerOCrearClienteAnonimo();
+                $clienteId = $clienteAnonimo->id_cliente;
+            } else {
+                $clienteAnonimo = $this->obtenerOCrearClienteAnonimo();
+                $clienteId = $clienteAnonimo->id_cliente;
+            }
         } else {
             $clienteAnonimo = $this->obtenerOCrearClienteAnonimo();
             $clienteId = $clienteAnonimo->id_cliente;
         }
-    } else {
-        $clienteAnonimo = $this->obtenerOCrearClienteAnonimo();
-        $clienteId = $clienteAnonimo->id_cliente;
-    }
 
-    // Crear nota de venta
-    $notaVenta = NotaVenta::create([
-        'fecha_venta' => now(),
-        'monto_total' => $total,
-        'estado' => 'pendiente',
-        'id_cliente' => $clienteId,
-        'id_empleado' => $empleadoId,
-    ]);
-
-    foreach ($cart as $item) {
-        DetalleVenta::create([
-            'id_nota_venta' => $notaVenta->id_nota_venta,
-            'id_almacen' => $item['id_almacen'],
-            'id_item' => $item['id_item'],
-            'cantidad' => $item['cantidad'],
-            'precio' => $item['precio'],
+        // Crear nota de venta
+        $notaVenta = NotaVenta::create([
+            'fecha_venta' => now(),
+            'monto_total' => $total,
+            'estado' => 'pendiente',
+            'id_cliente' => $clienteId,
+            'id_empleado' => $empleadoId,
         ]);
-    }
 
-    // Llamar a Libélula
-    try {
-        $resultado = $libelula->registrarPago($notaVenta);
-    } catch (\Exception $e) {
-        Log::error('Error Libélula: ' . $e->getMessage());
+        foreach ($cart as $item) {
+            DetalleVenta::create([
+                'id_nota_venta' => $notaVenta->id_nota_venta,
+                'id_almacen' => $item['id_almacen'],
+                'id_item' => $item['id_item'],
+                'cantidad' => $item['cantidad'],
+                'precio' => $item['precio'],
+            ]);
+        }
+
+        // Llamar a Libélula
+        try {
+            $resultado = $libelula->registrarPago($notaVenta);
+        } catch (\Exception $e) {
+            Log::error('Error Libélula: ' . $e->getMessage());
+            session()->forget('cart');
+            return redirect()->route('landing')->with('error', 'Error al conectar con la pasarela de pago.');
+        }
+
+        if ($resultado['success'] && !empty($resultado['url_pasarela'])) {
+            // Guardar la transacción en la base de datos
+            TransaccionLibelula::create([
+                'nota_venta_id' => $notaVenta->id_nota_venta,
+                'identificador' => (string) $notaVenta->id_nota_venta,
+                'id_transaccion_libelula' => $resultado['id_transaccion'] ?? null,
+                'codigo_recaudacion' => $resultado['codigo_recaudacion'] ?? null,
+                'monto' => $notaVenta->monto_total,
+                'qr_url' => $resultado['qr_url'] ?? null,
+                'url_pasarela' => $resultado['url_pasarela'],
+                'estado' => 'pendiente'
+            ]);
+
+            // Limpiar carrito
+            session()->forget('cart');
+
+            // 👉 En lugar de redirect()->away(), retornamos la vista con los datos
+            return view('pago.mostrar', [
+                'notaVenta' => $notaVenta,
+                'qr_url' => $resultado['qr_url'] ?? null,
+                'url_pasarela' => $resultado['url_pasarela'],
+                'id_transaccion' => $resultado['id_transaccion'] ?? null,
+            ]);
+        }
+
+        // Si falló
         session()->forget('cart');
-        return redirect()->route('landing')->with('error', 'Error al conectar con la pasarela de pago.');
+        return redirect()->route('landing')->with('error', $resultado['message'] ?? 'Error al procesar el pago');
     }
-
-    if ($resultado['success'] && !empty($resultado['url_pasarela'])) {
-        // Guardar la transacción en la base de datos
-        TransaccionLibelula::create([
-            'nota_venta_id' => $notaVenta->id_nota_venta,
-            'identificador' => (string) $notaVenta->id_nota_venta,
-            'id_transaccion_libelula' => $resultado['id_transaccion'] ?? null,
-            'codigo_recaudacion' => $resultado['codigo_recaudacion'] ?? null,
-            'monto' => $notaVenta->monto_total,
-            'qr_url' => $resultado['qr_url'] ?? null,
-            'url_pasarela' => $resultado['url_pasarela'],
-            'estado' => 'pendiente'
-        ]);
-
-        // Limpiar carrito
-        session()->forget('cart');
-
-        // 👉 En lugar de redirect()->away(), retornamos la vista con los datos
-        return view('pago.mostrar', [
-            'notaVenta' => $notaVenta,
-            'qr_url' => $resultado['qr_url'] ?? null,
-            'url_pasarela' => $resultado['url_pasarela'],
-            'id_transaccion' => $resultado['id_transaccion'] ?? null,
-        ]);
-    }
-
-    // Si falló
-    session()->forget('cart');
-    return redirect()->route('landing')->with('error', $resultado['message'] ?? 'Error al procesar el pago');
-}
 
 private function obtenerOCrearClienteAnonimo()
 {
@@ -599,34 +602,58 @@ private function obtenerOCrearClienteAnonimo()
     }
 
      // En VentaController.php
-public function webhookPagoExitoso(Request $request)
-{
-    $transactionId = $request->get('transaction_id');
-    $identificador = $request->get('identificador'); // ← Libélula debería enviar esto
+    public function webhookPagoExitoso(Request $request)
+    {
+        // Registrar ABSOLUTAMENTE TODO lo que llega
+        Log::info('=== WEBHOOK - INICIO ===');
+        Log::info('Método: ' . $request->method());
+        Log::info('IP: ' . $request->ip());
+        Log::info('Headers:', $request->headers->all());
+        Log::info('Query params:', $request->query());
+        Log::info('Body raw: ' . $request->getContent());
+        Log::info('=== WEBHOOK - FIN ===');
+        
+        // Libélula envía los parámetros por GET (query string) o POST
+        $transactionId = $request->get('transaction_id') ?? $request->query('transaction_id');
+        $identificador = $request->get('identificador') ?? $request->query('identificador');
 
-    Log::info('Webhook Libélula recibido', $request->all());
+        Log::info('Webhook Libélula recibido', [
+            'method' => $request->method(),
+            'all' => $request->all(),
+            'query' => $request->query()
+        ]);
 
-    // Buscar por id_transaccion_libelula O por identificador
-    $transaccion = null;
-
-    if ($transactionId) {
-        $transaccion = TransaccionLibelula::where('id_transaccion_libelula', $transactionId)->first();
-    }
-
-    if (!$transaccion && $identificador) {
-        $transaccion = TransaccionLibelula::where('identificador', $identificador)->first();
-    }
-
-    if ($transaccion) {
-        $transaccion->update(['estado' => 'pagado']);
-        $notaVenta = $transaccion->notaVenta;
-        if ($notaVenta) {
-            $notaVenta->update(['estado' => 'completado']);
+        if (!$transactionId && !$identificador) {
+            Log::error('Webhook sin identificadores');
+            return response()->json(['error' => 'No identifiers'], 400);
         }
-    }
 
-    return response()->json(['success' => true]);
-}
+        $transaccion = null;
+
+        if ($transactionId) {
+            $transaccion = TransaccionLibelula::where('id_transaccion_libelula', $transactionId)->first();
+        }
+
+        if (!$transaccion && $identificador) {
+            $transaccion = TransaccionLibelula::where('identificador', $identificador)->first();
+        }
+
+        if ($transaccion) {
+            $transaccion->update(['estado' => 'pagado']);
+            $notaVenta = $transaccion->notaVenta;
+            if ($notaVenta) {
+                $notaVenta->update(['estado' => 'completado']);
+                Log::info('Venta #' . $notaVenta->id_nota_venta . ' completada por webhook');
+            }
+        } else {
+            Log::error('Transacción no encontrada', [
+                'transaction_id' => $transactionId,
+                'identificador' => $identificador
+            ]);
+        }
+
+        return response()->json(['success' => true]);
+    }
 
     public function verificarPago($id)
     {
@@ -639,111 +666,140 @@ public function webhookPagoExitoso(Request $request)
     }
 
     public function pagoExito($id)
+        {
+            $notaVenta = NotaVenta::findOrFail($id);
+            return redirect()->route('landing')->with('success', '¡Pago confirmado! Gracias por tu compra.');
+        }
+
+    public function completarVenta($id)
     {
-        $notaVenta = NotaVenta::findOrFail($id);
-        return redirect()->route('landing')->with('success', '¡Pago confirmado! Gracias por tu compra.');
-    }
+        try {
+            DB::beginTransaction();
 
-    /**
- * Cambiar estado de venta pendiente a completado
- */
-/**
- * Cambiar estado de venta pendiente a completado
- */
-public function completarVenta($id)
-{
-    try {
-        DB::beginTransaction();
+            $notaVenta = NotaVenta::findOrFail($id);
 
-        $notaVenta = NotaVenta::findOrFail($id);
-
-        // Verificar que esté pendiente
-        if ($notaVenta->estado !== 'pendiente') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Solo se pueden completar ventas pendientes'
-            ], 422);
-        }
-
-        // Obtener usuario actual
-        $usuario = Auth::user();
-        if (!$usuario) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Usuario no autenticado'
-            ], 401);
-        }
-
-        // Si el usuario tiene un empleado asociado, usarlo
-        if ($usuario->empleado) {
-            $notaVenta->id_empleado = $usuario->empleado->id_empleado;
-            Log::info('Asignando empleado a la venta', [
-                'id_venta' => $id,
-                'id_empleado' => $usuario->empleado->id_empleado
-            ]);
-        } elseif (!$notaVenta->id_empleado) {
-            // Si no tiene empleado y el usuario no es empleado, asignar el primer empleado
-            $primerEmpleado = Empleado::first();
-            if ($primerEmpleado) {
-                $notaVenta->id_empleado = $primerEmpleado->id_empleado;
+            // Verificar que esté pendiente
+            if ($notaVenta->estado !== 'pendiente') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Solo se pueden completar ventas pendientes'
+                ], 422);
             }
-        }
 
-        // Actualizar estado
-        $notaVenta->estado = 'completado';
-        $notaVenta->save();
+            // Obtener usuario actual
+            $usuario = Auth::user();
+            if (!$usuario) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
 
-        // Procesar detalles si existen
-        if ($notaVenta->detalles->count() > 0) {
-            foreach ($notaVenta->detalles as $detalle) {
-                // Verificar stock antes de descontar
-                $almacenItem = DB::table('almacen_item')
-                    ->where('id_almacen', $detalle->id_almacen)
-                    ->where('id_item', $detalle->id_item)
-                    ->first();
-
-                if ($almacenItem) {
-                    if ($almacenItem->stock < $detalle->cantidad) {
-                        DB::rollBack();
-                        return response()->json([
-                            'success' => false,
-                            'message' => "Stock insuficiente para completar la venta. Producto ID: {$detalle->id_item}"
-                        ], 422);
-                    }
-
-                    // Descontar stock
-                    DB::table('almacen_item')
-                        ->where('id_almacen', $detalle->id_almacen)
-                        ->where('id_item', $detalle->id_item)
-                        ->decrement('stock', $detalle->cantidad);
+            // Si el usuario tiene un empleado asociado, usarlo
+            if ($usuario->empleado) {
+                $notaVenta->id_empleado = $usuario->empleado->id_empleado;
+                Log::info('Asignando empleado a la venta', [
+                    'id_venta' => $id,
+                    'id_empleado' => $usuario->empleado->id_empleado
+                ]);
+            } elseif (!$notaVenta->id_empleado) {
+                $primerEmpleado = Empleado::first();
+                if ($primerEmpleado) {
+                    $notaVenta->id_empleado = $primerEmpleado->id_empleado;
                 }
             }
+
+            // Actualizar estado
+            $notaVenta->estado = 'completado';
+            $notaVenta->save();
+
+            // Obtener método de valuación de la configuración
+            $metodoValuacion = ConfiguracionInventario::obtener()->metodo_valuacion_predeterminado;
+
+            // Procesar detalles si existen
+            if ($notaVenta->detalles->count() > 0) {
+                foreach ($notaVenta->detalles as $detalle) {
+                    $almacenItem = DB::table('almacen_item')
+                        ->where('id_almacen', $detalle->id_almacen)
+                        ->where('id_item', $detalle->id_item)
+                        ->first();
+
+                    if ($almacenItem) {
+                        if ($almacenItem->stock < $detalle->cantidad) {
+                            DB::rollBack();
+                            return response()->json([
+                                'success' => false,
+                                'message' => "Stock insuficiente para completar la venta. Producto ID: {$detalle->id_item}"
+                            ], 422);
+                        }
+
+                        // Descontar stock
+                        DB::table('almacen_item')
+                            ->where('id_almacen', $detalle->id_almacen)
+                            ->where('id_item', $detalle->id_item)
+                            ->decrement('stock', $detalle->cantidad);
+
+                        // ✅ NUEVO: Consumir lote según método de valuación
+                        if (class_exists(\App\Models\LoteInventario::class)) {
+                            try {
+                                \App\Models\LoteInventario::consumir(
+                                    $detalle->id_almacen,
+                                    $detalle->id_item,
+                                    $detalle->cantidad,
+                                    $metodoValuacion
+                                );
+                            } catch (\Exception $e) {
+                                Log::warning('Error al consumir lote en venta manual: ' . $e->getMessage());
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ✅ Corregido: Definir $resultado antes de usarlo
+            $resultado = [];
+
+            $transaccionExistente = TransaccionLibelula::where('nota_venta_id', $notaVenta->id_nota_venta)->first();
+            
+            if (!$transaccionExistente) {
+                TransaccionLibelula::create([
+                    'nota_venta_id' => $notaVenta->id_nota_venta,
+                    'identificador' => (string) $notaVenta->id_nota_venta,
+                    'monto' => $notaVenta->monto_total,
+                    'estado' => 'pagado',
+                    'url_pasarela' => null,
+                    'qr_url' => null
+                ]);
+            } else {
+                // Si ya existe, actualizar su estado
+                $transaccionExistente->update(['estado' => 'pagado']);
+                $resultado['url_pasarela'] = $transaccionExistente->url_pasarela;
+                $resultado['qr_url'] = $transaccionExistente->qr_url;
+            }
+
+            DB::commit();
+
+            Log::info('Venta completada manualmente', [
+                'id_nota_venta' => $id,
+                'usuario_id' => $usuario->id_usuario,
+                'id_empleado' => $notaVenta->id_empleado,
+                'metodo_valuacion' => $metodoValuacion
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Venta #' . $id . ' completada exitosamente',
+                'nota_venta' => $notaVenta->load(['cliente', 'empleado'])
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al completar venta: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al completar la venta: ' . $e->getMessage()
+            ], 500);
         }
-
-        DB::commit();
-
-        Log::info('Venta completada manualmente', [
-            'id_nota_venta' => $id,
-            'usuario_id' => $usuario->id_usuario,
-            'id_empleado' => $notaVenta->id_empleado
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Venta #' . $id . ' completada exitosamente',
-            'nota_venta' => $notaVenta->load(['cliente', 'empleado'])
-        ]);
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error('Error al completar venta: ' . $e->getMessage());
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al completar la venta: ' . $e->getMessage()
-        ], 500);
     }
 }
-}
-
-

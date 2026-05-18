@@ -1,0 +1,129 @@
+/* public/css/themes/ninos/light.css */
+[data-theme="ninos"][data-mode="light"] {
+    /* Paleta arcoíris suave - colores pastel desaturados */
+    --color-primary: #B8A9C9;        /* Lavanda grisáceo */
+    --color-primary-dark: #9B8DB5;
+    --color-primary-medium: #B8A9C9;
+    --color-primary-light: #D4C9E0;
+    --color-secondary: #8FC0A9;      /* Verde sage */
+    --color-accent: #F0D9A0;         /* Amarillo mantequilla */
+    --color-accent-dark: #E5C980;
+    --color-bg-light: #FBFAF8;
+    --color-bg-lighter: #F5F2ED;
+    --color-bg-lightest: #FFFFFF;
+    --color-focus-ring: rgba(184, 169, 201, 0.35);
+    --color-border: #E0D5C0;
+    
+    /* Sidebar */
+    --bg-sidebar: linear-gradient(180deg, #B8A9C9 0%, #9B8DB5 100%);
+    --bg-sidebar-brand: linear-gradient(135deg, #D4C9E0 0%, #B8A9C9 100%);
+    --sidebar-text: rgba(255, 255, 255, 0.92);
+    --sidebar-icon: #F0D9A0;
+    --sidebar-active-bg: linear-gradient(90deg, #8FC0A9 0%, #7AAB94 100%);
+    --sidebar-active-border: #F0D9A0;
+    --sidebar-hover-bg: rgba(240, 217, 160, 0.25);
+    --sidebar-treeview-text: rgba(255, 255, 255, 0.82);
+    --sidebar-treeview-active-bg: rgba(143, 192, 169, 0.25);
+    --sidebar-treeview-active-text: #F0D9A0;
+    --sidebar-treeview-active-border: #F0D9A0;
+    --sidebar-treeview-hover-bg: rgba(240, 217, 160, 0.15);
+    
+    /* Sidebar footer */
+    --sidebar-footer-bg: rgba(0, 0, 0, 0.15);
+    --sidebar-footer-border: rgba(240, 217, 160, 0.3);
+    --sidebar-footer-text: rgba(255, 255, 255, 0.8);
+    --sidebar-footer-link: #F0D9A0;
+    --sidebar-footer-link-hover: white;
+    
+    /* User panel */
+    --user-panel-border: rgba(240, 217, 160, 0.3);
+    --user-panel-icon: #F0D9A0;
+    --user-panel-text: white;
+    --user-panel-text-hover: #F0D9A0;
+    --user-role-badge-bg: rgba(240, 217, 160, 0.25);
+    --user-role-badge-text: #F0D9A0;
+    --user-status-color: #8FC0A9;
+    
+    /* Navbar */
+    --navbar-bg: #FBFAF8;
+    --navbar-border: #E0D5C0;
+    --navbar-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    --navbar-link: #7A6B8A;
+    --navbar-link-hover: #9B8DB5;
+    
+    /* Dropdown */
+    --dropdown-bg: white;
+    --dropdown-border: #B8A9C9;
+    --dropdown-item-text: #5A5A5A;
+    --dropdown-item-hover-bg: #F5F2ED;
+    --dropdown-item-hover-text: #7A6B8A;
+    
+    /* Content */
+    --content-header-text: #7A6B8A;
+    --breadcrumb-link: #9B8DB5;
+    --breadcrumb-active: #7A6B8A;
+    
+    /* Footer */
+    --footer-bg: #F5F2ED;
+    --footer-text: #7A6B8A;
+    --footer-border: #E0D5C0;
+    
+    /* Scrollbar */
+    --scrollbar-track: #9B8DB5;
+    --scrollbar-thumb: #F0D9A0;
+    --scrollbar-thumb-hover: #F5E5C0;
+    
+    /* Acceso */
+    --acceso-bg: rgba(143, 192, 169, 0.12);
+    --acceso-border: #8FC0A9;
+    --acceso-hover-bg: rgba(143, 192, 169, 0.2);
+    
+    /* Módulo destacado */
+    --modulo-destacado-bg: linear-gradient(90deg, rgba(184, 169, 201, 0.08) 0%, rgba(143, 192, 169, 0.08) 100%);
+    --modulo-destacado-border: #B8A9C9;
+    --modulo-destacado-icon: #9B8DB5;
+    --modulo-destacado-hover-bg: linear-gradient(90deg, rgba(184, 169, 201, 0.15) 0%, rgba(143, 192, 169, 0.15) 100%);
+    --modulo-destacado-active-bg: linear-gradient(90deg, #B8A9C9 0%, #8FC0A9 100%);
+    --modulo-destacado-active-text: white;
+    
+    /* Texto */
+    --text-on-primary: white;
+    --text-muted: #A09890;
+    
+    /* Badges */
+    --badge-success: #8FC0A9;
+    --badge-warning: #F0D9A0;
+    --badge-danger: #D4A5A5;
+    --badge-info: #A0C4D8;
+    
+    /* Fondos */
+    --bg-input: #fff;
+    --bg-card: #fff;
+    
+    /* Botones */
+    --btn-hover-dark: #8A7DA0;
+    --btn-secondary-hover: #E0CD85;
+    
+    /* RGB para badges */
+    --badge-warning-rgb: 240, 217, 160;
+    --badge-danger-rgb: 212, 165, 165;
+    
+    /* Efectos avanzados niños */
+    --font-size-base: 15px;
+    --line-height-base: 1.6;
+    --letter-spacing-heading: 0.4px;
+    --border-width: 2px;
+    --border-style: dashed;
+    --border-radius-sm: 16px;
+    --border-radius-md: 24px;
+    --border-radius-lg: 32px;
+    --shadow-sm: 0 4px 12px rgba(0,0,0,0.05);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+    --shadow-lg: 0 15px 40px rgba(0,0,0,0.10);
+    --shadow-glow: 0 0 25px rgba(184, 169, 201, 0.25);
+    --transition-speed: 0.25s;
+    --transition-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --card-hover-transform: translateY(-6px) rotate(0.5deg);
+    --btn-hover-transform: translateY(-2px) scale(1.02);
+    --bg-pattern: none;
+}

@@ -118,6 +118,59 @@
                     </div>
                 </div>
             @endif
+            @if($lote->estado == 'consumido' || $lote->cantidad_disponible < $lote->cantidad_inicial)
+    <div class="mt-4">
+        <h5><i class="fas fa-history"></i> Historial de Consumos Estimado</h5>
+        @php
+            // Buscar todas las producciones aprobadas que usaron este ítem en este almacén
+            $historial = DB::table('detalle_produccion as dp')
+                ->join('producciones as p', 'dp.id_produccion', '=', 'p.id_produccion')
+                ->where('dp.id_item', $lote->id_item)
+                ->where('dp.id_almacen', $lote->id_almacen)
+                ->where('dp.tipo_movimiento', 'egreso')
+                ->where('p.estado', 'aprobado')
+                ->select('p.id_produccion', 'dp.cantidad', 'p.fecha_autorizacion')
+                ->orderBy('p.fecha_autorizacion', 'desc')
+                ->get();
+        @endphp
+        
+        @if($historial->count() > 0)
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Cantidad Consumida</th>
+                            <th>Producción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($historial as $consumo)
+                            <tr>
+                                <td>{{ \Carbon\Carbon::parse($consumo->fecha_autorizacion)->format('d/m/Y H:i') }}</td>
+                                <td class="text-center">{{ number_format($consumo->cantidad, 2) }}</td>
+                                <td>
+                                    <a href="{{ route('producciones.show', $consumo->id_produccion) }}" class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-eye"></i> #{{ $consumo->id_produccion }}
+                                    </a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-active">
+                            <td><strong>Total consumido</strong></td>
+                            <td class="text-center"><strong>{{ number_format($historial->sum('cantidad'), 2) }}</strong></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        @else
+            <p class="text-muted">No se encontraron consumos registrados.</p>
+        @endif
+    </div>
+@endif
         </div>
         <div class="card-footer d-flex justify-content-between">
             <div>

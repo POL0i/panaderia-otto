@@ -1,0 +1,128 @@
+[data-theme="jovenes"][data-mode="light"] {
+    /* Las que ya tienes + estas adicionales */
+    --color-primary: #8B4513;
+    --color-primary-dark: #5D3A1A;
+    --color-primary-medium: #8B4513;
+    --color-primary-light: #A0522D;
+    --color-secondary: #A0522D;
+    --color-accent: #D2B48C;
+    --color-bg-light: #FFF9F0;
+    --color-bg-lighter: #FFF5E6;
+    --color-bg-lightest: #FFFDF8;
+    --color-focus-ring: rgba(139, 69, 19, 0.25);
+    --color-border: #D2B48C;
+    
+    /* Sidebar */
+    --bg-sidebar: linear-gradient(180deg, #5D3A1A 0%, #3E2510 100%);
+    --bg-sidebar-brand: linear-gradient(135deg, #8B4513 0%, #5D3A1A 100%);
+    --sidebar-text: rgba(255, 255, 255, 0.85);
+    --sidebar-icon: #D2B48C;
+    --sidebar-active-bg: linear-gradient(90deg, #8B4513 0%, #A0522D 100%);
+    --sidebar-active-border: #D2B48C;
+    --sidebar-hover-bg: rgba(139, 69, 19, 0.6);
+    --sidebar-treeview-text: rgba(255, 255, 255, 0.75);
+    --sidebar-treeview-active-bg: rgba(210, 180, 140, 0.2);
+    --sidebar-treeview-active-text: #D2B48C;
+    --sidebar-treeview-active-border: #D2B48C;
+    --sidebar-treeview-hover-bg: rgba(210, 180, 140, 0.15);
+    
+    /* Sidebar footer */
+    --sidebar-footer-bg: rgba(0, 0, 0, 0.35);
+    --sidebar-footer-border: rgba(210, 180, 140, 0.3);
+    --sidebar-footer-text: rgba(255, 255, 255, 0.7);
+    --sidebar-footer-link: #D2B48C;
+    --sidebar-footer-link-hover: white;
+    
+    /* User panel */
+    --user-panel-border: rgba(210, 180, 140, 0.3);
+    --user-panel-icon: #D2B48C;
+    --user-panel-text: white;
+    --user-panel-text-hover: #D2B48C;
+    --user-role-badge-bg: rgba(210, 180, 140, 0.2);
+    --user-role-badge-text: #D2B48C;
+    --user-status-color: #4caf50;
+    
+    /* Navbar */
+    --navbar-bg: white;
+    --navbar-border: #D2B48C;
+    --navbar-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    --navbar-link: #5D3A1A;
+    --navbar-link-hover: #8B4513;
+    
+    /* Dropdown */
+    --dropdown-bg: white;
+    --dropdown-border: #8B4513;
+    --dropdown-item-text: #5D3A1A;
+    --dropdown-item-hover-bg: #FFF5E6;
+    --dropdown-item-hover-text: #8B4513;
+    
+    /* Content */
+    --content-header-text: #5D3A1A;
+    --breadcrumb-link: #8B4513;
+    --breadcrumb-active: #5D3A1A;
+    
+    /* Footer */
+    --footer-bg: #FFF5E6;
+    --footer-text: #5D3A1A;
+    --footer-border: #D2B48C;
+    
+    /* Scrollbar */
+    --scrollbar-track: #3E2510;
+    --scrollbar-thumb: #D2B48C;
+    --scrollbar-thumb-hover: #E8C9A0;
+    
+    /* Acceso */
+    --acceso-bg: rgba(76, 175, 80, 0.15);
+    --acceso-border: #4caf50;
+    --acceso-hover-bg: rgba(76, 175, 80, 0.25);
+    
+    /* Módulo destacado */
+    --modulo-destacado-bg: linear-gradient(90deg, rgba(46, 93, 58, 0.15) 0%, rgba(26, 61, 42, 0.1) 100%);
+    --modulo-destacado-border: #2E5D3A;
+    --modulo-destacado-icon: #2E5D3A;
+    --modulo-destacado-hover-bg: linear-gradient(90deg, rgba(46, 93, 58, 0.25) 0%, rgba(26, 61, 42, 0.2) 100%);
+    --modulo-destacado-active-bg: linear-gradient(90deg, #2E5D3A 0%, #1A3D2A 100%);
+    --modulo-destacado-active-text: white;
+    
+    /* Texto sobre fondos oscuros */
+    --text-on-primary: white;
+    
+    /* Badges */
+    --badge-success: #4caf50;
+    --badge-warning: #ff9800;
+    --badge-danger: #f44336;
+    --badge-info: var(--color-primary-medium);
+
+    --bg-input: #fff;
+    --bg-card: #fff;
+
+    --color-accent-light: #c9a871;
+
+    --badge-warning-rgb: 255, 152, 0;
+    --badge-danger-rgb: 244, 67, 54;
+
+    /* Tablas */
+--table-success-bg: #d4edda;
+--table-success-text: #155724;
+--table-success-border: #c3e6cb;
+--table-success-hover: #c3e6cb;
+
+--table-warning-bg: #fff3cd;
+--table-warning-text: #856404;
+--table-warning-border: #ffeeba;
+--table-warning-hover: #ffe8a1;
+
+--table-danger-bg: #f8d7da;
+--table-danger-text: #721c24;
+--table-danger-border: #f5c6cb;
+--table-danger-hover: #f1b0b7;
+
+--table-info-bg: #d1ecf1;
+--table-info-text: #0c5460;
+--table-info-border: #bee5eb;
+--table-info-hover: #abdde5;
+
+--table-secondary-bg: #e2e3e5;
+--table-secondary-text: #383d41;
+--table-secondary-border: #d6d8db;
+}

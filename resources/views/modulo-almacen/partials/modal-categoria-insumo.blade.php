@@ -1,10 +1,10 @@
 {{-- resources/views/modulo-almacen/partials/modal-categoria-insumo.blade.php --}}
-<div class="modal fade" id="createCategoriaInsumoModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="createCategoriaInsumoModal" tabindex="-1">
+    <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-warning">
+            <div class="modal-header modal-header-warning">
                 <h5 class="modal-title">
-                    <i class="fas fa-folder"></i> Nueva Categoría de Insumo
+                    <i class="fas fa-folder mr-2"></i> Nueva Categoría de Insumo
                 </h5>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
@@ -24,7 +24,9 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-warning">Crear Categoría</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save mr-1"></i> Crear Categoría
+                    </button>
                 </div>
             </form>
         </div>

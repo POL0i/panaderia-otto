@@ -7,6 +7,8 @@ use App\Models\NotaCompra;
 use App\Models\Almacen;
 use App\Models\Item;
 use App\Models\AlmacenItem;
+use App\Models\Proveedor;
+use App\Models\Empleado;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -17,10 +19,15 @@ class DetalleCompraController extends Controller
      */
     public function index()
     {
+        $notasCompra = NotaCompra::with(['proveedor.persona', 'proveedor.empresa', 'empleado'])
+            ->orderBy('fecha_compra', 'desc')
+            ->paginate(15, ['*'], 'notas_page');
+
         $detallesCompra = DetalleCompra::with(['notaCompra', 'almacen', 'item'])
-            ->paginate(15);
-        
-        return view('detallecompra.index', compact('detallesCompra'));
+            ->orderBy('id_nota_compra', 'desc')
+            ->paginate(15, ['*'], 'detalles_page');
+
+        return view('detallecompra.index', compact('notasCompra', 'detallesCompra'));
     }
 
     /**
