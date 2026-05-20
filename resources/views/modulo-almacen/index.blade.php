@@ -272,7 +272,7 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    
+
     // ============================================
     // CARGAR ITEMS DE ALMACÉN
     // ============================================
@@ -316,6 +316,8 @@ $(document).ready(function() {
             );
         });
     });
+
+});
     
     // ============================================
     // MANEJO GLOBAL DE FORMULARIOS MODALES POR AJAX
@@ -492,13 +494,10 @@ $(document).ready(function() {
             }
         });
     });
-});
-
     // Reset al cerrar modales
     $('.modal').on('hidden.bs.modal', function() {
         isSubmitting = false;
         $(this).find('button[type="submit"]').prop('disabled', false);
     });
-});
 </script>
 @endpush

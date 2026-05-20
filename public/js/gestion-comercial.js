@@ -2,6 +2,25 @@
 // FUNCIONES COMUNES
 // =====================================================
 
+function openModal(modalId) {
+    // AdminLTE usa Bootstrap 4 + jQuery
+    if (typeof $ !== 'undefined') {
+        $('#' + modalId).modal('show');
+        return;
+    }
+    // Fallback vanilla JS
+    const modalElement = document.getElementById(modalId);
+    if (!modalElement) return;
+    modalElement.classList.add('show');
+    modalElement.style.display = 'block';
+    document.body.classList.add('modal-open');
+    if (!document.querySelector('.modal-backdrop')) {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        document.body.appendChild(backdrop);
+    }
+}
+
 function closeModal(modalId) {
     if (typeof $ !== 'undefined') {
         $('#' + modalId).modal('hide');
@@ -9,37 +28,10 @@ function closeModal(modalId) {
     }
     const modalElement = document.getElementById(modalId);
     if (!modalElement) return;
-    try {
-        const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
-        modal.hide();
-    } catch (e) {
-        modalElement.classList.remove('show');
-        modalElement.style.display = 'none';
-        document.body.classList.remove('modal-open');
-        document.querySelector('.modal-backdrop')?.remove();
-    }
-}
-
-function openModal(modalId) {
-    if (typeof $ !== 'undefined') {
-        $('#' + modalId).modal('show');
-        return;
-    }
-    const modalElement = document.getElementById(modalId);
-    if (!modalElement) return;
-    try {
-        const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
-        modal.show();
-    } catch (e) {
-        modalElement.classList.add('show');
-        modalElement.style.display = 'block';
-        document.body.classList.add('modal-open');
-        if (!document.querySelector('.modal-backdrop')) {
-            const backdrop = document.createElement('div');
-            backdrop.className = 'modal-backdrop fade show';
-            document.body.appendChild(backdrop);
-        }
-    }
+    modalElement.classList.remove('show');
+    modalElement.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    document.querySelector('.modal-backdrop')?.remove();
 }
 
 // =====================================================

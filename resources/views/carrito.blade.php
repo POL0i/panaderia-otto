@@ -15,8 +15,19 @@
             <tr>
                 <td>
                     <div class="d-flex align-items-center">
-                        <img src="{{ $item['imagen'] ? asset('storage/' . $item['imagen']) : 'https://placehold.co/50x50/8B4513/white?text=Pan' }}" 
-                                style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-right: 10px;">
+                        <@php
+                                $imgSrc = 'https://placehold.co/50x50/8B4513/white?text=Pan';
+                                if (!empty($item['imagen'])) {
+                                    if (Str::startsWith($item['imagen'], ['http://', 'https://'])) {
+                                        $imgSrc = $item['imagen'];
+                                    } elseif (Str::startsWith($item['imagen'], 'storage/')) {
+                                        $imgSrc = asset($item['imagen']);
+                                    } else {
+                                        $imgSrc = asset('storage/' . $item['imagen']);
+                                    }
+                                }
+                            @endphp
+                            <img src="{{ $imgSrc }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-right: 10px;">
                         <div>
                             <strong>{{ $item['nombre'] }}</strong><br>
                             <small class="text-muted">Almacén: {{ $item['almacen_nombre'] }}</small>

@@ -509,6 +509,94 @@
                 icon.removeClass('fa-angle-down').addClass('fa-angle-left');
             }
         });
+
+        // ============================================
+        // MANEJO GLOBAL DE FORMULARIOS MODALES POR AJAX
+        // ============================================
+        var isSubmittingModal = false;
+
+        function manejarFormularioModal(formId, modalId, loadingText, successMessage, errorMessage, onSuccess) {
+            $(document).on('submit', formId, function(e) {
+                e.preventDefault();
+                if (isSubmittingModal) return false;
+                
+                var $form = $(this);
+                var $btn = $form.find('button[type="submit"]');
+                var originalText = $btn.html();
+                
+                // Si el formulario tiene archivos, usar FormData
+                var hasFile = $form.attr('enctype') === 'multipart/form-data' || $form.find('input[type="file"]').length > 0;
+                
+                $btn.html('<i class="fas fa-spinner fa-spin"></i> ' + loadingText).prop('disabled', true);
+                isSubmittingModal = true;
+                
+                var ajaxOptions = {
+                    url: $form.attr('action'),
+                    method: 'POST',
+                    data: hasFile ? new FormData($form[0]) : $form.serialize(),
+                    processData: !hasFile,
+                    contentType: hasFile ? false : 'application/x-www-form-urlencoded; charset=UTF-8',
+                    success: function(response) {
+                        if (response.success) {
+                            $(modalId).modal('hide');
+                            $form[0].reset();
+                            
+                            toastr.success(response.message || successMessage);
+                            
+                            if (typeof onSuccess === 'function') {
+                                onSuccess(response);
+                            }
+                            
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            toastr.error(response.message || 'Error al procesar');
+                            $btn.html(originalText).prop('disabled', false);
+                            isSubmittingModal = false;
+                        }
+                    },
+                    error: function(xhr) {
+                        var message = errorMessage;
+                        if (xhr.responseJSON?.errors) {
+                            message = Object.values(xhr.responseJSON.errors).flat().join('\n');
+                        } else if (xhr.responseJSON?.message) {
+                            message = xhr.responseJSON.message;
+                        }
+                        toastr.error(message);
+                        $btn.html(originalText).prop('disabled', false);
+                        isSubmittingModal = false;
+                    }
+                };
+                
+                $.ajax(ajaxOptions);
+            });
+        }
+
+        // Inicializar todos los formularios modales del sistema
+        $(document).ready(function() {
+            // Módulo Almacén
+            manejarFormularioModal('#formCreateAlmacen', '#createAlmacenModal', 'Creando...', 'Almacén creado', 'Error al crear almacén');
+            manejarFormularioModal('#formCreateInsumo', '#createInsumoModal', 'Creando...', 'Insumo creado', 'Error al crear insumo');
+            manejarFormularioModal('#formCreateCategoriaInsumo', '#createCategoriaInsumoModal', 'Creando...', 'Categoría creada', 'Error al crear categoría');
+            manejarFormularioModal('#formCreateCategoriaProducto', '#createCategoriaProductoModal', 'Creando...', 'Categoría creada', 'Error al crear categoría');
+            manejarFormularioModal('#formManageStock', '#manageStockModal', 'Procesando...', 'Stock actualizado', 'Error al gestionar stock');
+            manejarFormularioModal('#formCreateProducto', '#createProductoModal', 'Creando...', 'Producto creado', 'Error al crear producto');
+            
+            // Proveedores
+            manejarFormularioModal('#formCreateProveedor', '#modalProveedor', 'Creando...', 'Proveedor creado', 'Error al crear proveedor');
+            
+            // Empleados y clientes
+            manejarFormularioModal('#formCrearEmpleado', '#createEmpleadoModal', 'Creando...', 'Empleado creado', 'Error al crear empleado');
+            manejarFormularioModal('#formCrearCliente', '#createClienteModal', 'Creando...', 'Cliente creado', 'Error al crear cliente');
+            
+            // Usuarios
+            manejarFormularioModal('#formCrearUsuario', '#createUsuarioModal', 'Creando...', 'Usuario creado', 'Error al crear usuario');
+            
+            // Reset al cerrar modales
+            $('.modal').on('hidden.bs.modal', function() {
+                isSubmittingModal = false;
+                $(this).find('button[type="submit"]').prop('disabled', false);
+            });
+        });
     });
 </script>
 

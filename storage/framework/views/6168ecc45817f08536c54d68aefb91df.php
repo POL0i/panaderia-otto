@@ -445,6 +445,89 @@
         comprasProveedores: '<?php echo e(route("compras.proveedores")); ?>',
         comprasEnviarCorreo: '<?php echo e(route("compras.enviar-correo")); ?>'
     };
+
+    // ==========================================
+    // ABRIR MODAL DE ENVÍO DE CORREO (COMPRAS)
+    // ==========================================
+    $(document).on('click', '#btnEnviarCorreo', function() {
+        $('#modalDetalleNota').modal('hide');
+        setTimeout(function() {
+            $('#modalEnvioCorreo').modal('show');
+        }, 300);
+    });
+
+    // ==========================================
+    // ENVIAR CORREO (COMPRAS)
+    // ==========================================
+    $(document).on('click', '#btnConfirmarEnvio', function() {
+        const correo = $('#correoDestino').val().trim();
+        const idCompra = $('#idNotaCompraEnvio').val();
+        
+        if (!correo || !correo.includes('@')) {
+            toastr.error('Ingrese un correo electrónico válido');
+            return;
+        }
+        
+        const btn = $(this);
+        btn.html('<i class="fas fa-spinner fa-spin"></i> Enviando...').prop('disabled', true);
+        
+        $.ajax({
+            url: window.routes.comprasEnviarCorreo || '/compras/enviar-correo',
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'Accept': 'application/json'
+            },
+            data: {
+                id_compra: idCompra,
+                correo: correo
+            },
+            success: function(response) {
+                if (response.success) {
+                    toastr.success(response.message || 'Correo enviado exitosamente');
+                    $('#modalEnvioCorreo').modal('hide');
+                    $('#correoDestino').val('');
+                } else {
+                    toastr.error(response.message || 'Error al enviar el correo');
+                }
+            },
+            error: function(xhr) {
+                toastr.error(xhr.responseJSON?.message || 'Error al enviar');
+            },
+            complete: function() {
+                btn.html('<i class="fas fa-paper-plane"></i> Enviar').prop('disabled', false);
+            }
+        });
+    });
+
+    // ==========================================
+    // IMPRIMIR RECIBO (COMPRAS)
+    // ==========================================
+    window.imprimirRecibo = function() {
+        const modalContent = document.querySelector('#modalDetalleNota .modal-content');
+        if (!modalContent) return;
+        
+        const contenido = modalContent.cloneNode(true);
+        contenido.querySelector('.modal-footer')?.remove();
+        contenido.querySelector('.modal-header .close')?.remove();
+        
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Comprobante de Compra</title>
+                    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+                    <style>
+                        body { padding: 20px; font-family: 'Poppins', sans-serif; }
+                        @media print { body { padding: 0; } }
+                    </style>
+                </head>
+                <body>${contenido.outerHTML}</body>
+            </html>
+        `);
+        printWindow.document.close();
+        setTimeout(() => printWindow.print(), 500);
+    };
 </script>
 <script src="<?php echo e(asset('js/gestion-comercial.js')); ?>"></script>
 <?php $__env->stopPush(); ?>
