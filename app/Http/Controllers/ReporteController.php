@@ -263,6 +263,72 @@ class ReporteController extends Controller
 
         return view('reportes.compras', compact('compras', 'total', 'count', 'inicio', 'fin'));
     }
+
+    /**
+ * Generar PDF según el tipo de reporte
+ */
+    private function generarPDF($tipo, $fechaInicio = null, $fechaFin = null)
+    {
+        $datos = [];
+        $vista = '';
+        $titulo = '';
+
+        switch ($tipo) {
+            case 'comercial':
+                $inicio = $fechaInicio ?? now()->subDays(30)->toDateString();
+                $fin = $fechaFin ?? now()->toDateString();
+                
+                $ventas = NotaVenta::whereBetween('fecha_venta', [$inicio, $fin])
+                    ->where('estado', 'completado')
+                    ->with('cliente', 'empleado')
+                    ->orderBy('fecha_venta', 'desc')
+                    ->get();
+                
+                $compras = NotaCompra::whereBetween('fecha_compra', [$inicio, $fin])
+                    ->where('estado', 'completado')
+                    ->with('proveedor', 'empleado')
+                    ->orderBy('fecha_compra', 'desc')
+                    ->get();
+
+                $datos = [
+                    'inicio' => $inicio,
+                    'fin' => $fin,
+                    'ventas' => $ventas,
+                    'compras' => $compras,
+                    'totalVentas' => $ventas->sum('monto_total'),
+                    'countVentas' => $ventas->count(),
+                    'totalCompras' => $compras->sum('monto_total'),
+                    'countCompras' => $compras->count(),
+                ];
+                $vista = 'reportes.pdf.comercial';
+                $titulo = 'Reporte Comercial';
+                break;
+
+            case 'inventario':
+                $datos = $this->getDatosInventario();
+                $vista = 'reportes.pdf.inventario';
+                $titulo = 'Reporte de Inventario';
+                break;
+
+            case 'produccion':
+                $datos = $this->getDatosProduccion();
+                $vista = 'reportes.pdf.produccion';
+                $titulo = 'Reporte de Producción';
+                break;
+
+            default:
+                throw new \Exception('Tipo de reporte no válido: ' . $tipo);
+        }
+
+        $datos['titulo'] = $titulo;
+        $datos['fecha_generacion'] = now()->format('d/m/Y H:i');
+
+        $pdf = Pdf::loadView($vista, $datos);
+        $pdf->setPaper('a4', 'landscape');
+
+        return $pdf;
+    }
+    
     public function enviarPDF(Request $request)
     {
         $request->validate([
