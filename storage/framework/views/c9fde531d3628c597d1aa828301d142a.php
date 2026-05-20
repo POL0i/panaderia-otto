@@ -1,4 +1,4 @@
-{{-- Modal para Proveedor --}}
+
 <div class="modal fade" id="modalProveedor" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content border-panaderia shadow-lg">
@@ -10,8 +10,8 @@
                     <span>&times;</span>
                 </button>
             </div>
-            <form id="formCreateProveedor" action="{{ route('compras.proveedor.store') }}" method="POST">
-                @csrf
+            <form id="formCreateProveedor" action="<?php echo e(route('compras.proveedor.store')); ?>" method="POST">
+                <?php echo csrf_field(); ?>
                 <div class="modal-body bg-panaderia-light">
                     <div class="form-group">
                         <label class="text-panaderia">
@@ -23,7 +23,7 @@
                         </select>
                     </div>
                     
-                    {{-- Campos para Persona Natural --}}
+                    
                     <div id="camposPersona">
                         <div class="form-group">
                             <label class="text-panaderia">
@@ -34,7 +34,7 @@
                         </div>
                     </div>
                     
-                    {{-- Campos para Empresa --}}
+                    
                     <div id="camposEmpresa" style="display: none;">
                         <div class="form-group">
                             <label class="text-panaderia">
@@ -79,7 +79,7 @@
     </div>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
     // Alternar campos según tipo de proveedor
@@ -94,4 +94,4 @@ $(document).ready(function() {
     });
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?><?php /**PATH /opt/lampp/htdocs/panaderia-otto/resources/views/seccion-compras/partials/modal-proveedor.blade.php ENDPATH**/ ?>

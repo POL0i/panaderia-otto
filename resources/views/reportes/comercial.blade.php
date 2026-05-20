@@ -108,11 +108,9 @@
     </div>
 
     {{-- Botón enviar PDF --}}
-    <div class="mb-3">
-        <button class="btn btn-sm btn-outline-primary" onclick="enviarPDFComercial()">
-            <i class="fas fa-envelope mr-1"></i> Enviar PDF por correo
-        </button>
-    </div>
+    <button class="btn btn-sm btn-outline-primary" onclick="$('#modalEnviarPDF').modal('show')">
+        <i class="fas fa-envelope mr-1"></i> Enviar PDF por correo
+    </button>
 
     {{-- Tarjetas de totales --}}
     <div class="row mb-4">
@@ -279,44 +277,260 @@
         </div>
     </div>
 </div>
+
+{{-- Modal: Enviar PDF por correo --}}
+<div class="modal fade" id="modalEnviarPDF" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-panaderia shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-envelope mr-2"></i> Enviar Reporte PDF
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body bg-panaderia-light">
+                <div class="form-group">
+                    <label class="text-panaderia">
+                        <i class="fas fa-users mr-1"></i> Destinatarios
+                    </label>
+                    
+                    {{-- Sugerencias rápidas --}}
+                    <div class="mb-2">
+                        <small class="text-muted">Sugerencias:</small>
+                        <div class="d-flex flex-wrap gap-1 mt-1" id="sugerenciasCorreos">
+                            @php
+                                $correosSugeridos = [
+                                    'dennis@panaderia-otto.shop',
+                                    'admin@panaderia-otto.shop',
+                                    'venta@panaderia-otto.shop',
+                                    'compra@panaderia-otto.shop',
+                                    'produccion@panaderia-otto.shop',
+                                    'inventario@panaderia-otto.shop',
+                                    'empleado@panaderia-otto.shop',
+                                ];
+                            @endphp
+                            @foreach($correosSugeridos as $correo)
+                                <button type="button" class="btn btn-sm btn-outline-info sugerencia-btn" 
+                                        data-correo="{{ $correo }}" style="font-size: 0.75rem; padding: 2px 8px;">
+                                    {{ explode('@', $correo)[0] }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                    
+                    {{-- Contenedor de campos de correo --}}
+                    <div id="emailsContainer">
+                        <div class="input-group mb-2 email-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            </div>
+                            <input type="text" class="form-control email-input" 
+                                   placeholder="usuario@panaderia-otto.shop" autocomplete="off">
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-success btn-add-email" title="Agregar otro">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle mr-1"></i> 
+                        Escribe <strong>@panaderia-otto.shop</strong> o selecciona una sugerencia.
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="text-panaderia">
+                        <i class="fas fa-comment mr-1"></i> Mensaje adicional
+                    </label>
+                    <textarea class="form-control" id="mensajeAdicional" rows="2" 
+                              placeholder="Mensaje opcional..."></textarea>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Se enviará el reporte del período 
+                    <strong>{{ \Carbon\Carbon::parse($inicio)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fin)->format('d/m/Y') }}</strong>
+                </div>
+            </div>
+            <div class="modal-footer bg-panaderia-lighter">
+                <button type="button" class="btn btn-cancel" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-save" id="btnEnviarPDF">
+                    <i class="fas fa-paper-plane mr-1"></i> Enviar PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-function enviarPDFComercial() {
-    const correo = prompt('Ingrese el correo electrónico:');
-    if (!correo) return;
+// ==========================================
+// CORREOS DEL SISTEMA PARA SUGERENCIAS
+// ==========================================
+const correosSistema = [
+    'dennis@panaderia-otto.shop',
+    'admin@panaderia-otto.shop',
+    'venta@panaderia-otto.shop',
+    'compra@panaderia-otto.shop',
+    'produccion@panaderia-otto.shop',
+    'inventario@panaderia-otto.shop',
+    'empleado@panaderia-otto.shop',
+];
+
+// ==========================================
+// AGREGAR / ELIMINAR CAMPOS DE CORREO
+// ==========================================
+$(document).on('click', '.btn-add-email', function() {
+    const newGroup = `
+        <div class="input-group mb-2 email-group">
+            <input type="text" class="form-control email-input" 
+                   placeholder="usuario@panaderia-otto.shop" autocomplete="off">
+            <div class="input-group-append">
+                <button type="button" class="btn btn-danger btn-remove-email" title="Quitar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>`;
+    $('#emailsContainer').append(newGroup);
+});
+
+$(document).on('click', '.btn-remove-email', function() {
+    if ($('.email-group').length > 1) {
+        $(this).closest('.email-group').remove();
+    } else {
+        toastr.warning('Debe haber al menos un destinatario');
+    }
+});
+
+// ==========================================
+// AUTOCOMPLETAR AL ESCRIBIR @pan
+// ==========================================
+$(document).on('input', '.email-input', function() {
+    const input = $(this);
+    const val = input.val();
     
-    const fechaInicio = document.querySelector('input[name="fecha_inicio"]').value;
-    const fechaFin = document.querySelector('input[name="fecha_fin"]').value;
+    // Solo autocompletar si escribe @pan (no solo @)
+    if (val.endsWith('@pan') && !val.includes('@panaderia-otto.shop')) {
+        input.val(val.replace('@pan', '') + '@panaderia-otto.shop');
+    }
+});
+
+// ==========================================
+// CLIC EN SUGERENCIA RÁPIDA
+// ==========================================
+$(document).on('click', '.sugerencia-btn', function() {
+    const correo = $(this).data('correo');
     
-    fetch('{{ route("reportes.enviar-pdf") }}', {
+    // Buscar el primer campo vacío
+    let campoVacio = null;
+    $('.email-input').each(function() {
+        if ($(this).val().trim() === '' && !campoVacio) {
+            campoVacio = $(this);
+        }
+    });
+    
+    if (campoVacio) {
+        campoVacio.val(correo);
+    } else {
+        $('.btn-add-email').last().click();
+        $('.email-input').last().val(correo);
+    }
+    
+    toastr.info(correo.split('@')[0] + ' agregado', '', { timeOut: 1000 });
+});
+
+// ==========================================
+// ENVIAR PDF A MÚLTIPLES CORREOS
+// ==========================================
+$('#btnEnviarPDF').on('click', function() {
+    const btn = $(this);
+    const correos = [];
+    let invalidos = false;
+    
+    $('.email-input').each(function() {
+        const val = $(this).val().trim();
+        if (val) {
+            if (val.includes('@') && val.includes('.')) {
+                correos.push(val);
+            } else {
+                $(this).addClass('is-invalid');
+                invalidos = true;
+            }
+        }
+    });
+    
+    if (invalidos) {
+        toastr.error('Hay correos con formato inválido. Corríjalos.');
+        return;
+    }
+    
+    if (correos.length === 0) {
+        toastr.error('Ingrese al menos un correo válido');
+        return;
+    }
+    
+    const fechaInicio = $('input[name="fecha_inicio"]').val();
+    const fechaFin = $('input[name="fecha_fin"]').val();
+    const mensaje = $('#mensajeAdicional').val().trim();
+    
+    btn.html('<i class="fas fa-spinner fa-spin"></i> Enviando...').prop('disabled', true);
+    
+    $.ajax({
+        url: '{{ route("reportes.enviar-pdf") }}',
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': '{{ csrf_token() }}',
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         },
-        body: JSON.stringify({ 
-            correo: correo, 
+        data: JSON.stringify({ 
+            correos: correos,
             tipo: 'comercial',
             fecha_inicio: fechaInicio,
-            fecha_fin: fechaFin
-        })
-    })
-    .then(r => r.json())
-    .then(r => {
-        if (r.success) toastr.success(r.message);
-        else toastr.error(r.message);
+            fecha_fin: fechaFin,
+            mensaje: mensaje
+        }),
+        success: function(response) {
+            if (response.success) {
+                toastr.success(response.message || 'Enviado a ' + correos.length + ' destinatario(s)');
+                $('#modalEnviarPDF').modal('hide');
+                $('.email-group:not(:first)').remove();
+                $('.email-input').val('').removeClass('is-invalid');
+                $('#mensajeAdicional').val('');
+            } else {
+                toastr.error(response.message || 'Error al enviar');
+            }
+        },
+        error: function(xhr) {
+            const message = xhr.responseJSON?.message || 'Error al enviar el correo';
+            toastr.error(message);
+        },
+        complete: function() {
+            btn.html('<i class="fas fa-paper-plane mr-1"></i> Enviar PDF').prop('disabled', false);
+        }
     });
-}
-    
+});
+
+// Quitar is-invalid al corregir
+$(document).on('input', '.email-input', function() {
+    if ($(this).val().includes('@') && $(this).val().includes('.')) {
+        $(this).removeClass('is-invalid');
+    }
+});
+
+// ==========================================
+// GRÁFICO
+// ==========================================
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('comercialChart');
     if (!ctx) return;
 
-    // Obtener colores del tema
     const style = getComputedStyle(document.body);
     const successColor = style.getPropertyValue('--badge-success').trim() || '#28a745';
     const dangerColor = style.getPropertyValue('--badge-danger').trim() || '#dc3545';
@@ -400,9 +614,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         font: { size: 11 },
                         color: textMuted
                     },
-                    grid: {
-                        color: gridColor
-                    }
+                    grid: { color: gridColor }
                 }
             }
         }

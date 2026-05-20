@@ -553,6 +553,141 @@ function cambiarModo(nuevoModo) {
     window.cambiarModo(nuevoModo);
     window.location.reload();
 }
+
+$(document).ready(function() {
+
+    // ==========================================
+    // CREAR EMPLEADO POR AJAX (Global)
+    // ==========================================
+    var isSubmittingEmpleado = false;
+    
+    $(document).on('submit', '#formCrearEmpleado', function(e) {
+        e.preventDefault();
+        
+        if (isSubmittingEmpleado) return false;
+        
+        var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        
+        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
+        isSubmittingEmpleado = true;
+        
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                if (response.success) {
+                    $('#createEmpleadoModal').modal('hide');
+                    form[0].reset();
+                    
+                    // Notificación con Swal o toastr
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Empleado creado!',
+                        text: response.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    
+                    // Agregar a selects si existen
+                    if (response.empleado) {
+                        var newOption = new Option(
+                            response.empleado.nombre + ' ' + (response.empleado.apellido || ''),
+                            response.empleado.id_empleado,
+                            true,
+                            true
+                        );
+                        $('#id_empleado, #edit_id_empleado').append(newOption);
+                        $('#id_empleado').val(response.empleado.id_empleado).trigger('change');
+                    }
+                    
+                    // Recargar después de un momento
+                    setTimeout(() => location.reload(), 1500);
+                }
+            },
+            error: function(xhr) {
+                var message = 'Error al crear empleado';
+                if (xhr.responseJSON?.errors) {
+                    message = Object.values(xhr.responseJSON.errors).flat().join('\n');
+                } else if (xhr.responseJSON?.message) {
+                    message = xhr.responseJSON.message;
+                }
+                Swal.fire('Error', message, 'error');
+            },
+            complete: function() {
+                submitBtn.html(originalText).prop('disabled', false);
+                isSubmittingEmpleado = false;
+            }
+        });
+    });
+
+    // ==========================================
+    // CREAR CLIENTE POR AJAX (Global)
+    // ==========================================
+    var isSubmittingCliente = false;
+    
+    $(document).on('submit', '#formCrearCliente', function(e) {
+        e.preventDefault();
+        
+        if (isSubmittingCliente) return false;
+        
+        var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        
+        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
+        isSubmittingCliente = true;
+        
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                if (response.success) {
+                    $('#createClienteModal').modal('hide');
+                    form[0].reset();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Cliente creado!',
+                        text: response.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    
+                    if (response.cliente) {
+                        var newOption = new Option(
+                            response.cliente.nombre + ' ' + (response.cliente.apellido || ''),
+                            response.cliente.id_cliente,
+                            true,
+                            true
+                        );
+                        $('#id_cliente, #edit_id_cliente').append(newOption);
+                        $('#id_cliente').val(response.cliente.id_cliente).trigger('change');
+                    }
+                    
+                    setTimeout(() => location.reload(), 1500);
+                }
+            },
+            error: function(xhr) {
+                var message = 'Error al crear cliente';
+                if (xhr.responseJSON?.errors) {
+                    message = Object.values(xhr.responseJSON.errors).flat().join('\n');
+                } else if (xhr.responseJSON?.message) {
+                    message = xhr.responseJSON.message;
+                }
+                Swal.fire('Error', message, 'error');
+            },
+            complete: function() {
+                submitBtn.html(originalText).prop('disabled', false);
+                isSubmittingCliente = false;
+            }
+        });
+    });
+
+});
 </script>
 
 @stack('scripts')

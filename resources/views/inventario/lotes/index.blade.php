@@ -59,12 +59,7 @@
             <h1 class="h3 mb-0 text-panaderia">
                 <i class="fas fa-boxes mr-2"></i> Lotes de Inventario
             </h1>
-        </div>
-        <div class="col-md-6 text-right">
-            <a href="{{ route('lotes.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus mr-1"></i> Nuevo Lote
-            </a>
-        </div>
+        </div> 
     </div>
 
     @if(session('success'))

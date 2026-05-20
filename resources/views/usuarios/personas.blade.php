@@ -7,11 +7,6 @@
 
 @push('styles')
 <style>
-    /* ==========================================
-       ESTILOS ESPECÍFICOS DE PERSONAS
-       ========================================== */
-    
-    /* Info boxes */
     .info-box {
         border-radius: var(--border-radius-md);
         transition: transform 0.2s ease;
@@ -31,16 +26,11 @@
         font-size: 1.3rem;
     }
 
-    /* Variantes de info-box */
     .info-box-primary .info-box-icon { background: var(--color-primary); }
     .info-box-success .info-box-icon { background: var(--badge-success); }
     .info-box-info .info-box-icon    { background: var(--badge-info); }
     .info-box-warning .info-box-icon { background: var(--badge-warning); }
 
-    /* Filtros */
-    .filter-card {
-        border-radius: var(--border-radius-md);
-    }
     .filter-btn-group .btn {
         border-radius: 20px;
         margin-right: 2px;
@@ -48,43 +38,33 @@
         font-size: 0.8rem;
         transition: all 0.2s ease;
     }
-    .filter-btn-group .btn:hover {
-        transform: translateY(-1px);
-    }
-    .filter-btn-group .btn.active {
-        font-weight: 600;
-    }
+    .filter-btn-group .btn:hover { transform: translateY(-1px); }
+    .filter-btn-group .btn.active { font-weight: 600; }
 
-    /* Tabla */
     .persona-row-warning {
-        background-color: rgba(var(--badge-warning-rgb, 255, 152, 0), 0.08);
+        background-color: rgba(255, 193, 7, 0.06);
     }
     .persona-tipo-badge {
         font-size: 0.8rem;
         padding: 0.3rem 0.6rem;
         border-radius: 15px;
+        color: white;
     }
-    .persona-tipo-empleado { background: var(--color-primary); color: var(--text-on-primary); }
-    .persona-tipo-cliente  { background: var(--badge-info); color: var(--text-on-primary); }
+    .persona-tipo-empleado { background: var(--color-primary); }
+    .persona-tipo-cliente  { background: var(--badge-info); }
     .persona-usuario-si { background: var(--badge-success); color: white; }
     .persona-usuario-no { background: var(--badge-danger); color: white; }
-    .persona-email-code {
-        background: var(--color-bg-lighter);
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-    }
-    .persona-accion-btn {
-        white-space: nowrap;
-    }
-    .persona-empty-icon { color: var(--text-muted); }
 
-    /* Card header oscuro personalizado */
     .card-header-dark {
         background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
         color: var(--text-on-primary);
     }
     .card-header-dark .card-title { color: var(--text-on-primary); }
+
+    .table-personas th, .table-personas td {
+        vertical-align: middle;
+        font-size: 0.85rem;
+    }
 </style>
 @endpush
 
@@ -93,44 +73,36 @@
     
     {{-- Estadísticas rápidas --}}
     <div class="row mb-3">
-        <div class="col-md-3">
+        <div class="col-md-3 col-6">
             <div class="info-box info-box-primary bg-panaderia-light shadow-sm">
-                <span class="info-box-icon">
-                    <i class="fas fa-users"></i>
-                </span>
+                <span class="info-box-icon"><i class="fas fa-users"></i></span>
                 <div class="info-box-content">
                     <span class="info-box-text">Total</span>
                     <span class="info-box-number">{{ $total }}</span>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 col-6">
             <div class="info-box info-box-success bg-panaderia-light shadow-sm">
-                <span class="info-box-icon">
-                    <i class="fas fa-user-tie"></i>
-                </span>
+                <span class="info-box-icon"><i class="fas fa-user-tie"></i></span>
                 <div class="info-box-content">
                     <span class="info-box-text">Empleados</span>
                     <span class="info-box-number">{{ $empleadosCount }}</span>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 col-6">
             <div class="info-box info-box-info bg-panaderia-light shadow-sm">
-                <span class="info-box-icon">
-                    <i class="fas fa-user"></i>
-                </span>
+                <span class="info-box-icon"><i class="fas fa-user"></i></span>
                 <div class="info-box-content">
                     <span class="info-box-text">Clientes</span>
                     <span class="info-box-number">{{ $clientesCount }}</span>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 col-6">
             <div class="info-box info-box-warning bg-panaderia-light shadow-sm">
-                <span class="info-box-icon">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </span>
+                <span class="info-box-icon"><i class="fas fa-exclamation-triangle"></i></span>
                 <div class="info-box-content">
                     <span class="info-box-text">Sin Usuario</span>
                     <span class="info-box-number">{{ $sinUsuario }}</span>
@@ -139,43 +111,41 @@
         </div>
     </div>
 
-    {{-- Filtros y búsqueda --}}
-    <div class="card filter-card mb-3">
+    {{-- Filtros --}}
+    <div class="card mb-3">
         <div class="card-body py-2">
             <div class="row align-items-center">
                 <div class="col-md-8">
                     <div class="filter-btn-group">
                         <a href="{{ route('personas.index', ['filtro' => 'todos', 'buscar' => $buscar]) }}" 
                            class="btn btn-sm btn-outline-secondary {{ $filtro == 'todos' ? 'active' : '' }}">
-                            <i class="fas fa-list mr-1"></i> Todos
+                            Todos
                         </a>
                         <a href="{{ route('personas.index', ['filtro' => 'empleados', 'buscar' => $buscar]) }}" 
                            class="btn btn-sm btn-outline-primary {{ $filtro == 'empleados' ? 'active' : '' }}">
-                            <i class="fas fa-user-tie mr-1"></i> Empleados
+                            Empleados
                         </a>
                         <a href="{{ route('personas.index', ['filtro' => 'clientes', 'buscar' => $buscar]) }}" 
                            class="btn btn-sm btn-outline-info {{ $filtro == 'clientes' ? 'active' : '' }}">
-                            <i class="fas fa-user mr-1"></i> Clientes
+                            Clientes
                         </a>
                         <a href="{{ route('personas.index', ['filtro' => 'sin_usuario', 'buscar' => $buscar]) }}" 
                            class="btn btn-sm btn-outline-warning {{ $filtro == 'sin_usuario' ? 'active' : '' }}">
-                            <i class="fas fa-exclamation-triangle mr-1"></i> Sin usuario
+                            Sin usuario
                         </a>
                         <a href="{{ route('personas.index', ['filtro' => 'con_usuario', 'buscar' => $buscar]) }}" 
                            class="btn btn-sm btn-outline-success {{ $filtro == 'con_usuario' ? 'active' : '' }}">
-                            <i class="fas fa-check mr-1"></i> Con usuario
+                            Con usuario
                         </a>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4 mt-2 mt-md-0">
                     <form method="GET" action="{{ route('personas.index') }}" class="input-group input-group-sm">
                         <input type="hidden" name="filtro" value="{{ $filtro }}">
                         <input type="text" name="buscar" class="form-control" 
-                               placeholder="Buscar por nombre o teléfono..." value="{{ $buscar }}">
+                               placeholder="Buscar..." value="{{ $buscar }}">
                         <div class="input-group-append">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search"></i>
-                            </button>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
                             @if($buscar)
                                 <a href="{{ route('personas.index', ['filtro' => $filtro]) }}" class="btn btn-secondary">
                                     <i class="fas fa-times"></i>
@@ -188,12 +158,11 @@
         </div>
     </div>
 
-    {{-- Tabla unificada --}}
+    {{-- Tabla unificada (REDUCIDA a 7 columnas) --}}
     <div class="card">
         <div class="card-header card-header-dark">
             <h3 class="card-title">
-                <i class="fas fa-address-book mr-2"></i>
-                Listado de Personas ({{ $total }})
+                <i class="fas fa-address-book mr-2"></i> Listado de Personas ({{ $total }})
             </h3>
             <div class="card-tools">
                 <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#createEmpleadoModal">
@@ -209,68 +178,73 @@
                 <table class="table table-hover table-sm mb-0 table-personas">
                     <thead>
                         <tr>
-                            <th style="width: 5%">#</th>
                             <th>Tipo</th>
                             <th>Nombre</th>
-                            <th>Teléfono</th>
-                            <th>Dirección</th>
+                            <th>Contacto</th>
                             <th>Info Extra</th>
-                            <th>¿Usuario?</th>
-                            <th>Email Usuario</th>
-                            <th>Acciones</th>
+                            <th>Usuario</th>
+                            <th>Acción</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($personas as $persona)
                             <tr class="{{ !$persona['tiene_usuario'] ? 'persona-row-warning' : '' }}">
-                                <td>{{ $loop->iteration }}</td>
+                                {{-- Tipo --}}
                                 <td>
                                     <span class="persona-tipo-badge persona-tipo-{{ strtolower($persona['tipo']) }}">
                                         <i class="fas {{ $persona['icono_tipo'] }} mr-1"></i>
                                         {{ $persona['tipo'] }}
                                     </span>
                                 </td>
+                                
+                                {{-- Nombre --}}
                                 <td><strong>{{ $persona['nombre'] }}</strong></td>
-                                <td>{{ $persona['telefono'] }}</td>
-                                <td>{{ $persona['direccion'] }}</td>
-                                <td>{{ $persona['info_extra'] }}</td>
+                                
+                                {{-- Contacto (teléfono + dirección) --}}
                                 <td>
-                                    @if($persona['tiene_usuario'])
-                                        <span class="badge persona-usuario-si">
-                                            <i class="fas fa-check"></i> Sí
-                                        </span>
-                                    @else
-                                        <span class="badge persona-usuario-no">
-                                            <i class="fas fa-times"></i> No
-                                        </span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($persona['tiene_usuario'])
-                                        <code class="persona-email-code">{{ $persona['usuario_correo'] }}</code>
-                                        <br>
-                                        <small class="text-muted">{{ ucfirst($persona['usuario_estado']) }}</small>
+                                    @if($persona['telefono'])
+                                        <i class="fas fa-phone text-muted mr-1"></i> {{ $persona['telefono'] }}
                                     @else
                                         <span class="text-muted">-</span>
                                     @endif
+                                    @if($persona['direccion'])
+                                        <br><small class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ $persona['direccion'] }}</small>
+                                    @endif
                                 </td>
-                                <td class="persona-accion-btn">
+                                
+                                {{-- Info Extra (sueldo, edad, etc.) --}}
+                                <td>
+                                    <small class="text-muted">{{ $persona['info_extra'] ?: '-' }}</small>
+                                </td>
+                                
+                                {{-- Usuario --}}
+                                <td>
+                                    @if($persona['tiene_usuario'])
+                                        <span class="badge persona-usuario-si">Sí</span>
+                                        <br><small class="text-muted">{{ $persona['usuario_correo'] }}</small>
+                                    @else
+                                        <span class="badge persona-usuario-no">No</span>
+                                    @endif
+                                </td>
+                                
+                                {{-- Acción --}}
+                                <td>
                                     @if(!$persona['tiene_usuario'])
-                                        <button class="btn btn-primary btn-xs crear-usuario-btn"
+                                        <button class="btn btn-primary btn-sm crear-usuario-btn"
                                                 data-tipo="{{ strtolower($persona['tipo']) }}"
                                                 data-id="{{ $persona['id'] }}"
                                                 data-nombre="{{ $persona['nombre'] }}">
                                             <i class="fas fa-user-plus"></i> Crear Usuario
                                         </button>
                                     @else
-                                        <span class="text-muted small">Ya asignado</span>
+                                        <span class="text-muted small">Asignado</span>
                                     @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center py-4">
-                                    <i class="fas fa-inbox persona-empty-icon mr-2"></i>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
                                     No se encontraron personas
                                 </td>
                             </tr>
@@ -292,47 +266,28 @@
 ])
 @endsection
 
-@push('styles')
-<style>
-    /* ... tus estilos actuales ... */
-    
-    /* Forzar scroll horizontal en la tabla */
-    .table-responsive {
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    /* Ancho mínimo para que todas las columnas se vean bien */
-    .table-personas {
-        min-width: 1100px;
-    }
-    
-    /* Reducir padding en celdas para aprovechar espacio */
-    .table-personas th,
-    .table-personas td {
-        padding: 0.5rem 0.6rem !important;
-        font-size: 0.85rem;
-        vertical-align: middle;
-        white-space: nowrap;
-    }
-    
-    /* Columna nombre: permitir wrap y darle un ancho máximo */
-    .table-personas td:nth-child(3) {
-        white-space: normal;
-        max-width: 180px;
-        min-width: 120px;
-    }
-    
-    /* Columna dirección: wrap controlado */
-    .table-personas td:nth-child(5) {
-        white-space: normal;
-        max-width: 150px;
-    }
-    
-    /* Columna info extra: compacta */
-    .table-personas td:nth-child(6) {
-        max-width: 100px;
-        white-space: normal;
-        font-size: 0.8rem;
-    }
-</style>
+@push('scripts')
+<script>
+$(document).ready(function() {
+    // Al hacer clic en "Crear Usuario", abrir el modal con datos prellenados
+    $(document).on('click', '.crear-usuario-btn', function() {
+        const tipo = $(this).data('tipo');
+        const id = $(this).data('id');
+        const nombre = $(this).data('nombre');
+        
+        $('#tipo_usuario').val(tipo).trigger('change');
+        $('#createUsuarioModal').modal('show');
+        
+        if (tipo === 'empleado') {
+            $('#id_empleado').val(id);
+        } else if (tipo === 'cliente') {
+            $('#id_cliente').val(id);
+        }
+        
+        // Prellenar correo sugerido
+        const nombreLimpio = nombre.toLowerCase().replace(/\s+/g, '.');
+        $('#correo').val(nombreLimpio + '@panaderia.com');
+    });
+});
+</script>
 @endpush

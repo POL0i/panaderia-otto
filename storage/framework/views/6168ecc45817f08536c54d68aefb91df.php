@@ -4,11 +4,6 @@
 
 <?php $__env->startPush('styles'); ?>
 <style>
-    /* ==========================================
-       ESTILOS ESPECÍFICOS DEL PANEL DE COMPRAS
-       ========================================== */
-    
-    /* Tarjeta de proveedor */
     .proveedor-card {
         cursor: pointer;
         transition: all 0.3s ease;
@@ -25,52 +20,33 @@
         background-color: var(--color-bg-lighter);
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    .proveedor-icon {
-        color: var(--color-primary);
-    }
+    .proveedor-icon { color: var(--color-primary); }
 
-    /* Botón agregar item */
     .btn-add-item {
         background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
         color: var(--text-on-primary);
         border-radius: 25px;
         transition: all 0.3s;
         padding: 0.5rem 1.5rem;
+        border: none;
     }
     .btn-add-item:hover {
         filter: brightness(1.1);
         color: var(--text-on-primary);
     }
-    .btn-add-item:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
+    .btn-add-item:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* Carrito */
-    .cart-empty {
-        text-align: center;
-        padding: 2rem;
-        color: var(--text-muted);
-    }
+    .cart-empty { text-align: center; padding: 2rem; color: var(--text-muted); }
     .cart-item {
         background: var(--color-bg-lighter);
         border-radius: var(--border-radius-sm);
         padding: 0.75rem;
         margin-bottom: 0.5rem;
         border-left: 3px solid var(--color-primary);
-        transition: all 0.2s;
     }
-    .cart-item:hover {
-        background: var(--color-bg-lightest);
-    }
-    .cart-item-remove {
-        color: var(--badge-danger);
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
-    .cart-item-remove:hover {
-        transform: scale(1.2);
-    }
+    .cart-item:hover { background: var(--color-bg-lightest); }
+    .cart-item-remove { color: var(--badge-danger); cursor: pointer; transition: transform 0.2s; }
+    .cart-item-remove:hover { transform: scale(1.2); }
     .cart-total-card {
         background: var(--color-bg-lighter);
         border-radius: var(--border-radius-sm);
@@ -78,26 +54,10 @@
         border: 2px solid var(--color-accent);
     }
 
-    /* Recibo (modal detalle) */
-    .recibo-header {
-        background-color: var(--color-bg-lighter);
-    }
-    .recibo-footer {
-        background-color: var(--color-bg-lighter);
-        border-top: 1px solid var(--color-border);
-    }
-    .recibo-empresa {
-        color: var(--color-primary-dark);
-    }
+    .recibo-header { background-color: var(--color-bg-lighter); }
+    .recibo-footer { background-color: var(--color-bg-lighter); border-top: 1px solid var(--color-border); }
+    .recibo-empresa { color: var(--color-primary-dark); }
 
-    /* Panel de proveedor seleccionado */
-    .proveedor-seleccionado-panel {
-        background: var(--color-bg-lighter);
-        border-radius: var(--border-radius-sm);
-        border: 2px solid var(--color-accent);
-    }
-
-    /* Botón link para nuevo almacén/insumo */
     .btn-link-new {
         color: var(--color-primary);
         font-size: 0.85rem;
@@ -114,8 +74,6 @@
 <div class="container-fluid">
     
     <div class="row">
-        
-        
         
         <div class="col-md-7">
             
@@ -240,8 +198,6 @@
         </div>
 
         
-        
-        
         <div class="col-md-5">
             <div class="card">
                 <div class="card-header">
@@ -270,8 +226,6 @@
     </div>
 
     
-    
-    
     <div class="row mt-4">
         <div class="col-12">
             <div class="card">
@@ -281,30 +235,20 @@
                 <div class="card-body">
                     <ul class="nav nav-tabs" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link active" data-toggle="tab" href="#notasCompra">
-                                Notas de Compra
-                            </a>
+                            <a class="nav-link active" data-toggle="tab" href="#notasCompra">Notas de Compra</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-toggle="tab" href="#detallesCompra">
-                                Detalles de Compra
-                            </a>
+                            <a class="nav-link" data-toggle="tab" href="#detallesCompra">Detalles de Compra</a>
                         </li>
                     </ul>
                     <div class="tab-content mt-3">
-                        
                         <div class="tab-pane fade show active" id="notasCompra">
                             <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
-                                            <th>ID</th>
-                                            <th>Fecha</th>
-                                            <th>Proveedor</th>
-                                            <th>Empleado</th>
-                                            <th>Total</th>
-                                            <th>Estado</th>
-                                            <th>Acciones</th>
+                                            <th>ID</th><th>Fecha</th><th>Proveedor</th>
+                                            <th>Empleado</th><th>Total</th><th>Estado</th><th>Ver</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -312,20 +256,12 @@
                                         <tr>
                                             <td><?php echo e($nota->id_nota_compra); ?></td>
                                             <td><?php echo e(\Carbon\Carbon::parse($nota->fecha_compra)->format('d/m/Y H:i')); ?></td>
-                                            <td>
-                                                <?php if($nota->proveedor): ?>
-                                                    <?php echo e($nota->proveedor->persona->nombre ?? $nota->proveedor->empresa->razon_social ?? 'N/A'); ?>
-
-                                                <?php else: ?>
-                                                    N/A
-                                                <?php endif; ?>
-                                            </td>
+                                            <td><?php echo e($nota->proveedor->persona->nombre ?? $nota->proveedor->empresa->razon_social ?? 'N/A'); ?></td>
                                             <td><?php echo e($nota->empleado->nombre ?? 'N/A'); ?></td>
                                             <td>Bs. <?php echo e(number_format($nota->monto_total, 2)); ?></td>
                                             <td><span class="badge badge-success"><?php echo e($nota->estado); ?></span></td>
                                             <td>
-                                                <button class="btn btn-sm btn-info" 
-                                                        onclick="verDetalleNota(<?php echo e($nota->id_nota_compra); ?>)">
+                                                <button class="btn btn-sm btn-info" onclick="verDetalleNota(<?php echo e($nota->id_nota_compra); ?>)">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </td>
@@ -335,19 +271,13 @@
                                 </table>
                             </div>
                         </div>
-
-                        
                         <div class="tab-pane fade" id="detallesCompra">
                             <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
-                                            <th>Nota</th>
-                                            <th>Almacén</th>
-                                            <th>Item</th>
-                                            <th>Cantidad</th>
-                                            <th>Precio</th>
-                                            <th>Subtotal</th>
+                                            <th>Nota</th><th>Almacén</th><th>Item</th>
+                                            <th>Cantidad</th><th>Precio</th><th>Subtotal</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -375,128 +305,65 @@
 
 
 
-<div class="modal fade" id="modalProveedor" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-truck"></i> Nuevo Proveedor
-                </h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <form id="formCreateProveedor" action="<?php echo e(route('compras.proveedor.store')); ?>" method="POST">
-                <?php echo csrf_field(); ?>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label>Tipo</label>
-                        <select name="tipo_proveedor" class="form-control" id="tipoProveedorSelect" required>
-                            <option value="persona">Persona Natural</option>
-                            <option value="empresa">Empresa</option>
-                        </select>
-                    </div>
-                    <div id="camposPersona">
-                        <div class="form-group">
-                            <label>Nombre Completo</label>
-                            <input type="text" name="nombre_persona" class="form-control">
-                        </div>
-                    </div>
-                    <div id="camposEmpresa" style="display:none">
-                        <div class="form-group">
-                            <label>Razón Social</label>
-                            <input type="text" name="razon_social" class="form-control">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Teléfono</label>
-                        <input type="text" name="telefono" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label>Dirección</label>
-                        <textarea name="direccion" class="form-control" rows="2"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Correo</label>
-                        <input type="email" name="correo" class="form-control">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-
-
-
-<div class="modal fade" id="modalDetalleNota" tabindex="-1" 
-     aria-labelledby="modalDetalleNotaLabel" aria-hidden="true">
+<div class="modal fade" id="modalDetalleNota" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+        <div class="modal-content border-panaderia shadow-lg">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalDetalleNotaLabel">
-                    <i class="fas fa-receipt"></i> Comprobante de Compra
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <h5 class="modal-title"><i class="fas fa-receipt"></i> Comprobante de Compra</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
             </div>
-            <div class="modal-body p-0">
+            <div class="modal-body p-0 bg-panaderia-light">
                 
-                <div class="p-3 border-bottom recibo-header">
+                
+                <div class="p-3 border-bottom" style="border-color: var(--color-border) !important;">
                     <div class="row">
                         <div class="col-6">
-                            <h4 class="mb-0 recibo-empresa"><strong>PANADERÍA OTTO</strong></h4>
+                            <h4 class="mb-0" style="color: var(--color-primary-dark);"><strong>PANADERÍA OTTO</strong></h4>
                             <small class="text-muted">NIT: 123456789</small><br>
                             <small class="text-muted">Av. Principal #123, Santa Cruz</small><br>
                             <small class="text-muted">Tel: (591) 123-45678</small>
                         </div>
                         <div class="col-6 text-right">
-                            <h5><strong>NOTA DE COMPRA</strong></h5>
+                            <h5 style="color: var(--text-primary);"><strong>NOTA DE COMPRA</strong></h5>
                             <h6><span class="badge badge-success" id="reciboNumero">#001</span></h6>
-                            <small id="reciboFecha">Fecha: 01/01/2026</small>
+                            <small class="text-muted" id="reciboFecha">Fecha: 01/01/2026</small>
                         </div>
                     </div>
                 </div>
 
                 
-                <div class="p-3 border-bottom">
+                <div class="p-3 border-bottom" style="border-color: var(--color-border) !important;">
                     <div class="row">
                         <div class="col-6">
-                            <strong>Proveedor:</strong><br>
-                            <span id="reciboProveedorNombre">Nombre Proveedor</span><br>
-                            <small id="reciboProveedorTelefono">Tel: N/A</small><br>
-                            <small id="reciboProveedorCorreo">Email: N/A</small>
+                            <strong style="color: var(--color-primary-dark);">Proveedor:</strong><br>
+                            <span id="reciboProveedorNombre" style="color: var(--text-primary);">-</span><br>
+                            <small class="text-muted" id="reciboProveedorTelefono">Tel: -</small><br>
+                            <small class="text-muted" id="reciboProveedorCorreo">Email: -</small>
                         </div>
                         <div class="col-6 text-right">
-                            <strong>Atendido por:</strong><br>
-                            <span id="reciboEmpleadoNombre">Nombre Empleado</span><br>
-                            <small>ID: <span id="reciboEmpleadoId">1</span></small>
+                            <strong style="color: var(--color-primary-dark);">Atendido por:</strong><br>
+                            <span id="reciboEmpleadoNombre" style="color: var(--text-primary);">-</span><br>
+                            <small class="text-muted">ID: <span id="reciboEmpleadoId">-</span></small>
                         </div>
                     </div>
                 </div>
 
                 
                 <div class="p-3">
-                    <h6><i class="fas fa-boxes"></i> Detalle de Items</h6>
+                    <h6 style="color: var(--color-primary-dark);"><i class="fas fa-boxes"></i> Detalle de Items</h6>
                     <div class="table-responsive">
                         <table class="table table-sm table-bordered">
-                            <thead class="thead-light">
+                            <thead>
                                 <tr>
-                                    <th>Cant.</th>
-                                    <th>Descripción</th>
-                                    <th>Almacén</th>
-                                    <th class="text-right">P. Unit.</th>
-                                    <th class="text-right">Subtotal</th>
+                                    <th>Cant.</th><th>Descripción</th><th>Almacén</th>
+                                    <th class="text-right">P. Unit.</th><th class="text-right">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody id="reciboItemsBody"></tbody>
                             <tfoot>
                                 <tr>
                                     <td colspan="4" class="text-right"><strong>Total:</strong></td>
-                                    <td class="text-right"><strong id="reciboTotal">Bs. 0.00</strong></td>
+                                    <td class="text-right"><strong id="reciboTotal" style="color: var(--color-primary);">Bs. 0.00</strong></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -504,7 +371,7 @@
                 </div>
 
                 
-                <div class="p-3 recibo-footer">
+                <div class="p-3 border-top" style="border-color: var(--color-border) !important; background-color: var(--color-bg-lighter);">
                     <div class="row">
                         <div class="col-6">
                             <small class="text-muted">Gracias por su preferencia</small><br>
@@ -517,17 +384,15 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer justify-content-between">
+            <div class="modal-footer bg-panaderia-lighter justify-content-between">
+                <button type="button" class="btn btn-cancel" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Cerrar
+                </button>
                 <div>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times"></i> Cerrar
-                    </button>
-                </div>
-                <div>
-                    <button type="button" class="btn btn-primary" onclick="imprimirRecibo()">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="imprimirRecibo()">
                         <i class="fas fa-print"></i> Imprimir
                     </button>
-                    <button type="button" class="btn btn-success" id="btnEnviarCorreo">
+                    <button type="button" class="btn btn-success btn-sm" id="btnEnviarCorreo">
                         <i class="fas fa-envelope"></i> Enviar por Correo
                     </button>
                 </div>
@@ -539,42 +404,37 @@
 
 
 
-<div class="modal fade" id="modalEnvioCorreo" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalEnvioCorreo" tabindex="-1">
     <div class="modal-dialog modal-sm">
-        <div class="modal-content">
+        <div class="modal-content border-panaderia shadow-lg">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-envelope"></i> Enviar Comprobante
-                </h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h5 class="modal-title"><i class="fas fa-envelope"></i> Enviar Comprobante</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body bg-panaderia-light">
                 <div class="form-group">
-                    <label>Correo electrónico</label>
+                    <label class="text-panaderia">Correo electrónico</label>
                     <input type="email" class="form-control" id="correoDestino" 
                            placeholder="ejemplo@correo.com" required>
-                    <small class="form-text text-muted">
-                        Se enviará una copia del comprobante a esta dirección.
-                    </small>
+                    <small class="form-text text-muted">Se enviará una copia del comprobante.</small>
                 </div>
                 <input type="hidden" id="idNotaCompraEnvio">
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnConfirmarEnvio">
+            <div class="modal-footer bg-panaderia-lighter">
+                <button type="button" class="btn btn-cancel" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-save" id="btnConfirmarEnvio">
                     <i class="fas fa-paper-plane"></i> Enviar
                 </button>
             </div>
         </div>
     </div>
-</div>  
-
-
+</div>
 
 
 <?php echo $__env->make('modulo-almacen.partials.modal-almacen', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 <?php echo $__env->make('modulo-almacen.partials.modal-insumo', ['categorias' => $categoriasInsumo ?? []], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 <?php echo $__env->make('modulo-almacen.partials.modal-categoria-insumo', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php echo $__env->make('seccion-compras.partials.modal-proveedor', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <?php $__env->stopSection(); ?>
 

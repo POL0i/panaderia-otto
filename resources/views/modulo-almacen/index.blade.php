@@ -272,6 +272,7 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    
     // ============================================
     // CARGAR ITEMS DE ALMACÉN
     // ============================================
@@ -282,7 +283,6 @@ $(document).ready(function() {
         $('.almacen-list-item').removeClass('active');
         $(this).addClass('active');
         
-        // Mostrar loader
         $('#itemsAlmacenBody').html(
             '<tr><td colspan="4" class="text-center text-muted">' +
             '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando inventario...</td></tr>'
@@ -309,8 +309,7 @@ $(document).ready(function() {
                        '<i class="fas fa-inbox mr-2"></i>Este almacén no tiene items</td></tr>';
             }
             $('#itemsAlmacenBody').html(html);
-        }).fail(function(xhr) {
-            console.error('Error:', xhr.responseText);
+        }).fail(function() {
             $('#itemsAlmacenBody').html(
                 '<tr><td colspan="4" class="text-center text-danger">' +
                 '<i class="fas fa-exclamation-circle mr-2"></i>Error al cargar items</td></tr>'
@@ -319,125 +318,186 @@ $(document).ready(function() {
     });
     
     // ============================================
-    // MANEJO CENTRALIZADO DE FORMULARIOS MODALES
+    // MANEJO GLOBAL DE FORMULARIOS MODALES POR AJAX
     // ============================================
     var isSubmitting = false;
     
-    // Configuración de formularios
-    var formConfigs = [
-        {
-            formId: '#formCreateAlmacen',
-            modalId: '#createAlmacenModal',
-            loadingText: 'Creando...',
-            successMessage: 'Almacén creado exitosamente',
-            errorMessage: 'Error al crear el almacén'
-        },
-        {
-            formId: '#formCreateCategoriaInsumo',
-            modalId: '#createCategoriaInsumoModal',
-            loadingText: 'Creando...',
-            successMessage: 'Categoría creada exitosamente',
-            errorMessage: 'Error al crear la categoría'
-        },
-        {
-            formId: '#formCreateInsumo',
-            modalId: '#createInsumoModal',
-            loadingText: 'Creando...',
-            successMessage: 'Insumo creado exitosamente',
-            errorMessage: 'Error al crear el insumo'
-        },
-        {
-            formId: '#formCreateCategoriaProducto',
-            modalId: '#createCategoriaProductoModal',
-            loadingText: 'Creando...',
-            successMessage: 'Categoría creada exitosamente',
-            errorMessage: 'Error al crear la categoría'
-        },
-        {
-            formId: '#formCreateProducto',
-            modalId: '#createProductoModal',
-            loadingText: 'Creando...',
-            successMessage: 'Producto creado exitosamente',
-            errorMessage: 'Error al crear el producto',
-            isFileUpload: true
-        },
-        {
-            formId: '#formManageStock',
-            modalId: '#manageStockModal',
-            loadingText: 'Procesando...',
-            successMessage: 'Stock actualizado exitosamente',
-            errorMessage: 'Error al gestionar stock'
-        }
-    ];
-    
-    // Inicializar cada formulario
-    formConfigs.forEach(function(config) {
-        var $form = $(config.formId);
-        if (!$form.length) return;
-        
-        // Guardar texto original del botón
-        var $submitBtn = $form.find('button[type="submit"]');
-        var originalText = $submitBtn.html();
-        $submitBtn.data('original-text', originalText);
-        
-        $form.off('submit').on('submit', function(e) {
+    function manejarFormularioModal(formId, modalId, loadingText, successMessage, errorMessage) {
+        $(document).on('submit', formId, function(e) {
             e.preventDefault();
-            if (isSubmitting) return;
+            if (isSubmitting) return false;
+            
+            var $form = $(this);
+            var $btn = $form.find('button[type="submit"]');
+            var originalText = $btn.html();
+            
+            $btn.html('<i class="fas fa-spinner fa-spin"></i> ' + loadingText).prop('disabled', true);
             isSubmitting = true;
             
-            var $btn = $form.find('button[type="submit"]');
-            $btn.html('<i class="fas fa-spinner fa-spin"></i> ' + config.loadingText).prop('disabled', true);
-            
-            var ajaxOptions = {
+            $.ajax({
                 url: $form.attr('action'),
                 method: 'POST',
-                data: config.isFileUpload ? new FormData(this) : $form.serialize(),
+                data: $form.serialize(),
                 success: function(response) {
                     if (response.success) {
-                        $(config.modalId).modal('hide');
-                        toastr.success(response.message || config.successMessage);
+                        $(modalId).modal('hide');
+                        toastr.success(response.message || successMessage);
                         $form[0].reset();
-                        setTimeout(function() { location.reload(); }, 1500);
+                        setTimeout(() => location.reload(), 1500);
                     } else {
                         toastr.error(response.message || 'Error al procesar');
-                        resetButton($btn, originalText);
+                        $btn.html(originalText).prop('disabled', false);
                         isSubmitting = false;
                     }
                 },
                 error: function(xhr) {
-                    var message = config.errorMessage;
+                    var message = errorMessage;
                     if (xhr.responseJSON?.errors) {
                         message = Object.values(xhr.responseJSON.errors).flat().join('\n');
                     } else if (xhr.responseJSON?.message) {
                         message = xhr.responseJSON.message;
                     }
                     toastr.error(message);
-                    resetButton($btn, originalText);
+                    $btn.html(originalText).prop('disabled', false);
                     isSubmitting = false;
                 }
-            };
-            
-            if (config.isFileUpload) {
-                ajaxOptions.processData = false;
-                ajaxOptions.contentType = false;
+            });
+        });
+    }
+    
+    // Inicializar formularios
+    manejarFormularioModal('#formCreateAlmacen', '#createAlmacenModal', 'Creando...', 'Almacén creado', 'Error al crear almacén');
+    manejarFormularioModal('#formCreateCategoriaInsumo', '#createCategoriaInsumoModal', 'Creando...', 'Categoría creada', 'Error al crear categoría');
+    manejarFormularioModal('#formCreateInsumo', '#createInsumoModal', 'Creando...', 'Insumo creado', 'Error al crear insumo');
+    manejarFormularioModal('#formCreateCategoriaProducto', '#createCategoriaProductoModal', 'Creando...', 'Categoría creada', 'Error al crear categoría');
+    manejarFormularioModal('#formManageStock', '#manageStockModal', 'Procesando...', 'Stock actualizado', 'Error al gestionar stock');
+    
+    // Producto requiere FormData por la imagen
+    $(document).on('submit', '#formCreateProducto', function(e) {
+        e.preventDefault();
+        if (isSubmitting) return false;
+        
+        var $form = $(this);
+        var $btn = $form.find('button[type="submit"]');
+        var originalText = $btn.html();
+        var formData = new FormData(this);
+        
+        $btn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
+        isSubmitting = true;
+        
+        $.ajax({
+            url: $form.attr('action'),
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    $('#createProductoModal').modal('hide');
+                    toastr.success(response.message || 'Producto creado');
+                    $form[0].reset();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    toastr.error(response.message || 'Error');
+                    $btn.html(originalText).prop('disabled', false);
+                    isSubmitting = false;
+                }
+            },
+            error: function(xhr) {
+                toastr.error('Error al crear producto');
+                $btn.html(originalText).prop('disabled', false);
+                isSubmitting = false;
             }
-            
-            $.ajax(ajaxOptions);
+        });
+    });
+
+        // ============================================
+    // MODALES ANIDADOS
+    // ============================================
+    
+    // Abrir modal de categoría desde el modal de insumo
+    $(document).on('click', '.btn-nueva-categoria', function(e) {
+        e.preventDefault();
+        
+        // Ocultar temporalmente el modal de insumo
+        $('#createInsumoModal').css('z-index', '1040');
+        
+        // Mostrar el modal de categoría encima
+        $('#createCategoriaInsumoModal').on('hidden.bs.modal', function() {
+            $('#createInsumoModal').modal('show');
         });
     });
     
-    function resetButton($btn, originalText) {
-        $btn.html(originalText).prop('disabled', false);
-    }
+    // Al cerrar el modal de categoría, restaurar el modal de insumo
+    $('#createCategoriaInsumoModal').on('hidden.bs.modal', function() {
+        $('#createInsumoModal').css('z-index', '1050');
+        
+        // Si se creó una categoría nueva, recargar el select
+        setTimeout(function() {
+            // Recargar las opciones del select de categorías
+            $.get('/modulo-almacen/categorias-insumo/listar', function(data) {
+                var $select = $('#insumoCategoria');
+                $select.empty().append('<option value="">Seleccionar categoría...</option>');
+                data.forEach(function(cat) {
+                    $select.append('<option value="' + cat.id + '">' + cat.nombre + '</option>');
+                });
+                // Seleccionar la última (recién creada)
+                $select.val(data[data.length - 1]?.id);
+            }).fail(function() {
+                // Si no hay endpoint, recargar la página al cerrar
+                location.reload();
+            });
+        }, 500);
+    });
     
-    // Resetear flag al cerrar modales
+    // También recargar categorías si se usa SweetAlert/Toastr de éxito
+    $(document).on('submit', '#formCreateCategoriaInsumo', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        var $btn = $form.find('button[type="submit"]');
+        var originalText = $btn.html();
+        
+        $btn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
+        
+        $.ajax({
+            url: $form.attr('action'),
+            method: 'POST',
+            data: $form.serialize(),
+            success: function(response) {
+                if (response.success) {
+                    // Cerrar modal de categoría
+                    $('#createCategoriaInsumoModal').modal('hide');
+                    $form[0].reset();
+                    
+                    // Agregar la nueva categoría al select
+                    if (response.categoria) {
+                        var newOption = new Option(
+                            response.categoria.nombre,
+                            response.categoria.id_cat_insumo,
+                            true,
+                            true
+                        );
+                        $('#insumoCategoria').append(newOption).val(response.categoria.id_cat_insumo);
+                    }
+                    
+                    toastr.success(response.message || 'Categoría creada');
+                } else {
+                    toastr.error(response.message || 'Error');
+                    $btn.html(originalText).prop('disabled', false);
+                }
+            },
+            error: function(xhr) {
+                toastr.error('Error al crear categoría');
+                $btn.html(originalText).prop('disabled', false);
+            }
+        });
+    });
+});
+
+    // Reset al cerrar modales
     $('.modal').on('hidden.bs.modal', function() {
         isSubmitting = false;
-        var $btn = $(this).find('button[type="submit"]');
-        var originalText = $btn.data('original-text');
-        if (originalText && $btn.prop('disabled')) {
-            $btn.html(originalText).prop('disabled', false);
-        }
+        $(this).find('button[type="submit"]').prop('disabled', false);
     });
 });
 </script>

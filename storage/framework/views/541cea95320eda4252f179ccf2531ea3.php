@@ -423,20 +423,6 @@ $(document).ready(function() {
         isSubmitting = false;
     });
 
-    // ============================================
-    // CREAR EMPLEADO (desde modal usuario) - CORREGIDO
-    // ============================================
-    $(document).on('click', '[data-target="#createEmpleadoModal"]', function(e) {
-        e.preventDefault();
-        var currentModal = $(this).closest('.modal');
-        if (currentModal.length) {
-            var currentModalId = currentModal.attr('id');
-            openNestedModal('#' + currentModalId, '#createEmpleadoModal');
-        } else {
-            $('#createEmpleadoModal').modal('show');
-        }
-    });
-
     $(document).on('click', '[data-target="#createClienteModal"]', function(e) {
         e.preventDefault();
         var currentModal = $(this).closest('.modal');
@@ -622,66 +608,6 @@ $('#formEditarUsuario').on('submit', function(e) {
         }
     });
 });
-
-  // ============================================
-    // CREAR CLIENTE (desde modal usuario) - CORREGIDO
-    // ============================================
-    var isSubmittingCliente = false;
-    
-    $('#formCrearCliente').on('submit', function(e) {
-        e.preventDefault();
-        
-        if (isSubmittingCliente) return false;
-        
-        var form = $(this);
-        var submitBtn = form.find('button[type="submit"]');
-        var originalText = submitBtn.html();
-        
-        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
-        isSubmittingCliente = true;
-        
-        $.ajax({
-            url: form.attr('action'),
-            method: 'POST',
-            data: form.serialize(),
-            success: function(response) {
-                if (response.success) {
-                    $('#createClienteModal').modal('hide');
-                    toastr.success(response.message);
-                    form[0].reset();
-                    
-                    // Crear opción nativa
-                    var newOption = new Option(
-                        response.cliente.nombre + ' ' + (response.cliente.apellido || ''),
-                        response.cliente.id_cliente,
-                        true,
-                        true
-                    );
-                    // Agregar a los selects
-                    $('#id_cliente, #edit_id_cliente').append(newOption);
-                    
-                    // Seleccionar automáticamente la nueva opción
-                    $('#id_cliente').val(response.cliente.id_cliente).trigger('change');
-                    
-                    // Volver al modal anterior
-                    returnToPreviousModal();
-                } else {
-                    toastr.error(response.message || 'Error al crear cliente');
-                }
-            },
-            error: function(xhr) {
-                var message = 'Error al crear cliente';
-                if (xhr.responseJSON?.message) {
-                    message = xhr.responseJSON.message;
-                }
-                toastr.error(message);
-            },
-            complete: function() {
-                submitBtn.html(originalText).prop('disabled', false);
-                isSubmittingCliente = false;
-            }
-        });
-    });
 
 
     // Si se cancela el modal de empleado/cliente, volver al anterior

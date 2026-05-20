@@ -291,113 +291,141 @@
     </div>
 
     {{-- ========================================== --}}
-    {{-- HISTORIAL DE VENTAS --}}
-    {{-- ========================================== --}}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-history"></i> Historial de Ventas Recientes</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="nav nav-tabs" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" data-toggle="tab" href="#notasVenta">
-                                Notas de Venta
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-toggle="tab" href="#detallesVenta">
-                                Detalles de Venta
-                            </a>
-                        </li>
-                    </ul>
-                    <div class="tab-content mt-3">
-                        {{-- Notas de Venta --}}
-                        <div class="tab-pane fade show active" id="notasVenta">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Fecha</th>
-                                            <th>Cliente</th>
-                                            <th>Empleado</th>
-                                            <th>Total</th>
-                                            <th>Estado</th>
-                                            <th>Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($notasVenta as $nota)
-                                        <tr>
-                                            <td>{{ $nota->id_nota_venta }}</td>
-                                            <td>{{ \Carbon\Carbon::parse($nota->fecha_venta)->format('d/m/Y H:i') }}</td>
-                                            <td>{{ $nota->cliente->nombre ?? 'N/A' }}</td>
-                                            <td>{{ $nota->empleado->nombre ?? 'Sin asignar' }}</td>
-                                            <td>Bs. {{ number_format($nota->monto_total, 2) }}</td>
-                                            <td>
-                                                @if($nota->estado === 'completado')
-                                                    <span class="badge badge-success">Completado</span>
-                                                @elseif($nota->estado === 'pendiente')
-                                                    <span class="badge badge-warning">Pendiente</span>
-                                                @elseif($nota->estado === 'cancelado')
-                                                    <span class="badge badge-danger">Cancelado</span>
-                                                @else
-                                                    <span class="badge badge-secondary">{{ $nota->estado }}</span>
+{{-- HISTORIAL DE VENTAS --}}
+{{-- ========================================== --}}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Historial de Ventas Recientes</h5>
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-toggle="tab" href="#notasVenta">
+                            Notas de Venta
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#detallesVenta">
+                            Detalles de Venta
+                        </a>
+                    </li>
+                </ul>
+                <div class="tab-content mt-3">
+                    {{-- Notas de Venta --}}
+                    <div class="tab-pane fade show active" id="notasVenta">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Fecha</th>
+                                        <th>Cliente</th>
+                                        <th>Empleado</th>
+                                        <th>Total</th>
+                                        <th>Pago</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($notasVenta as $nota)
+                                    <tr>
+                                        <td>{{ $nota->id_nota_venta }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($nota->fecha_venta)->format('d/m/Y H:i') }}</td>
+                                        <td>{{ $nota->cliente->nombre ?? 'N/A' }}</td>
+                                        <td>{{ $nota->empleado->nombre ?? 'Sin asignar' }}</td>
+                                        <td>Bs. {{ number_format($nota->monto_total, 2) }}</td>
+                                        <td>
+                                            @if($nota->transaccionLibelula)
+                                                @if($nota->transaccionLibelula->qr_url)
+                                                    <img src="{{ $nota->transaccionLibelula->qr_url }}" 
+                                                        alt="QR Pago" 
+                                                        style="height: 30px; cursor: pointer;" 
+                                                        onclick="window.open('{{ $nota->transaccionLibelula->qr_url }}', '_blank')"
+                                                        title="Ver QR de pago">
                                                 @endif
-                                            </td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <button class="btn btn-info" 
-                                                            onclick="verDetalleNota({{ $nota->id_nota_venta }})" 
-                                                            title="Ver detalle">
-                                                        <i class="fas fa-eye"></i>
+                                                @if($nota->transaccionLibelula->url_pasarela)
+                                                    <a href="{{ $nota->transaccionLibelula->url_pasarela }}" 
+                                                    target="_blank" class="btn btn-sm btn-outline-primary ml-1" 
+                                                    title="Ir a pasarela de pago">
+                                                        <i class="fas fa-external-link-alt"></i>
+                                                    </a>
+                                                @endif
+                                            @else
+                                                <span class="text-muted">—</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($nota->estado === 'completado')
+                                                <span class="badge badge-success">Completado</span>
+                                            @elseif($nota->estado === 'pendiente')
+                                                <span class="badge badge-warning">Pendiente</span>
+                                            @elseif($nota->estado === 'cancelado')
+                                                <span class="badge badge-danger">Cancelado</span>
+                                            @else
+                                                <span class="badge badge-secondary">{{ $nota->estado }}</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-info" 
+                                                        onclick="verDetalleNotaVenta({{ $nota->id_nota_venta }})" 
+                                                        title="Ver detalle">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                @if($nota->transaccionLibelula && $nota->estado === 'pendiente')
+                                                <form action="{{ route('ventas.verificar-pago', $nota->id_nota_venta) }}" method="POST" style="display:inline;">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-warning btn-sm" title="Verificar pago en Libélula">
+                                                        <i class="fas fa-sync-alt"></i>
                                                     </button>
-                                                    @if($nota->estado === 'pendiente')
-                                                    <button class="btn btn-success btn-completar-venta"
-                                                            data-id="{{ $nota->id_nota_venta }}"
-                                                            title="Completar venta">
-                                                        <i class="fas fa-check"></i>
-                                                    </button>
-                                                    @endif
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
+                                                </form>
+                                                @endif
+                                                @if($nota->estado === 'pendiente')
+                                                <button class="btn btn-success btn-completar-venta"
+                                                        data-id="{{ $nota->id_nota_venta }}"
+                                                        title="Completar venta">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
+                    </div>
 
-                        {{-- Detalles de Venta --}}
-                        <div class="tab-pane fade" id="detallesVenta">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Nota</th>
-                                            <th>Almacén</th>
-                                            <th>Producto</th>
-                                            <th>Cantidad</th>
-                                            <th>Precio</th>
-                                            <th>Subtotal</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($detallesVenta as $detalle)
-                                        <tr>
-                                            <td>{{ $detalle->id_nota_venta }}</td>
-                                            <td>{{ $detalle->almacen_nombre }}</td>
-                                            <td>{{ $detalle->producto_nombre }}</td>
-                                            <td>{{ $detalle->cantidad }}</td>
-                                            <td>Bs. {{ number_format($detalle->precio, 2) }}</td>
-                                            <td>Bs. {{ number_format($detalle->cantidad * $detalle->precio, 2) }}</td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
+                    {{-- Detalles de Venta --}}
+                    <div class="tab-pane fade" id="detallesVenta">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nota</th>
+                                        <th>Almacén</th>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($detallesVenta as $detalle)
+                                    <tr>
+                                        <td>{{ $detalle->id_nota_venta }}</td>
+                                        <td>{{ $detalle->almacen_nombre }}</td>
+                                        <td>{{ $detalle->producto_nombre }}</td>
+                                        <td>{{ $detalle->cantidad }}</td>
+                                        <td>Bs. {{ number_format($detalle->precio, 2) }}</td>
+                                        <td>Bs. {{ number_format($detalle->cantidad * $detalle->precio, 2) }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -411,18 +439,20 @@
 {{-- ===================================================== --}}
 <div class="modal fade" id="seleccionProductoModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+        <div class="modal-content border-panaderia shadow-lg">
             <div class="modal-header">
                 <h5 class="modal-title">
                     <i class="fas fa-boxes"></i> Seleccionar Producto por Almacén
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body bg-panaderia-light">
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label>Filtrar por Almacén</label>
+                            <label class="text-panaderia">
+                                <i class="fas fa-warehouse mr-1"></i> Filtrar por Almacén
+                            </label>
                             <select id="filtroAlmacenModal" class="form-control">
                                 <option value="">Todos los almacenes</option>
                                 @foreach($almacenes as $almacen)
@@ -433,7 +463,9 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label>Buscar Producto</label>
+                            <label class="text-panaderia">
+                                <i class="fas fa-search mr-1"></i> Buscar Producto
+                            </label>
                             <input type="text" id="buscarProductoModal" class="form-control" 
                                    placeholder="Nombre del producto...">
                         </div>
@@ -441,22 +473,25 @@
                     <div class="col-md-4">
                         <div class="form-group">
                             <label>&nbsp;</label>
-                            <button type="button" class="btn btn-secondary btn-block" id="btnLimpiarFiltros">
+                            <button type="button" class="btn btn-cancel btn-block" id="btnLimpiarFiltros">
                                 <i class="fas fa-eraser"></i> Limpiar Filtros
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <div class="row productos-grid-container" id="productosGrid">
+                <div class="row productos-grid-container" id="productosGrid" 
+                     style="max-height: 400px; overflow-y: auto;">
                     <div class="col-12 text-center py-5">
-                        <i class="fas fa-spinner fa-spin fa-2x"></i>
-                        <p>Cargando productos...</p>
+                        <i class="fas fa-spinner fa-spin fa-2x text-panaderia"></i>
+                        <p class="text-muted mt-2">Cargando productos...</p>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+            <div class="modal-footer bg-panaderia-lighter">
+                <button type="button" class="btn btn-cancel" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i> Cancelar
+                </button>
             </div>
         </div>
     </div>
@@ -473,71 +508,65 @@
 {{-- ===================================================== --}}
 {{-- MODAL: DETALLE NOTA VENTA (RECIBO) --}}
 {{-- ===================================================== --}}
-<div class="modal fade" id="modalDetalleNotaVenta" tabindex="-1" 
-     aria-labelledby="modalDetalleNotaVentaLabel" aria-hidden="true">
+<div class="modal fade" id="modalDetalleNotaVenta" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+        <div class="modal-content border-panaderia shadow-lg">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalDetalleNotaVentaLabel">
                     <i class="fas fa-receipt"></i> Comprobante de Venta
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
             </div>
-            <div class="modal-body p-0">
+            <div class="modal-body p-0 bg-panaderia-light">
                 {{-- Encabezado del recibo --}}
-                <div class="p-3 border-bottom recibo-header">
+                <div class="p-3 border-bottom" style="border-color: var(--color-border) !important;">
                     <div class="row">
                         <div class="col-6">
-                            <h4 class="mb-0 recibo-empresa"><strong>PANADERÍA OTTO</strong></h4>
+                            <h4 class="mb-0" style="color: var(--color-primary-dark);"><strong>PANADERÍA OTTO</strong></h4>
                             <small class="text-muted">NIT: 123456789</small><br>
                             <small class="text-muted">Av. Principal #123, Santa Cruz</small><br>
                             <small class="text-muted">Tel: (591) 123-45678</small>
                         </div>
                         <div class="col-6 text-right">
-                            <h5><strong>NOTA DE VENTA</strong></h5>
+                            <h5 style="color: var(--text-primary);"><strong>NOTA DE VENTA</strong></h5>
                             <h6><span class="badge badge-success" id="reciboVentaNumero">#001</span></h6>
-                            <small id="reciboVentaFecha">Fecha: 01/01/2026</small>
+                            <small class="text-muted" id="reciboVentaFecha">Fecha: 01/01/2026</small>
                         </div>
                     </div>
                 </div>
 
                 {{-- Información del cliente y empleado --}}
-                <div class="p-3 border-bottom">
+                <div class="p-3 border-bottom" style="border-color: var(--color-border) !important;">
                     <div class="row">
                         <div class="col-6">
-                            <strong>Cliente:</strong><br>
-                            <span id="reciboVentaClienteNombre">Nombre Cliente</span><br>
-                            <small id="reciboVentaClienteTelefono">Tel: N/A</small>
+                            <strong style="color: var(--color-primary-dark);">Cliente:</strong><br>
+                            <span id="reciboVentaClienteNombre" style="color: var(--text-primary);">-</span><br>
+                            <small class="text-muted" id="reciboVentaClienteTelefono">Tel: -</small>
                         </div>
                         <div class="col-6 text-right">
-                            <strong>Atendido por:</strong><br>
-                            <span id="reciboVentaEmpleadoNombre">Nombre Empleado</span><br>
-                            <small>ID: <span id="reciboVentaEmpleadoId">1</span></small>
+                            <strong style="color: var(--color-primary-dark);">Atendido por:</strong><br>
+                            <span id="reciboVentaEmpleadoNombre" style="color: var(--text-primary);">-</span><br>
+                            <small class="text-muted">ID: <span id="reciboVentaEmpleadoId">-</span></small>
                         </div>
                     </div>
                 </div>
 
                 {{-- Tabla de productos --}}
                 <div class="p-3">
-                    <h6><i class="fas fa-boxes"></i> Detalle de Productos</h6>
+                    <h6 style="color: var(--color-primary-dark);"><i class="fas fa-boxes"></i> Detalle de Productos</h6>
                     <div class="table-responsive">
                         <table class="table table-sm table-bordered">
-                            <thead class="thead-light">
+                            <thead>
                                 <tr>
-                                    <th>Cant.</th>
-                                    <th>Producto</th>
-                                    <th>Almacén</th>
-                                    <th class="text-right">P. Unit.</th>
-                                    <th class="text-right">Subtotal</th>
+                                    <th>Cant.</th><th>Producto</th><th>Almacén</th>
+                                    <th class="text-right">P. Unit.</th><th class="text-right">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody id="reciboVentaItemsBody"></tbody>
                             <tfoot>
                                 <tr>
                                     <td colspan="4" class="text-right"><strong>Total:</strong></td>
-                                    <td class="text-right"><strong id="reciboVentaTotal">Bs. 0.00</strong></td>
+                                    <td class="text-right"><strong id="reciboVentaTotal" style="color: var(--color-primary);">Bs. 0.00</strong></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -545,7 +574,7 @@
                 </div>
 
                 {{-- Pie del recibo --}}
-                <div class="p-3 recibo-footer">
+                <div class="p-3 border-top" style="border-color: var(--color-border) !important; background-color: var(--color-bg-lighter);">
                     <div class="row">
                         <div class="col-6">
                             <small class="text-muted">Gracias por su compra</small><br>
@@ -558,17 +587,15 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer justify-content-between">
+            <div class="modal-footer bg-panaderia-lighter justify-content-between">
+                <button type="button" class="btn btn-cancel" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Cerrar
+                </button>
                 <div>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times"></i> Cerrar
-                    </button>
-                </div>
-                <div>
-                    <button type="button" class="btn btn-primary" onclick="imprimirReciboVenta()">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="imprimirReciboVenta()">
                         <i class="fas fa-print"></i> Imprimir
                     </button>
-                    <button type="button" class="btn btn-success" id="btnEnviarCorreoVenta">
+                    <button type="button" class="btn btn-success btn-sm" id="btnEnviarCorreoVenta">
                         <i class="fas fa-envelope"></i> Enviar por Correo
                     </button>
                 </div>
@@ -578,31 +605,27 @@
 </div>
 
 {{-- ===================================================== --}}
-{{-- MODAL: ENVÍO DE CORREO --}}
+{{-- MODAL: ENVÍO DE CORREO VENTA --}}
 {{-- ===================================================== --}}
-<div class="modal fade" id="modalEnvioCorreoVenta" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalEnvioCorreoVenta" tabindex="-1">
     <div class="modal-dialog modal-sm">
-        <div class="modal-content">
+        <div class="modal-content border-panaderia shadow-lg">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-envelope"></i> Enviar Comprobante
-                </h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h5 class="modal-title"><i class="fas fa-envelope"></i> Enviar Comprobante</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body bg-panaderia-light">
                 <div class="form-group">
-                    <label>Correo electrónico</label>
+                    <label class="text-panaderia">Correo electrónico</label>
                     <input type="email" class="form-control" id="correoDestinoVenta" 
                            placeholder="ejemplo@correo.com" required>
-                    <small class="form-text text-muted">
-                        Se enviará una copia del comprobante a esta dirección.
-                    </small>
+                    <small class="form-text text-muted">Se enviará una copia del comprobante.</small>
                 </div>
                 <input type="hidden" id="idNotaVentaEnvio">
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnConfirmarEnvioVenta">
+            <div class="modal-footer bg-panaderia-lighter">
+                <button type="button" class="btn btn-cancel" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-save" id="btnConfirmarEnvioVenta">
                     <i class="fas fa-paper-plane"></i> Enviar
                 </button>
             </div>
@@ -826,6 +849,57 @@ $(document).ready(function() {
                 });
             }
         });
+    });
+});
+
+// Abrir modal de envío de correo
+$('#btnEnviarCorreoVenta').on('click', function() {
+    $('#modalDetalleNotaVenta').modal('hide');
+    setTimeout(function() {
+        $('#modalEnvioCorreoVenta').modal('show');
+    }, 300);
+});
+
+// Enviar correo
+$('#btnConfirmarEnvioVenta').on('click', function() {
+    const correo = $('#correoDestinoVenta').val().trim();
+    const idVenta = $('#idNotaVentaEnvio').val();
+    
+    if (!correo || !correo.includes('@')) {
+        toastr.error('Ingrese un correo electrónico válido');
+        return;
+    }
+    
+    const btn = $(this);
+    btn.html('<i class="fas fa-spinner fa-spin"></i> Enviando...').prop('disabled', true);
+    
+    $.ajax({
+        url: '/ventas/enviar-correo',
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+            'Accept': 'application/json'
+        },
+        data: {
+            id_venta: idVenta,
+            correo: correo
+        },
+        success: function(response) {
+            if (response.success) {
+                toastr.success(response.message || 'Correo enviado exitosamente');
+                $('#modalEnvioCorreoVenta').modal('hide');
+                $('#correoDestinoVenta').val('');
+            } else {
+                toastr.error(response.message || 'Error al enviar el correo');
+            }
+        },
+        error: function(xhr) {
+            const message = xhr.responseJSON?.message || 'Error al enviar el correo';
+            toastr.error(message);
+        },
+        complete: function() {
+            btn.html('<i class="fas fa-paper-plane"></i> Enviar').prop('disabled', false);
+        }
     });
 });
 

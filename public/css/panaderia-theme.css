@@ -1029,3 +1029,44 @@ h1, .h1, h2, .h2, h3, .h3 {
     color: var(--table-secondary-text, #383d41) !important;
     border-color: var(--table-secondary-border, #d6d8db) !important;
 }
+
+
+/* ==========================================
+   CORRECCIÓN TEXT-PANADERIA EN MODO OSCURO
+   ========================================== */
+[data-mode="dark"] .text-panaderia {
+    color: var(--text-primary, #E6D5B8) !important;
+}
+
+[data-mode="dark"] .text-panaderia-secondary {
+    color: var(--text-secondary, #D2B48C) !important;
+}
+
+[data-mode="dark"] .form-label,
+[data-mode="dark"] label.text-panaderia {
+    color: var(--text-primary, #E8E8E8) !important;
+}
+
+
+/* ==========================================
+   CORRECCIÓN MODAL HEADER EN MODO OSCURO
+   ========================================== */
+[data-mode="dark"] .modal-header {
+    background: linear-gradient(135deg, var(--color-primary, #5D3A1A) 0%, var(--color-primary-dark, #3E2510) 100%) !important;
+    color: var(--text-on-primary, #fff) !important;
+    border-bottom: 2px solid var(--color-accent, #D2B48C) !important;
+}
+
+[data-mode="dark"] .modal-header .modal-title {
+    color: var(--text-on-primary, #fff) !important;
+}
+
+[data-mode="dark"] .modal-header .close {
+    color: var(--text-on-primary, #fff) !important;
+    opacity: 0.8;
+}
+
+[data-mode="dark"] .modal-header .close:hover {
+    opacity: 1;
+    color: var(--text-on-primary, #fff) !important;
+}

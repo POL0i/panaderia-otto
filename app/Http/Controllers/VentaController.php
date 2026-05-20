@@ -518,22 +518,22 @@ class VentaController extends Controller
         $notaVenta = NotaVenta::create([
             'fecha_venta' => now(),
             'monto_total' => $total,
-            'estado' => 'pendiente',
-            'id_cliente' => $clienteId,
+            'estado'      => 'pendiente',
+            'id_cliente'  => $clienteId,
             'id_empleado' => $empleadoId,
         ]);
 
         foreach ($cart as $item) {
             DetalleVenta::create([
                 'id_nota_venta' => $notaVenta->id_nota_venta,
-                'id_almacen' => $item['id_almacen'],
-                'id_item' => $item['id_item'],
-                'cantidad' => $item['cantidad'],
-                'precio' => $item['precio'],
+                'id_almacen'    => $item['id_almacen'],
+                'id_item'       => $item['id_item'],
+                'cantidad'      => $item['cantidad'],
+                'precio'        => $item['precio'],
             ]);
         }
 
-        // Llamar a Libélula
+        // Llamar a Libélula (el servicio YA crea la transacción internamente)
         try {
             $resultado = $libelula->registrarPago($notaVenta);
         } catch (\Exception $e) {
@@ -543,31 +543,16 @@ class VentaController extends Controller
         }
 
         if ($resultado['success'] && !empty($resultado['url_pasarela'])) {
-            // Guardar la transacción en la base de datos
-            TransaccionLibelula::create([
-                'nota_venta_id' => $notaVenta->id_nota_venta,
-                'identificador' => (string) $notaVenta->id_nota_venta,
-                'id_transaccion_libelula' => $resultado['id_transaccion'] ?? null,
-                'codigo_recaudacion' => $resultado['codigo_recaudacion'] ?? null,
-                'monto' => $notaVenta->monto_total,
-                'qr_url' => $resultado['qr_url'] ?? null,
-                'url_pasarela' => $resultado['url_pasarela'],
-                'estado' => 'pendiente'
-            ]);
-
-            // Limpiar carrito
+            // ✅ NO crear otra transacción aquí (el servicio ya lo hizo)
             session()->forget('cart');
-
-            // 👉 En lugar de redirect()->away(), retornamos la vista con los datos
             return view('pago.mostrar', [
-                'notaVenta' => $notaVenta,
-                'qr_url' => $resultado['qr_url'] ?? null,
-                'url_pasarela' => $resultado['url_pasarela'],
+                'notaVenta'      => $notaVenta,
+                'qr_url'         => $resultado['qr_url'] ?? null,
+                'url_pasarela'   => $resultado['url_pasarela'],
                 'id_transaccion' => $resultado['id_transaccion'] ?? null,
             ]);
         }
 
-        // Si falló
         session()->forget('cart');
         return redirect()->route('landing')->with('error', $resultado['message'] ?? 'Error al procesar el pago');
     }
@@ -660,9 +645,64 @@ private function obtenerOCrearClienteAnonimo()
         $notaVenta = NotaVenta::findOrFail($id);
         $transaccion = $notaVenta->transaccionLibelula;
 
-        return response()->json([
-            'pagado' => $transaccion && $transaccion->estado === 'pagado'
-        ]);
+        // Si no hay transacción, no es pago Libélula
+        if (!$transaccion) {
+            return response()->json(['pagado' => false, 'mensaje' => 'Sin transacción']);
+        }
+
+        // Si ya está pagado, respondemos rápido
+        if ($transaccion->estado === 'pagado') {
+            return response()->json(['pagado' => true]);
+        }
+
+        // Consultar estado real a Libélula
+        try {
+            $resultado = $this->libelulaService->consultarPago($transaccion->identificador);
+            if ($resultado['success'] && $resultado['pagado']) {
+                $transaccion->update(['estado' => 'pagado']);
+                $notaVenta->update(['estado' => 'completado']);
+                
+                Log::info('Pago confirmado por consulta activa', [
+                    'nota_venta_id' => $id,
+                    'identificador' => $transaccion->identificador
+                ]);
+                
+                return response()->json(['pagado' => true]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error al consultar pago: ' . $e->getMessage());
+        }
+
+        return response()->json(['pagado' => false]);
+    }
+
+    public function forzarVerificacionPago($id)
+    {
+        $notaVenta = NotaVenta::findOrFail($id);
+        $transaccion = $notaVenta->transaccionLibelula;
+
+        if (!$transaccion) {
+            return back()->with('error', 'Esta venta no tiene una transacción de Libélula asociada.');
+        }
+
+        if ($transaccion->estado === 'pagado') {
+            return back()->with('success', 'El pago ya estaba confirmado.');
+        }
+
+        try {
+            $resultado = $this->libelulaService->consultarPago($transaccion->identificador);
+            if ($resultado['success'] && $resultado['pagado']) {
+                $transaccion->update(['estado' => 'pagado']);
+                $notaVenta->update(['estado' => 'completado']);
+                Log::info('Pago confirmado manualmente', ['nota_venta_id' => $id]);
+                return back()->with('success', '¡Pago verificado! La venta ha sido completada.');
+            } else {
+                return back()->with('warning', 'El pago aún no se ha realizado según Libélula.');
+            }
+        } catch (\Exception $e) {
+            Log::error('Error al verificar pago manual: ' . $e->getMessage());
+            return back()->with('error', 'Error al conectar con Libélula. Inténtelo de nuevo.');
+        }
     }
 
     public function pagoExito($id)
@@ -695,13 +735,9 @@ private function obtenerOCrearClienteAnonimo()
                 ], 401);
             }
 
-            // Si el usuario tiene un empleado asociado, usarlo
+            // Asignar empleado si no tiene
             if ($usuario->empleado) {
                 $notaVenta->id_empleado = $usuario->empleado->id_empleado;
-                Log::info('Asignando empleado a la venta', [
-                    'id_venta' => $id,
-                    'id_empleado' => $usuario->empleado->id_empleado
-                ]);
             } elseif (!$notaVenta->id_empleado) {
                 $primerEmpleado = Empleado::first();
                 if ($primerEmpleado) {
@@ -713,10 +749,10 @@ private function obtenerOCrearClienteAnonimo()
             $notaVenta->estado = 'completado';
             $notaVenta->save();
 
-            // Obtener método de valuación de la configuración
+            // Obtener método de valuación
             $metodoValuacion = ConfiguracionInventario::obtener()->metodo_valuacion_predeterminado;
 
-            // Procesar detalles si existen
+            // Procesar detalles y descontar inventario
             if ($notaVenta->detalles->count() > 0) {
                 foreach ($notaVenta->detalles as $detalle) {
                     $almacenItem = DB::table('almacen_item')
@@ -733,13 +769,11 @@ private function obtenerOCrearClienteAnonimo()
                             ], 422);
                         }
 
-                        // Descontar stock
                         DB::table('almacen_item')
                             ->where('id_almacen', $detalle->id_almacen)
                             ->where('id_item', $detalle->id_item)
                             ->decrement('stock', $detalle->cantidad);
 
-                        // ✅ NUEVO: Consumir lote según método de valuación
                         if (class_exists(\App\Models\LoteInventario::class)) {
                             try {
                                 \App\Models\LoteInventario::consumir(
@@ -756,39 +790,18 @@ private function obtenerOCrearClienteAnonimo()
                 }
             }
 
-            // ✅ Corregido: Definir $resultado antes de usarlo
-            $resultado = [];
-
-            $transaccionExistente = TransaccionLibelula::where('nota_venta_id', $notaVenta->id_nota_venta)->first();
-            
-            if (!$transaccionExistente) {
-                TransaccionLibelula::create([
-                    'nota_venta_id' => $notaVenta->id_nota_venta,
-                    'identificador' => (string) $notaVenta->id_nota_venta,
-                    'monto' => $notaVenta->monto_total,
-                    'estado' => 'pagado',
-                    'url_pasarela' => null,
-                    'qr_url' => null
-                ]);
-            } else {
-                // Si ya existe, actualizar su estado
-                $transaccionExistente->update(['estado' => 'pagado']);
-                $resultado['url_pasarela'] = $transaccionExistente->url_pasarela;
-                $resultado['qr_url'] = $transaccionExistente->qr_url;
-            }
-
             DB::commit();
 
             Log::info('Venta completada manualmente', [
                 'id_nota_venta' => $id,
-                'usuario_id' => $usuario->id_usuario,
-                'id_empleado' => $notaVenta->id_empleado,
+                'usuario_id'    => $usuario->id_usuario,
+                'id_empleado'   => $notaVenta->id_empleado,
                 'metodo_valuacion' => $metodoValuacion
             ]);
 
             return response()->json([
-                'success' => true,
-                'message' => 'Venta #' . $id . ' completada exitosamente',
+                'success'    => true,
+                'message'    => 'Venta #' . $id . ' completada exitosamente',
                 'nota_venta' => $notaVenta->load(['cliente', 'empleado'])
             ]);
 

@@ -20,61 +20,46 @@
     <!-- AdminLTE CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
     
-    <!-- Tema personalizado de panadería -->
+    <!-- Tema personalizado -->
     <link rel="stylesheet" href="<?php echo e(asset('css/panadria-theme.css')); ?>">
     
     <style>
-
-        .btn-register {
-            transition: all 0.3s ease;
+        :root {
+            --color-primary-dark: #5D3A1A;
+            --color-primary-medium: #8B4513;
+            --color-primary-light: #A0522D;
+            --color-accent: #D2B48C;
+            --color-accent-hover: #C4A67A;
+            --color-bg-light: #FFF9F0;
+            --color-bg-lighter: #FFF5E6;
+            --color-text-dark: #3E2723;
+            --color-text-medium: #5D4037;
+            --color-text-light: #8D6E63;
         }
 
-        .btn-register:hover {
-            background: #C4A67A !important;
-            transform: translateY(-2px);
-        }
-
-        .modal-content {
-            animation: slideInUp 0.3s ease-out;
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Estilos específicos solo para el login */
-        body {
+        * {
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #5D3A1A 0%, #8B4513 50%, #A0522D 100%);
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary-medium) 50%, var(--color-primary-light) 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Poppins', sans-serif;
+            padding: 20px;
         }
-        
+
+        /* ========== LOGIN PRINCIPAL ========== */
         .login-wrapper {
             width: 100%;
             max-width: 480px;
-            padding: 20px;
-        }
-        
-        .login-card {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
             animation: fadeInUp 0.6s ease-out;
         }
-        
+
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -85,14 +70,23 @@
                 transform: translateY(0);
             }
         }
-        
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Header del Login */
         .login-header {
-            background: linear-gradient(135deg, #5D3A1A 0%, #8B4513 100%);
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary-medium) 100%);
             padding: 45px 30px;
             text-align: center;
             position: relative;
+            overflow: hidden;
         }
-        
+
         .login-header::before {
             content: '';
             position: absolute;
@@ -103,7 +97,7 @@
             background: rgba(210, 180, 140, 0.1);
             border-radius: 50%;
         }
-        
+
         .login-header::after {
             content: '';
             position: absolute;
@@ -114,39 +108,39 @@
             background: rgba(210, 180, 140, 0.08);
             border-radius: 50%;
         }
-        
+
         .logo-wrapper {
             position: relative;
             z-index: 1;
         }
-        
+
         .logo-icon {
             font-size: 70px;
+            color: white;
             margin-bottom: 15px;
             animation: gentleBounce 2s ease-in-out infinite;
         }
-        
+
         @keyframes gentleBounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-8px); }
         }
-        
+
         .login-header h1 {
             margin: 0;
             font-size: 32px;
             font-weight: 700;
-            color: white !important;
+            color: white;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
         }
-        
+
         .login-header .subtitle {
             margin: 8px 0 0 0;
             font-size: 13px;
-            opacity: 0.9;
-            color: rgba(255, 255, 255, 0.95);
+            color: rgba(255, 255, 255, 0.9);
             font-weight: 300;
         }
-        
+
         .user-type-badge {
             display: inline-block;
             background: rgba(210, 180, 140, 0.25);
@@ -159,97 +153,102 @@
             color: white;
             letter-spacing: 0.5px;
         }
-        
+
+        /* Body del Login */
         .login-body {
-            padding: 35px 35px 25px;
-            background-color: var(--color-bg-light, #FFF9F0);
+            padding: 35px;
+            background: var(--color-bg-light);
         }
-        
+
         .user-type-info {
             background: linear-gradient(135deg, rgba(93, 58, 26, 0.05) 0%, rgba(139, 69, 19, 0.05) 100%);
             border-radius: 12px;
             padding: 14px 18px;
             margin-bottom: 25px;
-            border-left: 4px solid var(--color-primary-medium, #8B4513);
+            border-left: 4px solid var(--color-primary-medium);
             font-size: 13px;
-            color: var(--color-primary-dark, #5D3A1A);
+            color: var(--color-primary-dark);
         }
-        
+
         .user-type-info i {
-            color: var(--color-primary-medium, #8B4513);
+            color: var(--color-primary-medium);
             margin-right: 10px;
-            font-size: 16px;
         }
-        
-        .user-type-info strong {
-            font-weight: 600;
-        }
-        
+
+        /* Campos del formulario */
         .form-group {
             margin-bottom: 22px;
         }
-        
+
         .input-group-icon {
             position: relative;
         }
-        
+
         .input-group-icon .input-icon {
             position: absolute;
             left: 15px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--color-primary-medium, #8B4513);
+            color: var(--color-primary-medium);
             font-size: 16px;
             z-index: 10;
+            pointer-events: none;
         }
-        
-        .input-group-icon input {
-            padding-left: 45px !important;
+
+        .input-group-icon .form-control {
+            padding-left: 45px;
+            border-radius: 12px;
+            border: 2px solid #E0D5C1;
+            height: 50px;
+            font-size: 14px;
+            transition: all 0.3s ease;
         }
-        
+
+        .input-group-icon .form-control:focus {
+            border-color: var(--color-primary-medium);
+            box-shadow: 0 0 0 0.2rem rgba(139, 69, 19, 0.15);
+        }
+
+        .input-group-icon .form-control.is-invalid {
+            border-color: #dc3545;
+        }
+
         .form-check {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin: 20px 0;
+            gap: 8px;
         }
-        
-        .form-check input[type="checkbox"] {
+
+        .form-check-input {
             width: 18px;
             height: 18px;
             cursor: pointer;
-            accent-color: var(--color-primary-medium, #8B4513);
+            accent-color: var(--color-primary-medium);
         }
-        
-        .form-check label {
-            margin: 0;
+
+        .form-check-label {
             font-size: 13px;
-            color: var(--color-primary-dark, #5D3A1A);
+            color: var(--color-primary-dark);
             cursor: pointer;
-            font-weight: 400;
         }
-        
-        .forgot-password {
-            text-align: right;
-            margin-top: 10px;
-        }
-        
+
         .forgot-password a {
-            color: var(--color-primary-medium, #8B4513);
+            color: var(--color-primary-medium);
             text-decoration: none;
             font-size: 13px;
             transition: color 0.2s ease;
         }
-        
+
         .forgot-password a:hover {
-            color: var(--color-primary-dark, #5D3A1A);
+            color: var(--color-primary-dark);
             text-decoration: underline;
         }
-        
+
+        /* Botones */
         .btn-login {
             width: 100%;
-            padding: 13px;
-            background: linear-gradient(135deg, #8B4513 0%, #5D3A1A 100%);
+            padding: 14px;
+            background: linear-gradient(135deg, var(--color-primary-medium) 0%, var(--color-primary-dark) 100%);
             color: white;
             border: none;
             border-radius: 50px;
@@ -262,25 +261,41 @@
             margin-top: 10px;
             box-shadow: 0 8px 20px rgba(93, 58, 26, 0.3);
         }
-        
+
         .btn-login:hover {
             transform: translateY(-2px);
-            background: linear-gradient(135deg, #9B5523 0%, #6B4A2A 100%);
             box-shadow: 0 12px 25px rgba(93, 58, 26, 0.4);
         }
-        
+
         .btn-login:active {
             transform: translateY(0);
         }
-        
+
+        .btn-register {
+            width: 100%;
+            padding: 12px;
+            background: var(--color-accent);
+            color: var(--color-primary-dark);
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-register:hover {
+            background: var(--color-accent-hover);
+            transform: translateY(-2px);
+        }
+
+        /* Divisor */
         .divider {
             text-align: center;
             margin: 25px 0 15px;
             position: relative;
-            color: var(--color-secondary, #A0522D);
+            color: var(--color-text-light);
             font-size: 12px;
         }
-        
+
         .divider::before {
             content: '';
             position: absolute;
@@ -288,37 +303,38 @@
             left: 0;
             right: 0;
             height: 1px;
-            background: var(--color-accent, #D2B48C);
+            background: var(--color-accent);
         }
-        
+
         .divider span {
-            background: var(--color-bg-light, #FFF9F0);
-            padding: 0 12px;
+            background: var(--color-bg-light);
+            padding: 0 15px;
             position: relative;
             font-weight: 500;
         }
-        
+
+        /* Footer */
         .login-footer {
-            background: var(--color-bg-lighter, #FFF5E6);
+            background: var(--color-bg-lighter);
             text-align: center;
             padding: 20px;
             font-size: 11px;
-            color: var(--color-secondary, #A0522D);
-            border-top: 1px solid var(--color-accent, #D2B48C);
+            color: var(--color-text-light);
+            border-top: 1px solid var(--color-accent);
         }
-        
+
         .login-footer p {
             margin: 0;
             line-height: 1.5;
         }
-        
-        /* Alertas personalizadas */
+
+        /* Alertas */
         .alert-custom {
             border-radius: 12px;
             margin-bottom: 20px;
             animation: slideInDown 0.3s ease-out;
         }
-        
+
         @keyframes slideInDown {
             from {
                 opacity: 0;
@@ -329,26 +345,115 @@
                 transform: translateY(0);
             }
         }
-        
-        @media (max-width: 480px) {
+
+        .alert ul {
+            padding-left: 20px;
+        }
+
+        /* ========== MODAL DE REGISTRO ========== */
+        .modal-content {
+            border-radius: 15px;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary-medium) 100%);
+            border-radius: 15px 15px 0 0;
+            border-bottom: none;
+            padding: 20px 25px;
+        }
+
+        .modal-title {
+            color: white;
+            font-weight: 600;
+        }
+
+        .btn-close-white {
+            filter: brightness(0) invert(1);
+        }
+
+        .modal-body {
+            background: var(--color-bg-light);
+            padding: 25px;
+        }
+
+        .modal-body label {
+            font-weight: 500;
+            color: var(--color-text-dark);
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .modal-body .form-control {
+            border-radius: 10px;
+            border: 2px solid #E0D5C1;
+            height: 45px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-body .form-control:focus {
+            border-color: var(--color-primary-medium);
+            box-shadow: 0 0 0 0.2rem rgba(139, 69, 19, 0.15);
+        }
+
+        .text-danger {
+            color: #dc3545 !important;
+        }
+
+        .text-success {
+            color: #28a745 !important;
+        }
+
+        .requirement-list {
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+
+        .requirement-list li {
+            margin-bottom: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .requirement-list i {
+            margin-right: 5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 576px) {
             .login-wrapper {
-                padding: 15px;
+                padding: 10px;
             }
-            .login-body {
-                padding: 25px 20px;
-            }
+
             .login-header {
-                padding: 35px 25px;
+                padding: 35px 20px;
             }
+
             .login-header h1 {
                 font-size: 26px;
             }
+
             .logo-icon {
                 font-size: 55px;
             }
-            .btn-login {
-                padding: 11px;
-                font-size: 14px;
+
+            .login-body {
+                padding: 25px 20px;
+            }
+
+            .modal-body {
+                padding: 20px;
             }
         }
     </style>
@@ -356,8 +461,10 @@
     <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 <body>
+    
     <div class="login-wrapper">
         <div class="login-card">
+            
             <div class="login-header">
                 <div class="logo-wrapper">
                     <div class="logo-icon">
@@ -371,6 +478,7 @@
                     </div>
                 </div>
             </div>
+            
             
             <div class="login-body">
                 
@@ -408,9 +516,9 @@
                     
                     <div class="form-group">
                         <div class="input-group-icon">
-                            <div class="input-icon">
+                            <span class="input-icon">
                                 <i class="fas fa-envelope"></i>
-                            </div>
+                            </span>
                             <input type="email" 
                                    name="correo" 
                                    class="form-control <?php $__errorArgs = ['correo'];
@@ -441,9 +549,9 @@ unset($__errorArgs, $__bag); ?>
                     
                     <div class="form-group">
                         <div class="input-group-icon">
-                            <div class="input-icon">
+                            <span class="input-icon">
                                 <i class="fas fa-lock"></i>
-                            </div>
+                            </span>
                             <input type="password" 
                                    name="contraseña" 
                                    class="form-control <?php $__errorArgs = ['contraseña'];
@@ -469,10 +577,11 @@ endif;
 unset($__errorArgs, $__bag); ?>
                     </div>
                     
-                    <div class="d-flex justify-content-between align-items-center">
+                    
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div class="form-check">
-                            <input type="checkbox" name="remember" id="remember">
-                            <label for="remember">Recordarme</label>
+                            <input type="checkbox" name="remember" id="remember" class="form-check-input">
+                            <label class="form-check-label" for="remember">Recordarme</label>
                         </div>
                         
                         <div class="forgot-password">
@@ -482,37 +591,34 @@ unset($__errorArgs, $__bag); ?>
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn-login">
+                    
+                    <button type="submit" class="btn btn-login">
                         <i class="fas fa-sign-in-alt me-2"></i> Iniciar Sesión
                     </button>
                 </form>
 
-                   
-                    <div class="divider">
-                        <span>¿Nuevo cliente?</span>
-                    </div>
-                    
-                    <div class="text-center">
-                        <button type="button" class="btn btn-register" id="btnRegistroRapido" style="width: 100%; padding: 12px; background: #D2B48C; color: #5D3A1A; border: none; border-radius: 50px; font-weight: 600;">
-                            <i class="fas fa-user-plus me-2"></i> Registrarse como Cliente
-                        </button>
-                        <p class="mt-3" style="font-size: 12px; color: #A0522D;">
-                            Al registrarte podrás realizar pedidos y ver tu historial de compras
-                        </p>
-                    </div>
-                </div>
                 
                 <div class="divider">
-                    <span>Panadería Otto</span>
+                    <span>¿Nuevo cliente?</span>
+                </div>
+                
+                <div class="text-center">
+                    <button type="button" class="btn btn-register" id="btnRegistroRapido">
+                        <i class="fas fa-user-plus me-2"></i> Registrarse como Cliente
+                    </button>
+                    <p class="mt-3" style="font-size: 12px; color: var(--color-text-light);">
+                        Al registrarte podrás realizar pedidos y ver tu historial de compras
+                    </p>
                 </div>
             </div>
+            
             
             <div class="login-footer">
                 <p>
                     <i class="fas fa-copyright me-1"></i>
                     <?php echo e(date('Y')); ?> Panadería Otto. Todos los derechos reservados.
                 </p>
-                <p style="margin-top: 8px; font-size: 10px; opacity: 0.7;">
+                <p class="mt-2" style="font-size: 10px; opacity: 0.7;">
                     <i class="fas fa-shield-alt me-1"></i> Sistema seguro de gestión
                 </p>
             </div>
@@ -520,56 +626,106 @@ unset($__errorArgs, $__bag); ?>
     </div>
 
     
-    <div class="modal fade" id="registroRapidoModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal fade" id="registroRapidoModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 15px;">
-                <div class="modal-header" style="background: linear-gradient(135deg, #5D3A1A 0%, #8B4513 100%);">
-                    <h5 class="modal-title text-white">
+            <div class="modal-content">
+                
+                <div class="modal-header">
+                    <h5 class="modal-title">
                         <i class="fas fa-user-plus me-2"></i> Registro Rápido
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
-                <div class="modal-body" style="background: #FFF9F0;">
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> 
+                
+                
+                <div class="modal-body">
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
                         Completa tus datos para crear una cuenta. Podrás realizar pedidos fácilmente.
                     </div>
                     
-                    <form id="formRegistroRapido" action="<?php echo e(route('registro.cliente.rapido')); ?>" method="POST">
+                    <form id="formRegistroRapido" action="<?php echo e(route('registro.cliente.rapido')); ?>" method="POST" novalidate>
                         <?php echo csrf_field(); ?>
+                        
+                        
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label>Nombre <span class="text-danger">*</span></label>
-                                    <input type="text" name="nombre" class="form-control" required>
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="reg-nombre" class="form-label">
+                                    Nombre <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="nombre" 
+                                       id="reg-nombre" 
+                                       class="form-control" 
+                                       placeholder="Tu nombre"
+                                       required>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label>Apellido</label>
-                                    <input type="text" name="apellido" class="form-control">
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="reg-apellido" class="form-label">
+                                    Apellido <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="apellido" 
+                                       id="reg-apellido" 
+                                       class="form-control" 
+                                       placeholder="Tu apellido"
+                                       required>
                             </div>
                         </div>
                         
+                        
                         <div class="mb-3">
-                            <label>Correo Electrónico <span class="text-danger">*</span></label>
-                            <input type="email" name="correo" class="form-control" required>
+                            <label for="reg-correo" class="form-label">
+                                Correo Electrónico <span class="text-danger">*</span>
+                            </label>
+                            <input type="email" 
+                                   name="correo" 
+                                   id="reg-correo" 
+                                   class="form-control" 
+                                   placeholder="correo@ejemplo.com"
+                                   required>
                             <small class="text-muted">Este será tu usuario para iniciar sesión</small>
                         </div>
                         
+                        
                         <div class="mb-3">
-                            <label>Contraseña <span class="text-danger">*</span></label>
+                            <label for="reg-telefono" class="form-label">
+                                Teléfono <span class="text-danger">*</span>
+                            </label>
+                            <input type="tel" 
+                                   name="telefono" 
+                                   id="reg-telefono" 
+                                   class="form-control" 
+                                   placeholder="Ej: +56912345678"
+                                   pattern="^\+?[0-9]{8,15}$"
+                                   required>
+                            <small class="text-muted">Necesario para coordinar tus pedidos</small>
+                            <div class="invalid-feedback">
+                                Ingresa un número de teléfono válido (8-15 dígitos, permite + al inicio)
+                            </div>
+                        </div>
+                        
+                        
+                        <div class="mb-3">
+                            <label for="reg-password" class="form-label">
+                                Contraseña <span class="text-danger">*</span>
+                            </label>
                             <div class="input-group">
-                                <input type="password" name="contraseña" id="registroPassword" class="form-control" required>
-                                <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                                <input type="password" 
+                                       name="contraseña" 
+                                       id="reg-password" 
+                                       class="form-control" 
+                                       placeholder="Mínimo 8 caracteres"
+                                       required>
+                                <button type="button" class="btn btn-outline-secondary" id="togglePassword" tabindex="-1">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
-                            <div class="mt-2">
-                                
+                            
+                            
+                            <div class="requirement-list">
                                 <small class="text-muted">La contraseña debe cumplir:</small>
-                                <ul class="list-unstyled mt-1 mb-0" style="font-size: 0.85rem;">
+                                <ul class="list-unstyled mb-0 mt-1">
                                     <li id="req-length" class="text-danger">
                                         <i class="fas fa-times-circle"></i> Mínimo 8 caracteres
                                     </li>
@@ -589,25 +745,33 @@ unset($__errorArgs, $__bag); ?>
                             </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label>Confirmar Contraseña <span class="text-danger">*</span></label>
-                            <input type="password" name="contraseña_confirmation" class="form-control" required>
-                        </div>
                         
                         <div class="mb-3">
-                            <label>Teléfono (opcional)</label>
-                            <input type="text" name="telefono" class="form-control">
+                            <label for="reg-password-confirm" class="form-label">
+                                Confirmar Contraseña <span class="text-danger">*</span>
+                            </label>
+                            <input type="password" 
+                                   name="contraseña_confirmation" 
+                                   id="reg-password-confirm" 
+                                   class="form-control" 
+                                   placeholder="Repite tu contraseña"
+                                   required>
                         </div>
+                        
                         
                         <div class="form-check mb-3">
                             <input type="checkbox" class="form-check-input" id="terminos" required>
                             <label class="form-check-label" for="terminos">
                                 Acepto los <a href="#" data-bs-toggle="modal" data-bs-target="#terminosModal">términos y condiciones</a>
                             </label>
+                            <div class="invalid-feedback">
+                                Debes aceptar los términos y condiciones
+                            </div>
                         </div>
                         
-                        <button type="submit" class="btn btn-primary w-100" style="background: #8B4513; border: none;">
-                            <i class="fas fa-check-circle"></i> Registrarse
+                        
+                        <button type="submit" class="btn btn-primary w-100" style="background: var(--color-primary-medium); border: none; padding: 12px; border-radius: 50px; font-weight: 600;">
+                            <i class="fas fa-check-circle me-2"></i> Registrarse
                         </button>
                     </form>
                 </div>
@@ -616,21 +780,21 @@ unset($__errorArgs, $__bag); ?>
     </div>
 
     
-    <div class="modal fade" id="terminosModal" tabindex="-1">
+    <div class="modal fade" id="terminosModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Términos y Condiciones</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Al registrarte en Panadería Otto, aceptas:</p>
+                    <p>Al registrarte en <strong>Panadería Otto</strong>, aceptas:</p>
                     <ul>
-                        <li>Proporcionar información veraz y actualizada</li>
-                        <li>Mantener la confidencialidad de tu contraseña</li>
-                        <li>Aceptar nuestras políticas de privacidad y tratamiento de datos</li>
+                        <li>Proporcionar información veraz y actualizada.</li>
+                        <li>Mantener la confidencialidad de tu contraseña.</li>
+                        <li>Aceptar nuestras políticas de privacidad y tratamiento de datos.</li>
                     </ul>
-                    <p>Para más información, contacta con nuestro equipo de soporte.</p>
+                    <p class="mb-0">Para más información, contacta con nuestro equipo de soporte.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -639,106 +803,143 @@ unset($__errorArgs, $__bag); ?>
         </div>
     </div>
     
-    <!-- Scripts -->
+    <!-- ==================== SCRIPTS ==================== -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
     
     <?php echo $__env->yieldPushContent('scripts'); ?>
     <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Modal de registro
-    const btnRegistro = document.getElementById('btnRegistroRapido');
-    const registroModal = new bootstrap.Modal(document.getElementById('registroRapidoModal'));
-    
-    if (btnRegistro) {
-        btnRegistro.addEventListener('click', function() {
-            registroModal.show();
-        });
-    }
-    
-    // Toggle mostrar/ocultar contraseña
-    const togglePassword = document.getElementById('togglePassword');
-    const passwordInput = document.getElementById('registroPassword');
-    
-    if (togglePassword && passwordInput) {
-        togglePassword.addEventListener('click', function() {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            this.querySelector('i').classList.toggle('fa-eye');
-            this.querySelector('i').classList.toggle('fa-eye-slash');
-        });
-    }
-    
-    // Validación en tiempo real de la contraseña
-    if (passwordInput) {
-        passwordInput.addEventListener('input', function() {
-            const password = this.value;
+        document.addEventListener('DOMContentLoaded', function() {
+            // ========== REFERENCIAS A ELEMENTOS ==========
+            const btnRegistro = document.getElementById('btnRegistroRapido');
+            const registroModalEl = document.getElementById('registroRapidoModal');
+            const togglePasswordBtn = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('reg-password');
+            const formRegistro = document.getElementById('formRegistroRapido');
             
-            // Verificar requisitos
-            const hasLength = password.length >= 8;
-            const hasUppercase = /[A-Z]/.test(password);
-            const hasLowercase = /[a-z]/.test(password);
-            const hasNumbers = (password.match(/\d/g) || []).length >= 2;
-            const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+            let registroModal;
             
-            // Actualizar indicadores visuales
-            updateRequirement('req-length', hasLength);
-            updateRequirement('req-uppercase', hasUppercase);
-            updateRequirement('req-lowercase', hasLowercase);
-            updateRequirement('req-number', hasNumbers);
-            updateRequirement('req-special', hasSpecial);
-        });
-    }
-    
-    function updateRequirement(elementId, isValid) {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-        
-        if (isValid) {
-            element.className = 'text-success';
-            element.querySelector('i').className = 'fas fa-check-circle';
-        } else {
-            element.className = 'text-danger';
-            element.querySelector('i').className = 'fas fa-times-circle';
-        }
-    }
-    
-    // Validación final al enviar
-    const form = document.getElementById('formRegistroRapido');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            const password = passwordInput.value;
-            const confirm = form.querySelector('[name="contraseña_confirmation"]').value;
-            let errors = [];
-            
-            // Validar requisitos de contraseña
-            if (password.length < 8) {
-                errors.push('La contraseña debe tener al menos 8 caracteres');
-            }
-            if (!/[A-Z]/.test(password)) {
-                errors.push('La contraseña debe tener al menos 1 mayúscula');
-            }
-            if (!/[a-z]/.test(password)) {
-                errors.push('La contraseña debe tener al menos 1 minúscula');
-            }
-            if ((password.match(/\d/g) || []).length < 2) {
-                errors.push('La contraseña debe tener al menos 2 números');
-            }
-            if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-                errors.push('La contraseña debe tener al menos 1 carácter especial');
-            }
-            if (password !== confirm) {
-                errors.push('Las contraseñas no coinciden');
+            // Inicializar modal de Bootstrap
+            if (registroModalEl) {
+                registroModal = new bootstrap.Modal(registroModalEl);
             }
             
-            if (errors.length > 0) {
-                e.preventDefault();
-                alert(errors.join('\n'));
-                return false;
+            // ========== ABRIR MODAL DE REGISTRO ==========
+            if (btnRegistro && registroModal) {
+                btnRegistro.addEventListener('click', function() {
+                    registroModal.show();
+                });
+            }
+            
+            // ========== TOGGLE MOSTRAR/OCULTAR CONTRASEÑA ==========
+            if (togglePasswordBtn && passwordInput) {
+                togglePasswordBtn.addEventListener('click', function() {
+                    const isPassword = passwordInput.getAttribute('type') === 'password';
+                    passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+                    
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('fa-eye');
+                    icon.classList.toggle('fa-eye-slash');
+                });
+            }
+            
+            // ========== VALIDACIÓN DE CONTRASEÑA EN TIEMPO REAL ==========
+            if (passwordInput) {
+                passwordInput.addEventListener('input', function() {
+                    const password = this.value;
+                    
+                    const requirements = {
+                        'req-length': password.length >= 8,
+                        'req-uppercase': /[A-Z]/.test(password),
+                        'req-lowercase': /[a-z]/.test(password),
+                        'req-number': (password.match(/\d/g) || []).length >= 2,
+                        'req-special': /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+                    };
+                    
+                    for (const [id, isValid] of Object.entries(requirements)) {
+                        updateRequirement(id, isValid);
+                    }
+                });
+            }
+            
+            /**
+             * Actualiza el estado visual de un requisito de contraseña
+             * @param {string} elementId - ID del elemento li
+             * @param {boolean} isValid - Si el requisito se cumple
+             */
+            function updateRequirement(elementId, isValid) {
+                const element = document.getElementById(elementId);
+                if (!element) return;
+                
+                const icon = element.querySelector('i');
+                if (isValid) {
+                    element.className = 'text-success';
+                    if (icon) icon.className = 'fas fa-check-circle';
+                } else {
+                    element.className = 'text-danger';
+                    if (icon) icon.className = 'fas fa-times-circle';
+                }
+            }
+            
+            // ========== VALIDACIÓN FINAL AL ENVIAR ==========
+            if (formRegistro) {
+                formRegistro.addEventListener('submit', function(e) {
+                    const password = passwordInput ? passwordInput.value : '';
+                    const confirmInput = document.getElementById('reg-password-confirm');
+                    const confirm = confirmInput ? confirmInput.value : '';
+                    const terminosCheck = document.getElementById('terminos');
+                    
+                    let errors = [];
+                    
+                    // Validar requisitos de contraseña
+                    if (password.length < 8) {
+                        errors.push('• La contraseña debe tener al menos 8 caracteres');
+                    }
+                    if (!/[A-Z]/.test(password)) {
+                        errors.push('• La contraseña debe tener al menos 1 mayúscula');
+                    }
+                    if (!/[a-z]/.test(password)) {
+                        errors.push('• La contraseña debe tener al menos 1 minúscula');
+                    }
+                    if ((password.match(/\d/g) || []).length < 2) {
+                        errors.push('• La contraseña debe tener al menos 2 números');
+                    }
+                    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+                        errors.push('• La contraseña debe tener al menos 1 carácter especial');
+                    }
+                    
+                    // Validar coincidencia de contraseñas
+                    if (password !== confirm) {
+                        errors.push('• Las contraseñas no coinciden');
+                    }
+                    
+                    // Validar términos y condiciones
+                    if (terminosCheck && !terminosCheck.checked) {
+                        errors.push('• Debes aceptar los términos y condiciones');
+                    }
+                    
+                    // Mostrar errores si existen
+                    if (errors.length > 0) {
+                        e.preventDefault();
+                        alert('Por favor corrige lo siguiente:\n\n' + errors.join('\n'));
+                        return false;
+                    }
+                });
+            }
+            
+            // ========== LIMPIAR MODAL AL CERRAR ==========
+            if (registroModalEl) {
+                registroModalEl.addEventListener('hidden.bs.modal', function() {
+                    if (formRegistro) {
+                        formRegistro.reset();
+                        
+                        // Resetear requisitos de contraseña
+                        const reqIds = ['req-length', 'req-uppercase', 'req-lowercase', 'req-number', 'req-special'];
+                        reqIds.forEach(id => updateRequirement(id, false));
+                    }
+                });
             }
         });
-    }
-});
-</script>
+    </script>
 </body>
 </html><?php /**PATH /opt/lampp/htdocs/panaderia-otto/resources/views/layouts/app.blade.php ENDPATH**/ ?>

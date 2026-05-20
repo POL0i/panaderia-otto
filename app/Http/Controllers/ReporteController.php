@@ -264,63 +264,44 @@ class ReporteController extends Controller
     public function enviarPDF(Request $request)
     {
         $request->validate([
-            'correo' => 'required|email',
-            'tipo' => 'required|in:inventario,produccion,comercial',
+            'correos' => 'required|array|min:1',
+            'correos.*' => 'email',
+            'tipo' => 'required|in:comercial,inventario,produccion',
+            'fecha_inicio' => 'nullable|date',
+            'fecha_fin' => 'nullable|date',
+            'mensaje' => 'nullable|string',
         ]);
 
         try {
-            $correo = $request->correo;
-            $tipo = $request->tipo;
-
-            // Generar datos según el tipo
-            switch ($tipo) {
-                case 'inventario':
-                    $data = $this->getDatosInventario();
-                    $pdf = Pdf::loadView('reportes.pdf.inventario', $data);
-                    $asunto = 'Reporte de Inventario - Panadería Otto';
-                    $nombreArchivo = 'reporte-inventario.pdf';
-                    break;
-                case 'produccion':
-                    $data = $this->getDatosProduccion();
-                    $pdf = Pdf::loadView('reportes.pdf.produccion', $data);
-                    $asunto = 'Reporte de Producción - Panadería Otto';
-                    $nombreArchivo = 'reporte-produccion.pdf';
-                    break;
-                case 'comercial':
-                    $data = $this->getDatosComercial($request);
-                    $pdf = Pdf::loadView('reportes.pdf.comercial', $data);
-                    $asunto = 'Reporte Comercial - Panadería Otto';
-                    $nombreArchivo = 'reporte-comercial.pdf';
-                    break;
+            $pdf = $this->generarPDF($request->tipo, $request->fecha_inicio, $request->fecha_fin);
+            
+            $enviados = 0;
+            foreach ($request->correos as $correo) {
+                Mail::send('emails.reporte-pdf', [
+                    'tipo' => $request->tipo,
+                    'mensaje' => $request->mensaje,
+                    'fecha_inicio' => $request->fecha_inicio,
+                    'fecha_fin' => $request->fecha_fin,
+                ], function ($message) use ($correo, $pdf, $request) {
+                    $message->to($correo)
+                        ->subject('Reporte ' . ucfirst($request->tipo) . ' - Panadería Otto')
+                        ->attachData($pdf->output(), 'reporte-' . $request->tipo . '.pdf', [
+                            'mime' => 'application/pdf',
+                        ]);
+                });
+                $enviados++;
             }
-
-            // Guardar PDF temporalmente
-            $pdfPath = storage_path('app/temp/' . $nombreArchivo);
-            // Guardar PDF temporalmente
-            $tempDir = storage_path('app/temp');
-            if (!is_dir($tempDir)) {
-                mkdir($tempDir, 0755, true);
-            }
-            $pdfPath = $tempDir . '/' . $nombreArchivo;
-            $pdf->save($pdfPath);
-
-            // Enviar correo
-            $mailService = new MailService();
-            $body = "<h2>Reporte de {$tipo}</h2><p>Adjunto encontrarás el reporte solicitado.</p>";
-            $enviado = $mailService->sendEmail($correo, $asunto, $body, [$pdfPath]);
-
-            // Eliminar PDF temporal
-            unlink($pdfPath);
-
-            if ($enviado) {
-                return response()->json(['success' => true, 'message' => 'Reporte enviado exitosamente']);
-            } else {
-                throw new \Exception('Error al enviar el correo');
-            }
-
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Correo enviado a {$enviados} destinatario(s)"
+            ]);
         } catch (\Exception $e) {
-            \Log::error('Error al generar/enviar PDF: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            Log::error('Error al enviar PDF: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al enviar: ' . $e->getMessage()
+            ], 500);
         }
     }
 
