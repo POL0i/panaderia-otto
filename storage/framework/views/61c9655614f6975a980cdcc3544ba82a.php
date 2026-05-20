@@ -371,9 +371,13 @@
             <?php $__empty_1 = true; $__currentLoopData = $productosConStock ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $producto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <div class="col-lg-3 col-md-6">
                     <div class="product-card">
-                        <div class="product-img" style="background-image: url('<?php echo e($producto->imagen ? $producto->imagen : 'https://placehold.co/300x220/8B4513/white?text=Pan+Otto'); ?>');">
-                            <span class="product-badge"><?php echo e($producto->categoria ?? 'Producto'); ?></span>
-                        </div>
+                            <?php
+                                $imagenUrl = $producto->imagen ?: 'https://placehold.co/300x220/8B4513/white?text=Pan+Otto';
+                            ?>
+
+                            <div class="product-img" style="background-image: url('<?php echo e($imagenUrl); ?>');">
+                                <span class="product-badge"><?php echo e($producto->categoria ?? 'Producto'); ?></span>
+                            </div>
                         <div class="product-body">
                             <h3 class="product-title"><?php echo e($producto->nombre); ?></h3>
                             <p class="product-desc"><?php echo e(Str::limit($producto->descripcion ?? 'Delicioso producto artesanal', 80)); ?></p>

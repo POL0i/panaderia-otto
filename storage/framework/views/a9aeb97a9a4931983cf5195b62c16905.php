@@ -15,8 +15,10 @@
             <tr>
                 <td>
                     <div class="d-flex align-items-center">
-                        <img src="<?php echo e($item['imagen'] ? asset('storage/' . $item['imagen']) : 'https://placehold.co/50x50/8B4513/white?text=Pan'); ?>" 
-                                style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-right: 10px;">
+                        <<?php
+                            $imgSrc = !empty($item['imagen']) ? $item['imagen'] : 'https://placehold.co/50x50/8B4513/white?text=Pan';
+                        ?>
+                        <img src="<?php echo e($imgSrc); ?>" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-right: 10px;">
                         <div>
                             <strong><?php echo e($item['nombre']); ?></strong><br>
                             <small class="text-muted">Almacén: <?php echo e($item['almacen_nombre']); ?></small>

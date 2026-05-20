@@ -371,16 +371,7 @@
                 <div class="col-lg-3 col-md-6">
                     <div class="product-card">
                             @php
-                                $imagenUrl = 'https://placehold.co/300x220/8B4513/white?text=Pan+Otto';
-                                if ($producto->imagen) {
-                                    if (Str::startsWith($producto->imagen, ['http://', 'https://'])) {
-                                        $imagenUrl = $producto->imagen;
-                                    } elseif (Str::startsWith($producto->imagen, 'storage/')) {
-                                        $imagenUrl = asset($producto->imagen);
-                                    } else {
-                                        $imagenUrl = asset('storage/' . $producto->imagen);
-                                    }
-                                }
+                                $imagenUrl = $producto->imagen ?: 'https://placehold.co/300x220/8B4513/white?text=Pan+Otto';
                             @endphp
 
                             <div class="product-img" style="background-image: url('{{ $imagenUrl }}');">

@@ -190,17 +190,6 @@ $(document).ready(function() {
         $(this).next('.custom-file-label').html(fileName || '<i class="fas fa-upload mr-1"></i> Seleccionar imagen');
     });
 
-    // Reset al abrir el modal
-    $('#createProductoModal').on('show.bs.modal', function() {
-        $('#tipoArchivo').prop('checked', true);
-        $('#grupoArchivo').show();
-        $('#grupoUrl').hide();
-        $('#productoImagen').val('');
-        $('#productoImagenUrl').val('');
-        $('.custom-file-label').html('<i class="fas fa-upload mr-1"></i> Seleccionar imagen');
-        $('#localImagePreview').hide();
-        $('#localPreviewImg').attr('src', '');
-    });
 
     // Reabrir modal de producto al cerrar categoría
     $('#createCategoriaProductoModal').on('hidden.bs.modal', function() {

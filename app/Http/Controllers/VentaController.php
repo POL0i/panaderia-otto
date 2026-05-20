@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use App\Models\ConfiguracionInventario;
 use App\Models\TransaccionLibelula;
 use App\Services\LibelulaService;
@@ -408,14 +409,15 @@ class VentaController extends Controller
             ->map(function($item) {
                 $imagenUrl = null;
                 if ($item->imagen) {
-                    if (filter_var($item->imagen, FILTER_VALIDATE_URL)) {
+                    if (Str::startsWith($item->imagen, ['http://', 'https://'])) {
                         $imagenUrl = $item->imagen;
                     } else {
-                        $imagenUrl = Storage::url($item->imagen);
+                        $imagenUrl = asset('storage/' . $item->imagen);  // URL absoluta
                     }
                 }
 
                 return (object)[
+
                     'id_almacen' => $item->id_almacen,
                     'id_item' => $item->id_item,
                     'nombre' => $item->nombre,

@@ -239,23 +239,34 @@ class AlmacenModuleController extends Controller
         private function descargarYGuardar(string $url): ?string
         {
             try {
+                // Verificar que la URL sea accesible
+                $headers = @get_headers($url, 1);
+                if (!$headers || strpos($headers[0], '200') === false) {
+                    \Log::warning('URL de imagen no accesible: ' . $url);
+                    return $url; // Devolver la URL original como fallback
+                }
+
                 $filename = uniqid('prod_') . '.webp';
                 $path = storage_path('app/public/productos/' . $filename);
 
-                $img = Image::make($url)
-                    ->resize(800, null, function ($constraint) {
-                        $constraint->aspectRatio();
-                        $constraint->upsize();
-                    })
-                    ->encode('webp', 80);
+                // Intentar descargar y comprimir
+                try {
+                    $img = Image::make($url)
+                        ->resize(800, null, function ($constraint) {
+                            $constraint->aspectRatio();
+                            $constraint->upsize();
+                        })
+                        ->encode('webp', 80);
 
-                $img->save($path);
-
-                return 'productos/' . $filename;
+                    $img->save($path);
+                    return 'productos/' . $filename;
+                } catch (\Exception $e) {
+                    \Log::error('Error al procesar imagen desde URL: ' . $e->getMessage());
+                    return $url; // Si falla, guardar la URL original
+                }
             } catch (\Exception $e) {
-                \Log::error('Error al descargar/comprimir imagen: ' . $e->getMessage());
-                // Si falla la descarga, devolver la URL original como fallback
-                return $url;
+                \Log::error('Error general en descargarYGuardar: ' . $e->getMessage());
+                return $url; // Fallback: guardar la URL
             }
         }
     
