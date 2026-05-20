@@ -81,13 +81,24 @@ class UsuarioController extends Controller
     {
         $validated = $request->validate([
             'correo' => 'required|email|unique:usuarios,correo',
-            'contraseña' => 'required|min:8',
+            'contraseña' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/[A-Z]/',                   // Al menos 1 mayúscula
+                'regex:/[a-z]/',                   // Al menos 1 minúscula
+                'regex:/(\d.*\d)/',                // Al menos 2 números
+                'regex:/[!@#$%^&*()_+\-=\[\]{}]/', // Al menos 1 carácter especial
+            ],
             'tipo_usuario' => 'required|in:cliente,empleado',
             'estado' => 'required|in:activo,inactivo',
             'id_empleado' => 'nullable|exists:empleados,id_empleado',
             'id_cliente' => 'nullable|exists:clientes,id_cliente',
             'rol_permiso_ids' => 'nullable|array',
             'rol_permiso_ids.*' => 'exists:rol_permiso,id_rol_permiso'
+        ], [
+            'contraseña.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'contraseña.regex' => 'La contraseña debe incluir mayúsculas, minúsculas, al menos 2 números y 1 carácter especial (!@#$%^&*).',
         ]);
 
         if ($request->tipo_usuario === 'empleado' && $request->id_empleado) {
@@ -502,12 +513,24 @@ class UsuarioController extends Controller
 
     public function registroClienteRapido(Request $request)
     {
-        $validated = $request->validate([
+         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'apellido' => 'nullable|string|max:255',
             'correo' => 'required|email|unique:usuarios,correo',
-            'contraseña' => 'required|min:8|confirmed',
+            'contraseña' => [
+                'required',
+                'string',
+                'min:8',                           
+                'confirmed',
+                'regex:/[A-Z]/',                   
+                'regex:/[a-z]/',                   
+                'regex:/(\d.*\d)/',                
+                'regex:/[!@#$%^&*()_+\-=\[\]{}]/', 
+            ],
             'telefono' => 'nullable|string|max:20',
+        ], [
+            'contraseña.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'contraseña.regex' => 'La contraseña debe incluir mayúsculas, minúsculas, al menos 2 números y 1 carácter especial.',
         ]);
 
         DB::beginTransaction();

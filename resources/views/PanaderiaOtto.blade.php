@@ -6,18 +6,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Panadería Otto - Productos Artesanales</title>
 
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    {{-- ============================================ --}}
-    {{-- TEMAS (igual que en el layout del sistema)  --}}
-    {{-- ============================================ --}}
     @php
         $theme = session('theme', 'jovenes');
         $mode  = session('mode', 'auto');
@@ -27,10 +19,6 @@
     <link rel="stylesheet" href="{{ asset("css/themes/{$theme}/dark.css") }}">
 
     <style>
-        /* ==========================================
-           SOLO VARIABLES ESTRUCTURALES
-           (los colores vienen de los temas CSS)
-           ========================================== */
         :root {
             --color-whatsapp: #25D366;
             --border-radius-sm: 15px;
@@ -40,9 +28,7 @@
             --transition-speed: 0.3s;
         }
 
-        * {
-            font-family: 'Poppins', sans-serif;
-        }
+        * { font-family: 'Poppins', sans-serif; }
 
         body {
             background-color: var(--color-bg-light, #FFF9F0);
@@ -53,164 +39,117 @@
         .navbar-panaderia {
             background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
             padding: 0.5rem 0;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        .navbar-brand {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #fff !important;
-        }
-        .navbar-brand i {
-            color: var(--color-accent, #D2B48C);
-            margin-right: 10px;
-        }
+        .navbar-brand { font-size: 1.5rem; font-weight: 700; color: #fff !important; }
+        .navbar-brand i { color: var(--color-accent, #D2B48C); margin-right: 8px; }
         .nav-link {
-            color: rgba(255, 255, 255, 0.9) !important;
+            color: rgba(255,255,255,0.9) !important;
             font-weight: 500;
-            transition: all var(--transition-speed) ease;
-            padding: 0.5rem 0.8rem !important;
-        }
-        .nav-link:hover {
-            color: var(--color-accent, #D2B48C) !important;
-        }
-
-        /* Botones */
-        .btn-login {
-            background: var(--color-accent, #D2B48C);
-            color: var(--color-primary-dark, #5D3A1A) !important;
-            border-radius: var(--border-radius-xl);
-            padding: 8px 20px !important;
-            font-weight: 600;
+            padding: 0.5rem 0.6rem !important;
+            font-size: 0.9rem;
             transition: all var(--transition-speed) ease;
         }
-        .btn-login:hover {
-            background: #fff;
-            transform: translateY(-2px);
-        }
+        .nav-link:hover { color: var(--color-accent, #D2B48C) !important; }
 
-        .user-menu-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-        }
-        .btn-user-info {
-            background: var(--color-accent, #D2B48C);
-            color: var(--color-primary-dark, #5D3A1A) !important;
-            border-radius: var(--border-radius-xl) 0 0 var(--border-radius-xl);
-            padding: 8px 15px !important;
-            font-weight: 600;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: default;
-            border: none;
-            white-space: nowrap;
-        }
-        .btn-user-info i {
-            font-size: 1rem;
-            color: var(--color-primary-dark, #5D3A1A);
-        }
-
-        .btn-sistema {
-            background: #fff;
-            color: var(--color-primary-dark, #5D3A1A) !important;
-            padding: 8px 12px !important;
-            font-weight: 600;
-            font-size: 0.85rem;
-            border: none;
-            cursor: pointer;
-            transition: all var(--transition-speed) ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            text-decoration: none;
-            white-space: nowrap;
-        }
-        .btn-sistema:hover {
-            background: var(--color-bg-lighter, #FFF5E6);
-        }
-
-        .btn-logout {
-            background: #c0392b;
-            color: #fff !important;
-            border-radius: 0 var(--border-radius-xl) var(--border-radius-xl) 0;
-            padding: 8px 12px !important;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all var(--transition-speed) ease;
-        }
-        .btn-logout:hover {
-            background: #e74c3c;
-            transform: translateY(-2px);
-        }
-
+        /* Botón carrito compacto */
         .btn-cart {
             background: var(--color-accent, #D2B48C);
             color: var(--color-primary-dark, #5D3A1A) !important;
-            border-radius: var(--border-radius-xl);
-            padding: 8px 20px !important;
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            padding: 0 !important;
             font-weight: 600;
             transition: all var(--transition-speed) ease;
             position: relative;
             border: none;
-            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .btn-cart:hover {
-            background: #fff;
-            transform: translateY(-2px);
-        }
+        .btn-cart:hover { background: #fff; transform: scale(1.1); }
         .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
             background: #ff4444;
             color: white;
             border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 11px;
-            margin-left: 5px;
-        }
-
-        /* ========== SELECTOR DE TEMA ========== */
-        .theme-selector {
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
             display: flex;
             align-items: center;
-            gap: 4px;
+            justify-content: center;
+            font-weight: 700;
         }
-        .btn-theme {
-            background: rgba(255,255,255,0.15);
-            color: #fff !important;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: var(--border-radius-xl);
-            padding: 6px 10px !important;
-            font-size: 0.75rem;
-            font-weight: 500;
-            transition: all var(--transition-speed) ease;
-            cursor: pointer;
-            white-space: nowrap;
-            text-decoration: none;
-        }
-        .btn-theme:hover {
+
+        .btn-login {
             background: var(--color-accent, #D2B48C);
             color: var(--color-primary-dark, #5D3A1A) !important;
-            border-color: var(--color-accent, #D2B48C);
-        }
-        .btn-mode {
-            background: rgba(255,255,255,0.1);
-            color: #fff !important;
-            border: 1px solid rgba(255,255,255,0.2);
             border-radius: var(--border-radius-xl);
-            padding: 6px 8px !important;
+            padding: 6px 16px !important;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all var(--transition-speed) ease;
+        }
+        .btn-login:hover { background: #fff; transform: translateY(-2px); }
+
+        .user-menu-wrapper { display: flex; align-items: center; gap: 2px; }
+        .btn-user-info {
+            background: var(--color-accent, #D2B48C);
+            color: var(--color-primary-dark, #5D3A1A) !important;
+            border-radius: var(--border-radius-xl) 0 0 var(--border-radius-xl);
+            padding: 6px 12px !important;
+            font-weight: 600;
             font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            white-space: nowrap;
+        }
+        .btn-sistema {
+            background: #fff;
+            color: var(--color-primary-dark, #5D3A1A) !important;
+            padding: 6px 10px !important;
+            font-weight: 600;
+            font-size: 0.8rem;
+            border: none;
             cursor: pointer;
             transition: all var(--transition-speed) ease;
             text-decoration: none;
-            width: 32px;
-            text-align: center;
         }
-        .btn-mode:hover {
-            background: var(--color-accent, #D2B48C);
-            color: var(--color-primary-dark, #5D3A1A) !important;
+        .btn-sistema:hover { background: var(--color-bg-lighter, #FFF5E6); }
+        .btn-logout {
+            background: #c0392b;
+            color: #fff !important;
+            border-radius: 0 var(--border-radius-xl) var(--border-radius-xl) 0;
+            padding: 6px 10px !important;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
         }
+        .btn-logout:hover { background: #e74c3c; }
+
+        /* Dropdown temas */
+        .dropdown-menu {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            background: var(--dropdown-bg, #fff);
+        }
+        .dropdown-item {
+            font-size: 0.85rem;
+            padding: 8px 16px;
+            color: var(--dropdown-item-text, #333);
+        }
+        .dropdown-item:hover {
+            background: var(--dropdown-item-hover-bg, #FFF5E6);
+            color: var(--dropdown-item-hover-text, #5D3A1A);
+        }
+        .dropdown-header { color: var(--text-muted, #6c757d); font-size: 0.75rem; }
 
         /* ========== HERO ========== */
         .hero {
@@ -218,7 +157,7 @@
             padding: 80px 0;
             margin-bottom: 50px;
         }
-        .hero h1 { font-size: 3rem; font-weight: 700; margin-bottom: 20px; }
+        .hero h1 { font-size: 3rem; font-weight: 700; }
         .hero p { font-size: 1.2rem; opacity: 0.95; }
 
         /* ========== PRODUCT CARDS ========== */
@@ -227,14 +166,11 @@
             border-radius: var(--border-radius-md);
             overflow: hidden;
             transition: all var(--transition-speed) ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             margin-bottom: 30px;
             height: 100%;
         }
-        .product-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-        }
+        .product-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
         .product-img { height: 220px; background-size: cover; background-position: center; position: relative; }
         .product-badge {
             position: absolute; top: 15px; right: 15px;
@@ -242,12 +178,12 @@
             color: #fff;
             padding: 5px 12px;
             border-radius: var(--border-radius-xl);
-            font-size: 0.8rem; font-weight: 500;
+            font-size: 0.8rem;
         }
         .product-body { padding: 20px; }
         .product-title { font-size: 1.3rem; font-weight: 600; color: var(--color-primary-dark, #5D3A1A); margin-bottom: 10px; }
         .product-desc { color: var(--text-muted, #666); font-size: 0.9rem; margin-bottom: 15px; }
-        .product-price { font-size: 1.5rem; font-weight: 700; color: var(--color-primary, #8B4513); margin-bottom: 0; }
+        .product-price { font-size: 1.5rem; font-weight: 700; color: var(--color-primary, #8B4513); }
 
         /* ========== ANUNCIOS ========== */
         .anuncio {
@@ -256,10 +192,9 @@
             padding: 30px; margin-bottom: 30px;
             transition: all var(--transition-speed) ease;
         }
-        .anuncio:hover { transform: scale(1.02); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .anuncio h3 { color: var(--color-primary-dark, #5D3A1A); font-weight: 700; margin-bottom: 15px; }
-        .anuncio p { color: var(--color-primary-dark, #3E2510); margin-bottom: 0; }
-        .anuncio i { font-size: 2.5rem; color: var(--color-primary-dark, #5D3A1A); margin-bottom: 15px; }
+        .anuncio h3 { color: var(--color-primary-dark, #5D3A1A); font-weight: 700; }
+        .anuncio p { color: var(--color-primary-dark, #3E2510); }
+        .anuncio i { font-size: 2.5rem; color: var(--color-primary-dark, #5D3A1A); }
 
         /* ========== PROMOS ========== */
         .promo-section {
@@ -271,7 +206,7 @@
             background: var(--bg-card, #fff);
             border-radius: var(--border-radius-sm);
             padding: 25px; text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             height: 100%;
         }
 
@@ -281,11 +216,17 @@
             color: #fff;
             padding: 50px 0 20px; margin-top: 50px;
         }
-        .footer h5 { color: var(--color-accent, #D2B48C); margin-bottom: 20px; }
-        .footer a { color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: color var(--transition-speed) ease; }
+        .footer h5 { color: var(--color-accent, #D2B48C); }
+        .footer a { color: rgba(255,255,255,0.8); text-decoration: none; transition: color var(--transition-speed) ease; }
         .footer a:hover { color: var(--color-accent, #D2B48C); }
         .social-icons i { font-size: 1.5rem; margin-right: 15px; transition: all var(--transition-speed) ease; }
         .social-icons i:hover { transform: translateY(-3px); color: var(--color-accent, #D2B48C) !important; }
+        .page-visit-counter {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
 
         /* ========== WHATSAPP ========== */
         .whatsapp-float {
@@ -294,24 +235,28 @@
             width: 60px; height: 60px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             font-size: 2rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             transition: all var(--transition-speed) ease;
             z-index: 1000;
         }
         .whatsapp-float:hover { transform: scale(1.1); }
 
+        /* ========== MODAL ADAPTADO A MODO OSCURO ========== */
+        .modal-content {
+            background: var(--bg-card, #fff);
+            color: var(--text-primary, #333);
+        }
+
         @media (max-width: 768px) {
             .hero h1 { font-size: 2rem; }
             .hero { padding: 50px 0; }
             .product-img { height: 180px; }
-            .user-menu-wrapper { flex-wrap: wrap; }
-            .theme-selector { margin-top: 0.5rem; }
         }
     </style>
 </head>
 <body data-theme="{{ $theme }}" data-mode="{{ $mode }}">
 
-    <!-- Navbar -->
+    <!-- Navbar compacto -->
     <nav class="navbar navbar-expand-lg navbar-panaderia sticky-top">
         <div class="container">
             <a class="navbar-brand" href="{{ url('/') }}">
@@ -326,52 +271,66 @@
                     <li class="nav-item"><a class="nav-link" href="#ofertas">Ofertas</a></li>
                     <li class="nav-item"><a class="nav-link" href="#nosotros">Nosotros</a></li>
 
-                    {{-- 🎨 SELECTOR DE TEMA --}}
-                    <li class="nav-item ms-2">
-                        <div class="theme-selector">
-                            <a href="#" class="btn-theme" onclick="cambiarTema('ninos')" title="Tema Niños">
-                                <i class="fas fa-child"></i>
-                            </a>
-                            <a href="#" class="btn-theme" onclick="cambiarTema('jovenes')" title="Tema Jóvenes">
-                                <i class="fas fa-user"></i>
-                            </a>
-                            <a href="#" class="btn-theme" onclick="cambiarTema('adultos')" title="Tema Adultos">
-                                <i class="fas fa-user-tie"></i>
-                            </a>
-                        </div>
+                    {{-- Búsqueda --}}
+                    <li class="nav-item mx-2">
+                        <form action="{{ route('buscar') }}" method="GET" class="d-flex">
+                            <div class="input-group input-group-sm" style="width: 180px;">
+                                <input type="text" name="q" class="form-control" 
+                                       placeholder="Buscar..." value="{{ request('q') }}" 
+                                       style="border-radius: 50px 0 0 50px;">
+                                <button type="submit" class="btn btn-outline-light" style="border-radius: 0 50px 50px 0;">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </form>
                     </li>
 
+                    {{-- Tema --}}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" style="font-size:0.85rem;">
+                            <i class="fas fa-palette"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header">Tema</h6></li>
+                            <li><a class="dropdown-item" href="#" onclick="cambiarTema('ninos')"><i class="fas fa-child me-2"></i>Niños</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="cambiarTema('jovenes')"><i class="fas fa-user me-2"></i>Jóvenes</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="cambiarTema('adultos')"><i class="fas fa-user-tie me-2"></i>Adultos</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Modo</h6></li>
+                            <li><a class="dropdown-item" href="#" onclick="cambiarModo('light')"><i class="fas fa-sun me-2"></i>Día</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="cambiarModo('dark')"><i class="fas fa-moon me-2"></i>Noche</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="cambiarModo('auto')"><i class="fas fa-magic me-2"></i>Auto</a></li>
+                        </ul>
+                    </li>
+
+                    {{-- Carrito compacto --}}
                     <li class="nav-item ms-2">
-                        <button class="btn-cart" onclick="verCarrito()">
-                            <i class="fas fa-shopping-cart"></i> <span id="cartCount" class="cart-badge">0</span>
+                        <button class="btn-cart" onclick="verCarrito()" title="Ver carrito">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span id="cartCount" class="cart-badge">0</span>
                         </button>
                     </li>
 
+                    {{-- Usuario --}}
                     @auth
-                        <li class="nav-item ms-2">
+                        <li class="nav-item ms-1">
                             <div class="user-menu-wrapper">
                                 <span class="btn-user-info">
                                     <i class="fas fa-user-circle"></i>
-                                    {{ Auth::user()->name ?? explode('@', Auth::user()->correo)[0] }}
+                                    {{ Str::limit(Auth::user()->name ?? explode('@', Auth::user()->correo)[0], 12) }}
                                 </span>
                                 @if(Auth::user()->tipo_usuario === 'empleado' || (method_exists(Auth::user(), 'esAdmin') && Auth::user()->esAdmin()))
-                                <a href="{{ url('/home') }}" class="btn-sistema" title="Ir al sistema de gestión">
-                                    <i class="fas fa-desktop"></i>
-                                </a>
+                                <a href="{{ url('/home') }}" class="btn-sistema" title="Sistema"><i class="fas fa-desktop"></i></a>
                                 @endif
-                                <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+                                <form action="{{ route('logout') }}" method="POST" style="display:inline;">
                                     @csrf
-                                    <button type="submit" class="btn-logout" title="Cerrar sesión">
-                                        <i class="fas fa-sign-out-alt"></i>
-                                    </button>
+                                    <button type="submit" class="btn-logout" title="Salir"><i class="fas fa-sign-out-alt"></i></button>
                                 </form>
                             </div>
                         </li>
                     @else
-                        <li class="nav-item ms-2">
-                            <a class="nav-link btn-login" href="{{ route('login') }}">
-                                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
-                            </a>
+                        <li class="nav-item ms-1">
+                            <a class="nav-link btn-login" href="{{ route('login') }}"><i class="fas fa-sign-in-alt"></i> Ingresar</a>
                         </li>
                     @endauth
                 </ul>
@@ -379,14 +338,12 @@
         </div>
     </nav>
 
-    {{-- ============================================ --}}
-    {{-- CONTENIDO (hero, productos, anuncios, etc.)  --}}
-    {{-- ============================================ --}}
+    {{-- Hero --}}
     <section class="hero text-white text-center">
         <div class="container">
             <h1>Pan Artesanal Hecho con Amor</h1>
-            <p class="lead">Descubre nuestra selección de productos frescos, horneados diariamente con ingredientes de la mejor calidad</p>
-            <a href="#productos" class="btn btn-light btn-lg mt-3" style="border-radius: var(--border-radius-xl); color: var(--color-primary, #8B4513); font-weight: 600;">
+            <p class="lead">Descubre nuestra selección de productos frescos, horneados diariamente</p>
+            <a href="#productos" class="btn btn-light btn-lg mt-3" style="border-radius:50px; color:var(--color-primary); font-weight:600;">
                 Ver Productos <i class="fas fa-arrow-down"></i>
             </a>
         </div>
@@ -413,9 +370,17 @@
             @forelse($productosConStock ?? [] as $producto)
                 <div class="col-lg-3 col-md-6">
                     <div class="product-card">
-                        <div class="product-img" style="background-image: url('{{ $producto->imagen ? $producto->imagen : 'https://placehold.co/300x220/8B4513/white?text=Pan+Otto' }}');">
-                            <span class="product-badge">{{ $producto->categoria ?? 'Producto' }}</span>
-                        </div>
+                            @php
+                                $imagenUrl = $producto->imagen
+                                    ? (Str::startsWith($producto->imagen, ['http://', 'https://'])
+                                        ? $producto->imagen
+                                        : asset('storage/' . $producto->imagen))
+                                    : 'https://placehold.co/300x220/8B4513/white?text=Pan+Otto';
+                            @endphp
+
+                            <div class="product-img" style="background-image: url('{{ $imagenUrl }}');">
+                                <span class="product-badge">{{ $producto->categoria ?? 'Producto' }}</span>
+                            </div>
                         <div class="product-body">
                             <h3 class="product-title">{{ $producto->nombre }}</h3>
                             <p class="product-desc">{{ Str::limit($producto->descripcion ?? 'Delicioso producto artesanal', 80) }}</p>
@@ -561,70 +526,74 @@
             <div class="row">
                 <div class="col-md-4 mb-4">
                     <h5><i class="fas fa-bread-slice"></i> Panadería Otto</h5>
-                    <p>Pan artesanal hecho con amor y tradición familiar desde hace más de 20 años.</p>
+                    <p>Pan artesanal hecho con amor y tradición familiar.</p>
                     <div class="social-icons">
                         <a href="#"><i class="fab fa-facebook"></i></a>
                         <a href="#"><i class="fab fa-instagram"></i></a>
                         <a href="#"><i class="fab fa-whatsapp"></i></a>
-                        <a href="#"><i class="fab fa-tiktok"></i></a>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <h5>Horario de Atención</h5>
-                    <p><i class="fas fa-clock"></i> Lunes a Sábado: 7:00 AM - 9:00 PM</p>
-                    <p><i class="fas fa-clock"></i> Domingos: 8:00 AM - 2:00 PM</p>
-                    <p><i class="fas fa-phone"></i> Tel: (591) 123-45678</p>
+                    <h5>Horario</h5>
+                    <p><i class="fas fa-clock"></i> Lun-Sáb: 7AM-9PM</p>
+                    <p><i class="fas fa-clock"></i> Dom: 8AM-2PM</p>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <h5>Ubicación</h5>
-                    <p><i class="fas fa-map-marker-alt"></i> Av. Principal #123, Centro</p>
+                    <h5>Contacto</h5>
+                    <p><i class="fas fa-map-marker-alt"></i> Av. Principal #123</p>
                     <p><i class="fas fa-envelope"></i> contacto@panaderiaotto.com</p>
-                    <p><i class="fas fa-globe"></i> www.panaderiaotto.com</p>
                 </div>
             </div>
-            <div class="text-center pt-4 mt-3 border-top border-secondary">
-                <p class="mb-0">&copy; {{ date('Y') }} Panadería Otto. Todos los derechos reservados.</p>
+            <div class="text-center pt-3 mt-3 border-top border-secondary">
+                <p class="mb-0">&copy; {{ date('Y') }} Panadería Otto</p>
+                <span class="page-visit-counter">
+                    <i class="fas fa-eye"></i> {{ $pageVisitCount ?? 0 }} visitas
+                </span>
             </div>
         </div>
     </footer>
 
-    <!-- Botón flotante de WhatsApp -->
     <a href="https://wa.me/59112345678" class="whatsapp-float" target="_blank">
         <i class="fab fa-whatsapp"></i>
     </a>
-    </div>
 
-    {{-- ============================================ --}}
-    {{-- SCRIPTS --}}
-    {{-- ============================================ --}}
+    {{-- Scripts --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-
     <script>
-        // Detección automática de modo día/noche
         (function() {
             const body = document.body;
             let currentMode = body.getAttribute('data-mode');
             if (currentMode === 'auto') {
                 const hour = new Date().getHours();
                 const isDay = hour >= 6 && hour < 18;
-                currentMode = isDay ? 'light' : 'dark';
-                body.setAttribute('data-mode', currentMode);
+                body.setAttribute('data-mode', isDay ? 'light' : 'dark');
             }
         })();
 
-        // Cambio de tema y modo
-        function cambiarTema(nuevoTema) {
+        // Cambiar tema (recarga la página con el nuevo tema)
+        function cambiarTema(t) {
             fetch('/theme/change', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
-                body: JSON.stringify({ theme: nuevoTema })
-            }).then(() => window.location.reload());
+                body: JSON.stringify({ theme: t })
+            }).then(() => location.reload());
+        }
+
+        // Cambiar modo (guarda en sesión y recarga)
+        function cambiarModo(m) {
+            fetch('/theme/change', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ mode: m })
+            }).then(() => location.reload());
         }
 
         let cartModal = null;

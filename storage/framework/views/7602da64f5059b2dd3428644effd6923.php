@@ -297,63 +297,6 @@
             </div>
         </div>
     </div>
-
-    
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-file-alt"></i> Reporte de Ventas por Rango</h5>
-                </div>
-                <div class="card-body">
-                    <form action="<?php echo e(route('dashboard')); ?>" method="GET" class="form-inline mb-4">
-                        <div class="form-group mr-2">
-                            <label class="mr-1">Desde:</label>
-                            <input type="date" name="fecha_inicio" class="form-control" value="<?php echo e(request('fecha_inicio')); ?>">
-                        </div>
-                        <div class="form-group mr-2">
-                            <label class="mr-1">Hasta:</label>
-                            <input type="date" name="fecha_fin" class="form-control" value="<?php echo e(request('fecha_fin')); ?>">
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-filter mr-1"></i> Filtrar
-                        </button>
-                    </form>
-                    
-                    <?php if($ventasPorFechas): ?>
-                        <div class="table-responsive">
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Fecha</th>
-                                        <th>Cliente</th>
-                                        <th>Empleado</th>
-                                        <th>Monto total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php $__currentLoopData = $ventasPorFechas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $venta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <tr>
-                                        <td><?php echo e($venta->id_nota_venta); ?></td>
-                                        <td><?php echo e($venta->fecha_venta->format('d/m/Y')); ?></td>
-                                        <td><?php echo e($venta->cliente->nombre ?? 'N/A'); ?></td>
-                                        <td><?php echo e($venta->empleado->nombre ?? 'N/A'); ?></td>
-                                        <td>Bs. <?php echo e(number_format($venta->monto_total, 2)); ?></td>
-                                    </tr>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </tbody>
-                            </table>
-                            <?php echo e($ventasPorFechas->appends(request()->query())->links()); ?>
-
-                        </div>
-                    <?php else: ?>
-                        <p class="text-muted">Seleccione un rango de fechas y haga clic en Filtrar.</p>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 <?php $__env->stopSection(); ?>
 

@@ -125,7 +125,7 @@
     
     
     
-    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <aside class="main-sidebar elevation-4">
         <a href="<?php echo e(route('landing')); ?>" class="brand-link d-flex align-items-center justify-content-center">
             <i class="fas fa-bread-slice fa-2x mr-2 brand-icon"></i>
             <span class="brand-text font-weight-bold">Panadería Otto</span>
@@ -433,6 +433,13 @@
             <i class="fas fa-copyright"></i> <?php echo e(date('Y')); ?> Panadería Otto.
         </strong>
         Todos los derechos reservados.
+        
+        
+        <div class="float-right d-none d-sm-inline-block mr-3">
+            <small class="text-muted">
+                <i class="fas fa-eye"></i> Esta página ha sido visitada <?php echo e($pageVisitCount ?? 0); ?> veces
+            </small>
+        </div>
     </footer>
 </div>
 
@@ -528,15 +535,9 @@
         currentMode = isDay ? 'light' : 'dark';
         body.setAttribute('data-mode', currentMode);
     }
-
-    document.cookie = `mode=${currentMode};path=/;max-age=86400`;
-
-    window.cambiarModo = function(modo) {
-        body.setAttribute('data-mode', modo);
-        document.cookie = `mode=${modo};path=/;max-age=31536000`;
-    };
 })();
 
+// Cambiar tema
 function cambiarTema(nuevoTema) {
     fetch('/theme/change', {
         method: 'POST',
@@ -548,9 +549,16 @@ function cambiarTema(nuevoTema) {
     }).then(() => window.location.reload());
 }
 
+// Cambiar modo (guarda en sesión y recarga)
 function cambiarModo(nuevoModo) {
-    window.cambiarModo(nuevoModo);
-    window.location.reload();
+    fetch('/theme/change', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ mode: nuevoModo })
+    }).then(() => window.location.reload());
 }
 
 $(document).ready(function() {

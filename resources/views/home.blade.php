@@ -295,62 +295,6 @@
             </div>
         </div>
     </div>
-
-    {{-- Reporte de ventas por fechas --}}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-file-alt"></i> Reporte de Ventas por Rango</h5>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('dashboard') }}" method="GET" class="form-inline mb-4">
-                        <div class="form-group mr-2">
-                            <label class="mr-1">Desde:</label>
-                            <input type="date" name="fecha_inicio" class="form-control" value="{{ request('fecha_inicio') }}">
-                        </div>
-                        <div class="form-group mr-2">
-                            <label class="mr-1">Hasta:</label>
-                            <input type="date" name="fecha_fin" class="form-control" value="{{ request('fecha_fin') }}">
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-filter mr-1"></i> Filtrar
-                        </button>
-                    </form>
-                    
-                    @if($ventasPorFechas)
-                        <div class="table-responsive">
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Fecha</th>
-                                        <th>Cliente</th>
-                                        <th>Empleado</th>
-                                        <th>Monto total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($ventasPorFechas as $venta)
-                                    <tr>
-                                        <td>{{ $venta->id_nota_venta }}</td>
-                                        <td>{{ $venta->fecha_venta->format('d/m/Y') }}</td>
-                                        <td>{{ $venta->cliente->nombre ?? 'N/A' }}</td>
-                                        <td>{{ $venta->empleado->nombre ?? 'N/A' }}</td>
-                                        <td>Bs. {{ number_format($venta->monto_total, 2) }}</td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                            {{ $ventasPorFechas->appends(request()->query())->links() }}
-                        </div>
-                    @else
-                        <p class="text-muted">Seleccione un rango de fechas y haga clic en Filtrar.</p>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 @endsection
 

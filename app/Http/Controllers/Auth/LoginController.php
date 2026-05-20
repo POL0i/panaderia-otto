@@ -6,21 +6,16 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Foundation\Auth\ThrottlesLogins;  // ← AGREGAR
 
 class LoginController extends Controller
 {
-    /**
-     * Where to redirect users after login.
-     *
-     * @var string
-     */
-    protected $redirectTo = '/';
+    use ThrottlesLogins;  // ← AGREGAR
 
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
+    protected $redirectTo = '/';
+    protected $maxAttempts = 5;      // ← AGREGAR: 5 intentos
+    protected $decayMinutes = 2;    // ← AGREGAR: bloqueo 15 minutos
+
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
@@ -28,38 +23,50 @@ class LoginController extends Controller
     }
 
     /**
-     * Show the login form.
+     * Get the login username to be used by the controller.
      */
+    public function username()  // ← AGREGAR ESTE MÉTODO
+    {
+        return 'correo';
+    }
+
     public function showLoginForm()
     {
         return view('auth.login');
     }
 
-    /**
-     * Handle a login request to the application.
-     */
     public function login(Request $request)
     {
         $this->validateLogin($request);
 
-        // Buscar el usuario por correo
+        // Si hay demasiados intentos, Laravel automáticamente bloquea
+        if (method_exists($this, 'hasTooManyLoginAttempts') && 
+            $this->hasTooManyLoginAttempts($request)) {
+            $this->fireLockoutEvent($request);
+            $seconds = $this->limiter()->availableIn(
+                $this->throttleKey($request)
+            );
+            return back()->withErrors([
+                'correo' => "Demasiados intentos. Intente de nuevo en {$seconds} segundos."
+            ]);
+        }
+
         $user = \App\Models\Usuario::where('correo', $request->input('correo'))->first();
 
         if (!$user || !Hash::check($request->input('contraseña'), $user->contraseña)) {
+            $this->incrementLoginAttempts($request);  // ← Registrar intento fallido
             return back()->withErrors([
                 'correo' => 'Las credenciales no coinciden con nuestros registros.',
-            ])->onlyInput('correo'); 
+            ])->onlyInput('correo');
         }
 
-        // Ingresar al usuario
-        Auth::login($user, $request->boolean('remember'));
+        // Resetear contador de intentos al iniciar sesión exitosamente
+        $this->clearLoginAttempts($request);
 
+        Auth::login($user, $request->boolean('remember'));
         return redirect()->intended($this->redirectTo);
     }
 
-    /**
-     * Validate the user login request.
-     */
     protected function validateLogin(Request $request)
     {
         $request->validate([
@@ -68,15 +75,11 @@ class LoginController extends Controller
         ]);
     }
 
-    /**
-     * Log the user out of the application.
-     */
     public function logout(Request $request)
     {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
         return redirect('/');
     }
 }

@@ -71,16 +71,25 @@ Route::get('/pago/exito/{id}', [VentaController::class, 'pagoExito'])->name('pag
 Route::post('/registro/cliente/rapido', [UsuarioController::class, 'registroClienteRapido'])
     ->name('registro.cliente.rapido');
 
-// Cambio de tema/modo
 Route::post('/theme/change', function (Request $request) {
     $request->validate([
         'theme' => 'sometimes|in:ninos,jovenes,adultos',
         'mode'  => 'sometimes|in:light,dark,auto'
     ]);
-    if ($request->has('theme')) session(['theme' => $request->theme]);
-    if ($request->has('mode'))  session(['mode' => $request->mode]);
+    
+    if ($request->has('theme')) {
+        session(['theme' => $request->theme]);
+    }
+    if ($request->has('mode')) {
+        session(['mode' => $request->mode]);
+    }
+    
     return response()->json(['status' => 'ok']);
-})->name('theme.change');
+});
+
+// Búsqueda rápida (en ventas)
+
+Route::get('/buscar', [VentaController::class, 'buscar'])->name('buscar');
 
 // Autenticación (login, registro, etc.)
 Auth::routes();

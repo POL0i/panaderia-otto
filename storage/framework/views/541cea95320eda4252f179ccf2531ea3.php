@@ -415,6 +415,47 @@ $(document).ready(function() {
         });
     });
 
+        $('#togglePasswordModal').on('click', function() {
+            const input = $('#contraseña');
+            const icon = $(this).find('i');
+            if (input.attr('type') === 'password') {
+                input.attr('type', 'text');
+                icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                input.attr('type', 'password');
+                icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            }
+        });
+
+        $('#contraseña').on('input', function() {
+            const password = $(this).val();
+            updateModalRequirement('modal-req-length', password.length >= 8);
+            updateModalRequirement('modal-req-uppercase', /[A-Z]/.test(password));
+            updateModalRequirement('modal-req-lowercase', /[a-z]/.test(password));
+            updateModalRequirement('modal-req-number', (password.match(/\d/g) || []).length >= 2);
+            updateModalRequirement('modal-req-special', /[!@#$%^&*()_+\-=\[\]{}]/.test(password));
+        });
+
+        function updateModalRequirement(id, isValid) {
+            const el = $('#' + id);
+            if (!el.length) return;
+            if (isValid) {
+                el.removeClass('text-danger').addClass('text-success');
+                el.find('i').removeClass('fa-times-circle').addClass('fa-check-circle');
+            } else {
+                el.removeClass('text-success').addClass('text-danger');
+                el.find('i').removeClass('fa-check-circle').addClass('fa-times-circle');
+            }
+        }
+
+        // Resetear requisitos al cerrar modal
+        $('#createUsuarioModal').on('hidden.bs.modal', function() {
+            $('#contraseña').val('');
+            ['modal-req-length', 'modal-req-uppercase', 'modal-req-lowercase', 'modal-req-number', 'modal-req-special'].forEach(function(id) {
+                updateModalRequirement(id, false);
+            });
+        });
+
     // Limpiar formulario cuando se cierra el modal
     $('#createUsuarioModal').on('hidden.bs.modal', function() {
         $('#formCrearUsuario')[0].reset();
@@ -918,7 +959,6 @@ $('#formEditarUsuario').on('submit', function(e) {
             }
         });
     });
-
 });
 </script>
 <?php $__env->stopPush(); ?>

@@ -99,25 +99,6 @@
                 </div>
             </div>
 
-            <?php if($lote->estado == 'disponible' && $lote->cantidad_disponible > 0): ?>
-                <div class="alert alert-info animate-fade-in">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h6 class="font-weight-bold"><i class="fas fa-minus-circle"></i> Consumir Cantidad</h6>
-                            <form action="<?php echo e(route('lotes.consumir', $lote)); ?>" method="POST" class="form-inline">
-                                <?php echo csrf_field(); ?>
-                                <div class="form-group mr-3">
-                                    <label for="cantidad" class="mr-2">Cantidad a consumir:</label>
-                                    <input type="number" name="cantidad" id="cantidad" step="0.01" class="form-control" max="<?php echo e($lote->cantidad_disponible); ?>" placeholder="0.00" required>
-                                </div>
-                                <button type="submit" class="btn btn-warning btn-sm">
-                                    <i class="fas fa-minus"></i> Consumir
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
             <?php if($lote->estado == 'consumido' || $lote->cantidad_disponible < $lote->cantidad_inicial): ?>
     <div class="mt-4">
         <h5><i class="fas fa-history"></i> Historial de Consumos Estimado</h5>
@@ -172,18 +153,6 @@
         <?php endif; ?>
     </div>
 <?php endif; ?>
-        </div>
-        <div class="card-footer d-flex justify-content-between">
-            <div>
-                <a href="<?php echo e(route('lotes.edit', $lote)); ?>" class="btn btn-cancel btn-sm">
-                    <i class="fas fa-edit"></i> Editar
-                </a>
-            </div>
-            <a href="<?php echo e(route('lotes.index')); ?>" class="btn btn-back btn-sm">
-                <i class="fas fa-arrow-left"></i> Volver
-            </a>
-        </div>
-    </div>
 </div>
 <?php $__env->stopSection(); ?>
 

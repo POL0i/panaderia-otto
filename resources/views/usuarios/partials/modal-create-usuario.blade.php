@@ -61,8 +61,37 @@
                                 <label class="text-panaderia" for="contraseña">
                                     <i class="fas fa-lock mr-1"></i>Contraseña <span class="text-danger">*</span>
                                 </label>
-                                <input type="password" name="contraseña" id="contraseña" class="form-control" 
-                                       placeholder="Mínimo 8 caracteres" required minlength="8">
+                                <div class="input-group">
+                                    <input type="password" name="contraseña" id="contraseña" class="form-control" 
+                                        placeholder="Mínimo 8 caracteres" required minlength="8">
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-outline-secondary" id="togglePasswordModal" tabindex="-1">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                {{-- Requisitos de contraseña --}}
+                                <div class="requirement-list mt-2">
+                                    <small class="text-muted">La contraseña debe cumplir:</small>
+                                    <ul class="list-unstyled mb-0 mt-1" style="font-size: 0.8rem;">
+                                        <li id="modal-req-length" class="text-danger">
+                                            <i class="fas fa-times-circle"></i> Mínimo 8 caracteres
+                                        </li>
+                                        <li id="modal-req-uppercase" class="text-danger">
+                                            <i class="fas fa-times-circle"></i> Al menos 1 mayúscula
+                                        </li>
+                                        <li id="modal-req-lowercase" class="text-danger">
+                                            <i class="fas fa-times-circle"></i> Al menos 1 minúscula
+                                        </li>
+                                        <li id="modal-req-number" class="text-danger">
+                                            <i class="fas fa-times-circle"></i> Al menos 2 números
+                                        </li>
+                                        <li id="modal-req-special" class="text-danger">
+                                            <i class="fas fa-times-circle"></i> Al menos 1 carácter especial (!@#$%^&*)
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
 

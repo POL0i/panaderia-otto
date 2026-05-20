@@ -11,6 +11,7 @@ use App\Models\Item;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Intervention\Image\Facades\Image;  // ← AGREGAR
 
 class AlmacenModuleController extends Controller
 {
@@ -154,55 +155,110 @@ class AlmacenModuleController extends Controller
     // ============================================
     // PRODUCTOS (crea Item automáticamente)
     // ============================================
-    public function storeProducto(Request $request)
-    {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:100',
-            'id_cat_producto' => 'required|exists:categoria_producto,id_cat_producto',
-            'unidad_medida' => 'required|string|in:kg,g,lb,oz,L,mL,unidad',
-            'precio' => 'nullable|numeric|min:0',
-            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'imagen_url' => 'nullable|url',
-        ]);
-
-        DB::beginTransaction();
-        try {
-            $item = Item::create([
-                'tipo_item' => 'producto',
-                'nombre' => $validated['nombre'],
-                'unidad_medida' => $validated['unidad_medida'],
+      public function storeProducto(Request $request)
+        {
+            $validated = $request->validate([
+                'nombre' => 'required|string|max:100',
+                'id_cat_producto' => 'required|exists:categoria_producto,id_cat_producto',
+                'unidad_medida' => 'required|string|in:kg,g,lb,oz,L,mL,unidad',
+                'precio' => 'nullable|numeric|min:0',
+                'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // Aumentado a 5MB
+                'imagen_url' => 'nullable|url',
             ]);
 
-            // Manejar la imagen
-            $imagenPath = null;
-            if ($request->hasFile('imagen')) {
-                $imagenPath = $request->file('imagen')->store('productos', 'public');
-            } elseif ($request->filled('imagen_url')) {
-                $imagenPath = $request->imagen_url;
+            DB::beginTransaction();
+            try {
+                $item = Item::create([
+                    'tipo_item' => 'producto',
+                    'nombre' => $validated['nombre'],
+                    'unidad_medida' => $validated['unidad_medida'],
+                ]);
+
+                // Manejar la imagen
+                $imagenPath = null;
+
+                if ($request->hasFile('imagen')) {
+                    // Imagen subida por el usuario
+                    $imagenPath = $this->comprimirYGuardar($request->file('imagen'));
+                } elseif ($request->filled('imagen_url')) {
+                    // Imagen desde URL
+                    $imagenPath = $this->descargarYGuardar($request->imagen_url);
+                }
+
+                $producto = Producto::create([
+                    'id_item' => $item->id_item,
+                    'id_cat_producto' => $validated['id_cat_producto'],
+                    'precio' => $validated['precio'] ?? null,
+                    'imagen' => $imagenPath,
+                ]);
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'producto' => $producto->load('categoria', 'item'),
+                    'message' => 'Producto creado exitosamente'
+                ]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error: ' . $e->getMessage()
+                ], 500);
             }
-
-            $producto = Producto::create([
-                'id_item' => $item->id_item,
-                'id_cat_producto' => $validated['id_cat_producto'],                
-                'precio' => $validated['precio'] ?? null,
-                'imagen' => $imagenPath,
-            ]);
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'producto' => $producto->load('categoria', 'item'),
-                'message' => 'Producto creado exitosamente'
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
         }
-    }
+
+        /**
+         * Comprimir y guardar una imagen subida
+         */
+        private function comprimirYGuardar($file): ?string
+        {
+            try {
+                $filename = uniqid('prod_') . '.webp';
+                $path = storage_path('app/public/productos/' . $filename);
+
+                $img = Image::make($file)
+                    ->resize(800, null, function ($constraint) {
+                        $constraint->aspectRatio();   // Mantener proporción
+                        $constraint->upsize();        // No agrandar si ya es más pequeña
+                    })
+                    ->encode('webp', 80);             // WebP calidad 80%
+
+                $img->save($path);
+
+                return 'productos/' . $filename;
+            } catch (\Exception $e) {
+                \Log::error('Error al comprimir imagen: ' . $e->getMessage());
+                return null;
+            }
+        }
+
+        /**
+         * Descargar, comprimir y guardar una imagen desde URL
+         */
+        private function descargarYGuardar(string $url): ?string
+        {
+            try {
+                $filename = uniqid('prod_') . '.webp';
+                $path = storage_path('app/public/productos/' . $filename);
+
+                $img = Image::make($url)
+                    ->resize(800, null, function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    })
+                    ->encode('webp', 80);
+
+                $img->save($path);
+
+                return 'productos/' . $filename;
+            } catch (\Exception $e) {
+                \Log::error('Error al descargar/comprimir imagen: ' . $e->getMessage());
+                // Si falla la descarga, devolver la URL original como fallback
+                return $url;
+            }
+        }
+    
 
     // ============================================
     // STOCK (AlmacenItem)

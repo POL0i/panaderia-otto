@@ -200,6 +200,60 @@ class VentaController extends Controller
         }
     }
 
+    public function buscar(Request $request)
+    {
+        $query = $request->input('q');
+        
+        if (empty($query)) {
+            return redirect()->route('landing');
+        }
+
+        $productos = DB::table('almacen_item')
+            ->join('items', 'almacen_item.id_item', '=', 'items.id_item')
+            ->join('productos', 'items.id_item', '=', 'productos.id_item')
+            ->join('almacenes', 'almacen_item.id_almacen', '=', 'almacenes.id_almacen')
+            ->leftJoin('categoria_producto', 'productos.id_cat_producto', '=', 'categoria_producto.id_cat_producto')
+            ->where('items.tipo_item', 'producto')
+            ->where('almacen_item.stock', '>', 0)
+            ->where(function ($q) use ($query) {
+                $q->where('items.nombre', 'LIKE', "%{$query}%")
+                ->orWhere('categoria_producto.nombre', 'LIKE', "%{$query}%");
+            })
+            ->select(
+                'almacen_item.id_almacen',
+                'almacen_item.id_item',
+                'items.nombre',
+                'productos.precio',
+                'almacen_item.stock',
+                'productos.imagen',
+                'almacenes.nombre as almacen_nombre',
+                'categoria_producto.nombre as categoria'
+            )
+            ->orderBy('items.nombre')
+            ->get()
+            ->map(function($item) {
+                $imagenUrl = null;
+                if ($item->imagen) {
+                    $imagenUrl = filter_var($item->imagen, FILTER_VALIDATE_URL) 
+                        ? $item->imagen 
+                        : Storage::url($item->imagen);
+                }
+                return (object)[
+                    'id_almacen' => $item->id_almacen,
+                    'id_item' => $item->id_item,
+                    'nombre' => $item->nombre,
+                    'precio' => floatval($item->precio),
+                    'stock' => intval($item->stock),
+                    'imagen' => $imagenUrl,
+                    'almacen_nombre' => $item->almacen_nombre,
+                    'categoria' => $item->categoria ?? 'Producto',
+                    'descripcion' => ''
+                ];
+            });
+
+        return view('buscar', compact('productos', 'query'));
+    }
+
     public function getClientes()
     {
         return response()->json(['clientes' => Cliente::all(['id_cliente', 'nombre', 'telefono'])]);
