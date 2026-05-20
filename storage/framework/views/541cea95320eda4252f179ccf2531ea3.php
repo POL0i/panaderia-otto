@@ -327,8 +327,9 @@
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
-<script>  // Búsqueda de usuarios
+<script>
 $(document).ready(function() {
+    // Búsqueda de usuarios
     $('#searchUsuario').on('keyup', function() {
         var value = $(this).val().toLowerCase();
         $('.usuario-card-container').filter(function() {
@@ -337,7 +338,7 @@ $(document).ready(function() {
     });
 
     // ============================================
-    // CREAR USUARIO (CORREGIDO)
+    // CREAR USUARIO
     // ============================================
     $('#tipo_usuario').on('change', function() {
         var tipo = $(this).val();
@@ -353,13 +354,12 @@ $(document).ready(function() {
         }
     });
 
-    // Prevenir envíos múltiples
+    // Prevenir envíos múltiples del formulario de usuario
     var isSubmitting = false;
     
     $('#formCrearUsuario').on('submit', function(e) {
         e.preventDefault();
         
-        // Evitar envíos múltiples
         if (isSubmitting) {
             toastr.warning('Espere, ya se está procesando la solicitud');
             return false;
@@ -369,7 +369,6 @@ $(document).ready(function() {
         var submitBtn = form.find('button[type="submit"]');
         var originalBtnText = submitBtn.html();
         
-        // Deshabilitar botón y mostrar loading
         submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
         isSubmitting = true;
         
@@ -379,17 +378,10 @@ $(document).ready(function() {
             data: form.serialize(),
             success: function(response) {
                 if (response.success) {
-                    // Limpiar formulario
                     form[0].reset();
                     $('#empleado_container, #cliente_container').hide();
-                    
-                    // Cerrar modal
                     $('#createUsuarioModal').modal('hide');
-                    
-                    // Mostrar mensaje de éxito
                     toastr.success(response.message || 'Usuario creado exitosamente');
-                    
-                    // Recargar la página después de un breve delay
                     setTimeout(function() {
                         location.reload();
                     }, 1500);
@@ -408,53 +400,58 @@ $(document).ready(function() {
                 toastr.error(message);
             },
             complete: function() {
-                // Restaurar botón
                 submitBtn.html(originalBtnText).prop('disabled', false);
                 isSubmitting = false;
             }
         });
     });
 
-        $('#togglePasswordModal').on('click', function() {
-            const input = $('#contraseña');
-            const icon = $(this).find('i');
-            if (input.attr('type') === 'password') {
-                input.attr('type', 'text');
-                icon.removeClass('fa-eye').addClass('fa-eye-slash');
-            } else {
-                input.attr('type', 'password');
-                icon.removeClass('fa-eye-slash').addClass('fa-eye');
-            }
-        });
-
-        $('#contraseña').on('input', function() {
-            const password = $(this).val();
-            updateModalRequirement('modal-req-length', password.length >= 8);
-            updateModalRequirement('modal-req-uppercase', /[A-Z]/.test(password));
-            updateModalRequirement('modal-req-lowercase', /[a-z]/.test(password));
-            updateModalRequirement('modal-req-number', (password.match(/\d/g) || []).length >= 2);
-            updateModalRequirement('modal-req-special', /[!@#$%^&*()_+\-=\[\]{}]/.test(password));
-        });
-
-        function updateModalRequirement(id, isValid) {
-            const el = $('#' + id);
-            if (!el.length) return;
-            if (isValid) {
-                el.removeClass('text-danger').addClass('text-success');
-                el.find('i').removeClass('fa-times-circle').addClass('fa-check-circle');
-            } else {
-                el.removeClass('text-success').addClass('text-danger');
-                el.find('i').removeClass('fa-check-circle').addClass('fa-times-circle');
-            }
+    // Mostrar/ocultar contraseña
+    $('#togglePasswordModal').on('click', function() {
+        const input = $('#contraseña');
+        const icon = $(this).find('i');
+        if (input.attr('type') === 'password') {
+            input.attr('type', 'text');
+            icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        } else {
+            input.attr('type', 'password');
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
         }
+    });
 
-        // Resetear requisitos al cerrar modal
-        $('#createUsuarioModal').on('hidden.bs.modal', function() {
-            $('#contraseña').val('');
-            ['modal-req-length', 'modal-req-uppercase', 'modal-req-lowercase', 'modal-req-number', 'modal-req-special'].forEach(function(id) {
-                updateModalRequirement(id, false);
-            });
+    // Validar requisitos de contraseña
+    $('#contraseña').on('input', function() {
+        const password = $(this).val();
+        updateModalRequirement('modal-req-length', password.length >= 8);
+        updateModalRequirement('modal-req-uppercase', /[A-Z]/.test(password));
+        updateModalRequirement('modal-req-lowercase', /[a-z]/.test(password));
+        updateModalRequirement('modal-req-number', (password.match(/\d/g) || []).length >= 2);
+        updateModalRequirement('modal-req-special', /[!@#$%^&*()_+\-=\[\]{}]/.test(password));
+    });
+
+    function updateModalRequirement(id, isValid) {
+        const el = $('#' + id);
+        if (!el.length) return;
+        if (isValid) {
+            el.removeClass('text-danger').addClass('text-success');
+            el.find('i').removeClass('fa-times-circle').addClass('fa-check-circle');
+        } else {
+            el.removeClass('text-success').addClass('text-danger');
+            el.find('i').removeClass('fa-check-circle').addClass('fa-times-circle');
+        }
+    }
+
+    // Resetear requisitos al cerrar modal
+    $('#createUsuarioModal').on('hidden.bs.modal', function() {
+        $('#contraseña').val('');
+        $('#formCrearUsuario')[0].reset();
+        $('#empleado_container, #cliente_container').hide();
+        $('#id_empleado, #id_cliente').prop('required', false);
+        isSubmitting = false;
+        ['modal-req-length', 'modal-req-uppercase', 'modal-req-lowercase', 'modal-req-number', 'modal-req-special'].forEach(function(id) {
+            updateModalRequirement(id, false);
         });
+    });
 
     // Limpiar formulario cuando se cierra el modal
     $('#createUsuarioModal').on('hidden.bs.modal', function() {
@@ -477,59 +474,7 @@ $(document).ready(function() {
 
     var isSubmittingEmpleado = false;
     
-    $('#formCrearEmpleado').on('submit', function(e) {
-        e.preventDefault();
-        
-        if (isSubmittingEmpleado) return false;
-        
-        var form = $(this);
-        var submitBtn = form.find('button[type="submit"]');
-        var originalText = submitBtn.html();
-        
-        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
-        isSubmittingEmpleado = true;
-        
-        $.ajax({
-            url: form.attr('action'),
-            method: 'POST',
-            data: form.serialize(),
-            success: function(response) {
-                if (response.success) {
-                    $('#createEmpleadoModal').modal('hide');
-                    toastr.success(response.message);
-                    form[0].reset();
-                    
-                    // Agregar al select
-                    var newOption = new Option(
-                        response.empleado.nombre + ' ' + response.empleado.apellido,
-                        response.empleado.id_empleado,
-                        true,
-                        true
-                    );
-                    $('#id_empleado, #edit_id_empleado').append(newOption);
-                    
-                    // CORREGIDO: $id('#id_empleado') -> $('#id_empleado')
-                    $('#id_empleado').val(response.empleado.id_empleado).trigger('change');
-                    
-                    // Volver al modal anterior
-                    returnToPreviousModal();
-                } else {
-                    toastr.error(response.message || 'Error al crear empleado');
-                }
-            },
-            error: function(xhr) {
-                var message = 'Error al crear empleado';
-                if (xhr.responseJSON?.message) {
-                    message = xhr.responseJSON.message;
-                }
-                toastr.error(message);
-            },
-            complete: function() {
-                submitBtn.html(originalText).prop('disabled', false);
-                isSubmittingEmpleado = false;
-            }
-        });
-    });
+    
 
     // ============================================
     // EDITAR USUARIO

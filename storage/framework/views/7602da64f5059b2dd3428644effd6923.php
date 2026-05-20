@@ -153,7 +153,7 @@
                     <p>Ventas de Hoy</p>
                 </div>
                 <div class="icon"><i class="fas fa-shopping-cart"></i></div>
-                <a href="<?php echo e(route('notas-venta.index')); ?>" class="small-box-footer">
+                <a href="<?php echo e(route('detalles-venta.index')); ?>" class="small-box-footer">
                     Ver detalles <i class="fas fa-arrow-circle-right"></i>
                 </a>
             </div>
@@ -165,7 +165,7 @@
                     <p>Clientes Activos</p>
                 </div>
                 <div class="icon"><i class="fas fa-users"></i></div>
-                <a href="<?php echo e(route('clientes.index')); ?>" class="small-box-footer">
+                <a href="<?php echo e(route('personas.index')); ?>" class="small-box-footer">
                     Ver detalles <i class="fas fa-arrow-circle-right"></i>
                 </a>
             </div>
@@ -177,7 +177,7 @@
                     <p>Pedidos Pendientes</p>
                 </div>
                 <div class="icon"><i class="fas fa-chart-pie"></i></div>
-                <a href="#" class="small-box-footer">
+                <a href="<?php echo e(route('producciones.index')); ?>" class="small-box-footer">
                     Ver detalles <i class="fas fa-arrow-circle-right"></i>
                 </a>
             </div>

@@ -100,7 +100,7 @@ class ReporteController extends Controller
      */
        public function comercial(Request $request)
     {
-        $inicio = $request->fecha_inicio ?? now()->subDays(30)->toDateString();
+        $inicio = $request->fecha_inicio ?? '2026-01-01';  // Fecha más amplia
         $fin = $request->fecha_fin ?? now()->toDateString();
 
         // Ventas en el rango

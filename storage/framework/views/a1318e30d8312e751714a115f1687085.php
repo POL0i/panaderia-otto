@@ -61,11 +61,6 @@
                     <i class="fas fa-home"></i> Inicio
                 </a>
             </li>
-            <li class="nav-item d-none d-sm-inline-block">
-                <a href="#" class="nav-link">
-                    <i class="fas fa-chart-line"></i> Panel
-                </a>
-            </li>
         </ul>
 
         <ul class="navbar-nav ml-auto">
@@ -77,15 +72,8 @@
                     <span><?php echo e(Auth::user()->name); ?></span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right">
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-user"></i> Mi Perfil
-                    </a>
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-cog"></i> Configuración
-                    </a>
 
-                    
-                    <div class="dropdown-divider"></div>
+                                        
                     <span class="dropdown-header">Tema</span>
                     <a href="#" class="dropdown-item" onclick="cambiarTema('ninos')">
                         <i class="fas fa-child"></i> Niños
@@ -514,17 +502,25 @@
         // MANEJO GLOBAL DE FORMULARIOS MODALES POR AJAX
         // ============================================
         var isSubmittingModal = false;
+        var modalSubmitTimeouts = {};
 
         function manejarFormularioModal(formId, modalId, loadingText, successMessage, errorMessage, onSuccess) {
-            $(document).on('submit', formId, function(e) {
+            $(document).off('submit', formId).on('submit', formId, function(e) {
                 e.preventDefault();
-                if (isSubmittingModal) return false;
+                
+                if (isSubmittingModal) {
+                    toastr.warning('Ya se está procesando una solicitud, espere por favor');
+                    return false;
+                }
                 
                 var $form = $(this);
                 var $btn = $form.find('button[type="submit"]');
                 var originalText = $btn.html();
+                var formKey = formId;
                 
-                // Si el formulario tiene archivos, usar FormData
+                // Limpiar timeout anterior
+                if (modalSubmitTimeouts[formKey]) clearTimeout(modalSubmitTimeouts[formKey]);
+                
                 var hasFile = $form.attr('enctype') === 'multipart/form-data' || $form.find('input[type="file"]').length > 0;
                 
                 $btn.html('<i class="fas fa-spinner fa-spin"></i> ' + loadingText).prop('disabled', true);
@@ -540,14 +536,35 @@
                         if (response.success) {
                             $(modalId).modal('hide');
                             $form[0].reset();
-                            
                             toastr.success(response.message || successMessage);
                             
-                            if (typeof onSuccess === 'function') {
-                                onSuccess(response);
+                            // Para empleados, agregar al select si existe
+                            if (formId === '#formCrearEmpleado' && response.empleado) {
+                                var nombreMostrar = response.empleado.nombre + ' ' + (response.empleado.apellido || '');
+                                var newOption = new Option(nombreMostrar, response.empleado.id_empleado, true, true);
+                                $('#id_empleado, #edit_id_empleado').each(function() {
+                                    if ($(this).find('option[value="' + response.empleado.id_empleado + '"]').length === 0) {
+                                        $(this).append(newOption.clone());
+                                    }
+                                });
+                                $('#id_empleado').val(response.empleado.id_empleado).trigger('change');
                             }
                             
-                            setTimeout(() => location.reload(), 1500);
+                            // Para clientes, agregar al select si existe
+                            if (formId === '#formCrearCliente' && response.cliente) {
+                                var nombreCliente = response.cliente.nombre + ' ' + (response.cliente.apellido || '');
+                                var newOption = new Option(nombreCliente, response.cliente.id_cliente, true, true);
+                                $('#id_cliente, #edit_id_cliente').each(function() {
+                                    if ($(this).find('option[value="' + response.cliente.id_cliente + '"]').length === 0) {
+                                        $(this).append(newOption.clone());
+                                    }
+                                });
+                                $('#id_cliente').val(response.cliente.id_cliente).trigger('change');
+                            }
+                            
+                            if (typeof onSuccess === 'function') onSuccess(response);
+                            
+                            modalSubmitTimeouts[formKey] = setTimeout(() => location.reload(), 1500);
                         } else {
                             toastr.error(response.message || 'Error al procesar');
                             $btn.html(originalText).prop('disabled', false);
@@ -556,11 +573,49 @@
                     },
                     error: function(xhr) {
                         var message = errorMessage;
-                        if (xhr.responseJSON?.errors) {
-                            message = Object.values(xhr.responseJSON.errors).flat().join('\n');
+                        
+                        if (xhr.status === 422 && xhr.responseJSON) {
+                            if (xhr.responseJSON.message) {
+                                message = xhr.responseJSON.message;
+                            } else if (xhr.responseJSON.errors) {
+                                var errors = xhr.responseJSON.errors;
+                                message = Object.values(errors).flat().join('\n');
+                            }
+                            
+                            // Para empleados duplicados
+                            if (formId === '#formCrearEmpleado' && xhr.responseJSON.empleado) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Empleado ya existe',
+                                    text: message,
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Usar existente',
+                                    cancelButtonText: 'Cancelar'
+                                }).then((result) => {
+                                    if (result.isConfirmed && xhr.responseJSON.empleado) {
+                                        var empleadoExistente = xhr.responseJSON.empleado;
+                                        var nombreMostrar = empleadoExistente.nombre + ' ' + (empleadoExistente.apellido || '');
+                                        var newOption = new Option(nombreMostrar, empleadoExistente.id_empleado, true, true);
+                                        
+                                        $('#id_empleado, #edit_id_empleado').each(function() {
+                                            if ($(this).find('option[value="' + empleadoExistente.id_empleado + '"]').length === 0) {
+                                                $(this).append(newOption.clone());
+                                            }
+                                        });
+                                        
+                                        $('#id_empleado').val(empleadoExistente.id_empleado).trigger('change');
+                                        $(modalId).modal('hide');
+                                        toastr.info('Se ha seleccionado el empleado existente');
+                                    }
+                                });
+                                $btn.html(originalText).prop('disabled', false);
+                                isSubmittingModal = false;
+                                return;
+                            }
                         } else if (xhr.responseJSON?.message) {
                             message = xhr.responseJSON.message;
                         }
+                        
                         toastr.error(message);
                         $btn.html(originalText).prop('disabled', false);
                         isSubmittingModal = false;
@@ -571,27 +626,14 @@
             });
         }
 
-        // Inicializar todos los formularios modales del sistema
+        // Inicializar los manejadores
         $(document).ready(function() {
-            // Módulo Almacén
-            manejarFormularioModal('#formCreateAlmacen', '#createAlmacenModal', 'Creando...', 'Almacén creado', 'Error al crear almacén');
-            manejarFormularioModal('#formCreateInsumo', '#createInsumoModal', 'Creando...', 'Insumo creado', 'Error al crear insumo');
-            manejarFormularioModal('#formCreateCategoriaInsumo', '#createCategoriaInsumoModal', 'Creando...', 'Categoría creada', 'Error al crear categoría');
-            manejarFormularioModal('#formCreateCategoriaProducto', '#createCategoriaProductoModal', 'Creando...', 'Categoría creada', 'Error al crear categoría');
-            manejarFormularioModal('#formManageStock', '#manageStockModal', 'Procesando...', 'Stock actualizado', 'Error al gestionar stock');
-            manejarFormularioModal('#formCreateProducto', '#createProductoModal', 'Creando...', 'Producto creado', 'Error al crear producto');
-            
-            // Proveedores
-            manejarFormularioModal('#formCreateProveedor', '#modalProveedor', 'Creando...', 'Proveedor creado', 'Error al crear proveedor');
-            
-            // Empleados y clientes
             manejarFormularioModal('#formCrearEmpleado', '#createEmpleadoModal', 'Creando...', 'Empleado creado', 'Error al crear empleado');
             manejarFormularioModal('#formCrearCliente', '#createClienteModal', 'Creando...', 'Cliente creado', 'Error al crear cliente');
-            
-            // Usuarios
             manejarFormularioModal('#formCrearUsuario', '#createUsuarioModal', 'Creando...', 'Usuario creado', 'Error al crear usuario');
+            // ... otros manejadores
             
-            // Reset al cerrar modales
+            // Resetear al cerrar modales
             $('.modal').on('hidden.bs.modal', function() {
                 isSubmittingModal = false;
                 $(this).find('button[type="submit"]').prop('disabled', false);

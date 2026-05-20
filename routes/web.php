@@ -47,6 +47,8 @@ use App\Http\Controllers\ReporteController;
 // Landing page
 Route::get('/', [VentaController::class, 'landingPage'])->name('landing');
 
+Route::get('/api/stock/{idAlmacen}/{idItem}', [VentaController::class, 'getStock']);
+
 // Carrito de compras
 Route::prefix('carrito')->name('carrito.')->group(function () {
     Route::post('/agregar', [VentaController::class, 'agregarAlCarrito'])->name('agregar');

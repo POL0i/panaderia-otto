@@ -155,7 +155,7 @@
                     <p>Ventas de Hoy</p>
                 </div>
                 <div class="icon"><i class="fas fa-shopping-cart"></i></div>
-                <a href="{{ route('notas-venta.index') }}" class="small-box-footer">
+                <a href="{{ route('detalles-venta.index') }}" class="small-box-footer">
                     Ver detalles <i class="fas fa-arrow-circle-right"></i>
                 </a>
             </div>
@@ -167,7 +167,7 @@
                     <p>Clientes Activos</p>
                 </div>
                 <div class="icon"><i class="fas fa-users"></i></div>
-                <a href="{{ route('clientes.index') }}" class="small-box-footer">
+                <a href="{{ route('personas.index') }}" class="small-box-footer">
                     Ver detalles <i class="fas fa-arrow-circle-right"></i>
                 </a>
             </div>
@@ -179,7 +179,7 @@
                     <p>Pedidos Pendientes</p>
                 </div>
                 <div class="icon"><i class="fas fa-chart-pie"></i></div>
-                <a href="#" class="small-box-footer">
+                <a href="{{ route('producciones.index') }}" class="small-box-footer">
                     Ver detalles <i class="fas fa-arrow-circle-right"></i>
                 </a>
             </div>

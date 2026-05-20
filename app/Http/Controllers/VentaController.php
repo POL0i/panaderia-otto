@@ -386,51 +386,123 @@ class VentaController extends Controller
     }
 
     public function landingPage()
-    {
-        $productosConStock = DB::table('almacen_item')
-            ->join('items', 'almacen_item.id_item', '=', 'items.id_item')
-            ->join('productos', 'items.id_item', '=', 'productos.id_item')
-            ->join('almacenes', 'almacen_item.id_almacen', '=', 'almacenes.id_almacen')
-            ->leftJoin('categoria_producto', 'productos.id_cat_producto', '=', 'categoria_producto.id_cat_producto')
-            ->where('items.tipo_item', 'producto')
-            ->where('almacen_item.stock', '>', 0)
-            ->select(
-                'almacen_item.id_almacen',
-                'almacen_item.id_item',
-                'items.nombre',
-                'productos.precio',
-                'almacen_item.stock',
-                'productos.imagen',
-                'almacenes.nombre as almacen_nombre',
-                'categoria_producto.nombre as categoria'
-            )
-            ->orderBy('items.nombre')
-            ->get()
-            ->map(function($item) {
-                $imagenUrl = null;
-                if ($item->imagen) {
-                    if (Str::startsWith($item->imagen, ['http://', 'https://'])) {
-                        $imagenUrl = $item->imagen;
-                    } else {
-                        $imagenUrl = asset('storage/' . $item->imagen);  // URL absoluta
-                    }
+{
+    // Agrupar productos por nombre, eligiendo automáticamente el almacén con mayor stock
+    $productosConStock = DB::table('almacen_item')
+        ->join('items', 'almacen_item.id_item', '=', 'items.id_item')
+        ->join('productos', 'items.id_item', '=', 'productos.id_item')
+        ->join('almacenes', 'almacen_item.id_almacen', '=', 'almacenes.id_almacen')
+        ->leftJoin('categoria_producto', 'productos.id_cat_producto', '=', 'categoria_producto.id_cat_producto')
+        ->where('items.tipo_item', 'producto')
+        ->where('almacen_item.stock', '>', 0)
+        ->select(
+            'almacen_item.id_almacen',
+            'almacen_item.id_item',
+            'items.nombre',
+            'productos.precio',
+            'almacen_item.stock',
+            'productos.imagen',
+            'almacenes.nombre as almacen_nombre',
+            'categoria_producto.nombre as categoria'
+        )
+        ->orderBy('items.nombre')
+        ->orderBy('almacen_item.stock', 'desc') // Priorizar almacenes con más stock
+        ->get()
+        ->groupBy('nombre') // Agrupar por nombre del producto
+        ->map(function($grupo) {
+            // Tomar el primer producto del grupo (el que tiene más stock)
+            $producto = $grupo->first();
+            
+            // Calcular stock total
+            $stockTotal = $grupo->sum('stock');
+            
+            // Determinar nivel de stock (sin números)
+            $nivelStock = $this->getNivelStockVisual($stockTotal);
+            
+            $imagenUrl = null;
+            if ($producto->imagen) {
+                if (Str::startsWith($producto->imagen, ['http://', 'https://'])) {
+                    $imagenUrl = $producto->imagen;
+                } else {
+                    $imagenUrl = asset('storage/' . $producto->imagen);
                 }
+            }
+            
+            return (object)[
+                'id_almacen' => $producto->id_almacen, // Almacén con más stock
+                'id_item' => $producto->id_item,
+                'nombre' => $producto->nombre,
+                'precio' => floatval($producto->precio),
+                'stock_total' => $stockTotal,
+                'nivel_stock' => $nivelStock,
+                'imagen' => $imagenUrl,
+                'categoria' => $producto->categoria ?? 'Producto',
+                'descripcion' => ''
+            ];
+        })
+        ->values();
 
-                return (object)[
+    return view('PanaderiaOtto', compact('productosConStock'));
+}
 
-                    'id_almacen' => $item->id_almacen,
-                    'id_item' => $item->id_item,
-                    'nombre' => $item->nombre,
-                    'precio' => floatval($item->precio),
-                    'stock' => intval($item->stock),
-                    'imagen' => $imagenUrl,
-                    'almacen_nombre' => $item->almacen_nombre,
-                    'categoria' => $item->categoria ?? 'Producto',
-                    'descripcion' => ''
-                ];
-            });
+    /**
+     * Determinar nivel de stock VISUAL (sin números)
+     */
+    private function getNivelStockVisual($stock)
+    {
+        if ($stock <= 0) {
+            return [
+                'texto' => 'Agotado',
+                'clase' => 'danger',
+                'icono' => 'fa-times-circle',
+                'mensaje' => 'Producto agotado',
+                'barra_width' => 0,
+                'disabled' => true
+            ];
+        } elseif ($stock < 10) {
+            return [
+                'texto' => '¡Últimas unidades!',
+                'clase' => 'warning',
+                'icono' => 'fa-exclamation-triangle',
+                'mensaje' => '¡Apresúrate! Pocas unidades disponibles',
+                'barra_width' => 15,
+                'disabled' => false
+            ];
+        } elseif ($stock < 30) {
+            return [
+                'texto' => 'Stock disponible',
+                'clase' => 'info',
+                'icono' => 'fa-chart-line',
+                'mensaje' => 'Disponible para tu pedido',
+                'barra_width' => 50,
+                'disabled' => false
+            ];
+        } else {
+            return [
+                'texto' => 'Stock alto',
+                'clase' => 'success',
+                'icono' => 'fa-check-circle',
+                'mensaje' => 'Producto disponible',
+                'barra_width' => 100,
+                'disabled' => false
+            ];
+        }
+    }
 
-        return view('PanaderiaOtto', compact('productosConStock'));
+    /**
+     * Determinar nivel de stock visual
+     */
+    private function getNivelStock($stock)
+    {
+        if ($stock <= 0) {
+            return ['texto' => 'Agotado', 'clase' => 'danger', 'icono' => 'fa-times-circle'];
+        } elseif ($stock < 10) {
+            return ['texto' => '¡Últimas unidades!', 'clase' => 'warning', 'icono' => 'fa-exclamation-triangle'];
+        } elseif ($stock < 30) {
+            return ['texto' => 'Stock disponible', 'clase' => 'info', 'icono' => 'fa-chart-line'];
+        } else {
+            return ['texto' => 'Stock alto', 'clase' => 'success', 'icono' => 'fa-check-circle'];
+        }
     }
 
     public function agregarAlCarrito(Request $request)

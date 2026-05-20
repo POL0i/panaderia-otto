@@ -371,24 +371,54 @@
             <?php $__empty_1 = true; $__currentLoopData = $productosConStock ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $producto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <div class="col-lg-3 col-md-6">
                     <div class="product-card">
-                            <?php
-                                $imagenUrl = $producto->imagen ?: 'https://placehold.co/300x220/8B4513/white?text=Pan+Otto';
-                            ?>
+                        <?php
+                            $imagenUrl = $producto->imagen ?: 'https://placehold.co/300x220/8B4513/white?text=Pan+Otto';
+                            $nivel = $producto->nivel_stock;
+                        ?>
 
-                            <div class="product-img" style="background-image: url('<?php echo e($imagenUrl); ?>');">
-                                <span class="product-badge"><?php echo e($producto->categoria ?? 'Producto'); ?></span>
-                            </div>
+                        <div class="product-img" style="background-image: url('<?php echo e($imagenUrl); ?>');">
+                            <span class="product-badge"><?php echo e($producto->categoria); ?></span>
+                            <?php if($nivel['disabled']): ?>
+                                <span class="product-badge" style="top: 50px; background: #dc3545;">Agotado</span>
+                            <?php endif; ?>
+                        </div>
                         <div class="product-body">
                             <h3 class="product-title"><?php echo e($producto->nombre); ?></h3>
-                            <p class="product-desc"><?php echo e(Str::limit($producto->descripcion ?? 'Delicioso producto artesanal', 80)); ?></p>
-                            <div class="d-flex justify-content-between align-items-center">
+                            <p class="product-desc"><?php echo e(Str::limit($producto->descripcion ?: 'Delicioso producto artesanal', 80)); ?></p>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="product-price">Bs. <?php echo e(number_format($producto->precio, 2)); ?></div>
-                                <button class="btn btn-sm" style="background: var(--color-accent, #D2B48C); color: var(--color-primary-dark, #5D3A1A); border-radius: var(--border-radius-xl);"
-                                        onclick='agregarAlCarrito(<?php echo json_encode($producto); ?>)'>
+                                <button class="btn btn-sm agregar-carrito" 
+                                        style="background: var(--color-accent, #D2B48C); color: var(--color-primary-dark, #5D3A1A); border-radius: var(--border-radius-xl); padding: 8px 16px; font-weight: 600;"
+                                        data-id-almacen="<?php echo e($producto->id_almacen); ?>"
+                                        data-id-item="<?php echo e($producto->id_item); ?>"
+                                        data-nombre="<?php echo e($producto->nombre); ?>"
+                                        data-precio="<?php echo e($producto->precio); ?>"
+                                        data-stock="<?php echo e($producto->stock_total); ?>"
+                                        data-imagen="<?php echo e($producto->imagen); ?>"
+                                        <?php echo e($nivel['disabled'] ? 'disabled' : ''); ?>>
                                     <i class="fas fa-shopping-cart"></i> Agregar
                                 </button>
                             </div>
-                            <small class="text-muted d-block mt-2">Stock: <?php echo e($producto->stock); ?> unidades</small>
+                            
+                            
+                            <div class="stock-indicator">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="fas <?php echo e($nivel['icono']); ?> text-<?php echo e($nivel['clase']); ?>"></i>
+                                    <small class="text-<?php echo e($nivel['clase']); ?> fw-bold">
+                                        <?php echo e($nivel['texto']); ?>
+
+                                    </small>
+                                    <small class="text-muted ms-2"><?php echo e($nivel['mensaje']); ?></small>
+                                </div>
+                                
+                                
+                                <div class="progress mt-2" style="height: 6px; border-radius: 3px; background: #e9ecef;">
+                                    <div class="progress-bar bg-<?php echo e($nivel['clase']); ?>" 
+                                        style="width: <?php echo e($nivel['barra_width']); ?>%; transition: width 0.5s ease;"
+                                        role="progressbar"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -611,28 +641,41 @@
             });
         });
 
-        function agregarAlCarrito(producto) {
+        function agregarAlCarrito(boton) {
+            // Obtener datos del botón
+            const idAlmacen = $(boton).data('id-almacen');
+            const idItem = $(boton).data('id-item');
+            const nombre = $(boton).data('nombre');
+            const precio = $(boton).data('precio');
+            const stockTotal = $(boton).data('stock');
+            const imagen = $(boton).data('imagen');
+            
+            // Solicitar cantidad
             const cantidad = prompt('¿Cuántas unidades deseas?', 1);
             if (!cantidad || isNaN(cantidad) || cantidad <= 0) {
                 toastr.warning('Por favor ingresa una cantidad válida');
                 return;
             }
-            if (cantidad > producto.stock) {
-                toastr.error(`Stock insuficiente. Solo hay ${producto.stock} unidades disponibles`);
+            
+            // Validar cantidad máxima (sin mostrar números de stock en el mensaje)
+            if (cantidad > stockTotal) {
+                toastr.warning('La cantidad solicitada supera el stock disponible');
                 return;
             }
+            
+            // Agregar al carrito
             $.ajax({
                 url: '<?php echo e(route("carrito.agregar")); ?>',
                 method: 'POST',
                 data: {
                     _token: '<?php echo e(csrf_token()); ?>',
-                    id_almacen: producto.id_almacen,
-                    id_item: producto.id_item,
-                    nombre: producto.nombre,
-                    precio: producto.precio,
+                    id_almacen: idAlmacen,
+                    id_item: idItem,
+                    nombre: nombre,
+                    precio: precio,
                     cantidad: parseInt(cantidad),
-                    almacen_nombre: producto.almacen_nombre,
-                    imagen: producto.imagen
+                    almacen_nombre: '<?php echo e($almacenPorDefecto ?? "Panadería"); ?>',
+                    imagen: imagen
                 },
                 success: function(response) {
                     if (response.success) {
@@ -645,6 +688,13 @@
                 }
             });
         }
+
+        // Actualizar evento click para los botones
+        $(document).ready(function() {
+            $('.agregar-carrito').on('click', function() {
+                agregarAlCarrito(this);
+            });
+        });
 
         function verCarrito() {
             $.ajax({
