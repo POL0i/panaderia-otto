@@ -15,7 +15,7 @@ class RBACSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. CREAR EMPLEADOS (primero, para poder asignarlos a usuarios)
+        // 1. CREAR EMPLEADOS
         $empleados = $this->crearEmpleados();
         echo "✓ " . count($empleados) . " empleados creados\n";
 
@@ -39,7 +39,13 @@ class RBACSeeder extends Seeder
         $this->asignarUsuariosARoles($usuarios, $roles);
         echo "✓ Usuarios asignados a roles\n";
 
-        $this->mostrarCredenciales();
+        // 7. CREAR CLIENTES Y SUS USUARIOS
+        $clientesInfo = $this->crearClientesYUsuarios();
+        echo "✓ " . count($clientesInfo['clientes']) . " clientes creados\n";
+        echo "✓ " . count($clientesInfo['usuarios']) . " usuarios de clientes creados\n";
+
+        // 8. MOSTRAR CREDENCIALES (solo una vez, con los datos de clientes)
+        $this->mostrarCredenciales($usuarios, $clientesInfo['usuarios']);
     }
 
     /**
@@ -370,14 +376,88 @@ class RBACSeeder extends Seeder
         }
     }
 
-    private function mostrarCredenciales(): void
+    private function mostrarCredenciales($usuariosEmpleados = null, $usuariosClientes = null): void
     {
-        echo "\n--- CREDENCIALES ---\n";
+        echo "\n--- CREDENCIALES EMPLEADOS ---\n";
         echo "Admin:      admin@panaderia.com       / admin123       (Carlos Mendoza)\n";
         echo "Venta:      venta@panaderia.com       / venta123       (Lizeth García)\n";
         echo "Compra:     compra@panaderia.com      / compra123      (Roberto Flores)\n";
         echo "Producción: produccion@panaderia.com  / produccion123  (Dennis Rodríguez)\n";
         echo "Inventario: inventario@panaderia.com  / inventario123  (Mario López)\n";
         echo "Empleado:   empleado@panaderia.com    / empleado123    (Juan Pérez)\n";
+
+        if ($usuariosClientes && count($usuariosClientes) > 0) {
+            echo "\n--- CREDENCIALES CLIENTES ---\n";
+            foreach ($usuariosClientes as $usuario) {
+                // Buscar el cliente relacionado por el nombre del correo
+                $nombreCorreo = explode('@', $usuario->correo)[0];
+                $partesNombre = explode('.', $nombreCorreo);
+                $nombre = ucfirst($partesNombre[0] ?? '');
+                $apellido = ucfirst($partesNombre[1] ?? '');
+                $nombreCliente = $nombre . ' ' . $apellido;
+                echo "{$nombreCliente}: {$usuario->correo} / cliente123\n";
+            }
+        }
     }
+
+    private function crearClientesYUsuarios(): array
+{
+    $datosClientes = [
+        [
+            'nombre' => 'Ana',
+            'apellido' => 'González',
+            'telefono' => 70001001,
+            'correo' => 'ana.gonzalez@example.com',
+            'contraseña' => 'cliente123',
+        ],
+        [
+            'nombre' => 'Luis',
+            'apellido' => 'Ramírez',
+            'telefono' => 70001002,
+            'correo' => 'luis.ramirez@example.com',
+            'contraseña' => 'cliente123',
+        ],
+        [
+            'nombre' => 'Martha',
+            'apellido' => 'Sánchez',
+            'telefono' => 70001003,
+            'correo' => 'martha.sanchez@example.com',
+            'contraseña' => 'cliente123',
+        ],
+    ];
+
+    $clientes = [];
+    $usuarios = [];
+
+    foreach ($datosClientes as $data) {
+        // Crear o actualizar cliente
+        $cliente = \App\Models\Cliente::updateOrCreate(
+            ['nombre' => $data['nombre'], 'apellido' => $data['apellido']],
+            [
+                'telefono' => $data['telefono'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+        $clientes[] = $cliente;
+
+        // Crear usuario para este cliente (sin rol, tipo_usuario = 'cliente')
+        $usuario = \App\Models\Usuario::updateOrCreate(
+            ['correo' => $data['correo']],
+            [
+                'correo' => $data['correo'],
+                'contraseña' => \Illuminate\Support\Facades\Hash::make($data['contraseña']),
+                'estado' => 'activo',
+                'tipo_usuario' => 'cliente',
+                'id_empleado' => null,   // no es empleado
+                // Si tu tabla usuarios tiene campo id_cliente, agrégalo aquí
+                // 'id_cliente' => $cliente->id_cliente,
+            ]
+        );
+        $usuarios[] = $usuario;
+    }
+
+    return ['clientes' => $clientes, 'usuarios' => $usuarios];
+}
+
 }
