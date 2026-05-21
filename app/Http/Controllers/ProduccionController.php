@@ -35,87 +35,94 @@ class ProduccionController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'id_receta' => 'required|exists:recetas,id_receta',
-            'cantidad_producida' => 'required|numeric|min:0.1', // total de producto
-            'observaciones' => 'nullable|string',
-            'notificar_empleado' => 'nullable|exists:empleados,id_empleado',
-            'fecha_vencimiento_producto' => 'nullable|date|after_or_equal:today', 
+{
+    $validated = $request->validate([
+        'id_receta' => 'required|exists:recetas,id_receta',
+        'cantidad_producida' => 'required|numeric|min:0.1',
+        'observaciones' => 'nullable|string',
+        'notificar_empleado' => 'nullable|exists:empleados,id_empleado',
+        'fecha_vencimiento_producto' => 'nullable|date|after_or_equal:today', 
+    ]);
+
+    DB::beginTransaction();
+    try {
+        $receta = Receta::with('detalles.insumo.item', 'producto.item')
+            ->findOrFail($validated['id_receta']);
+
+        if (!$receta->producto) {
+            throw new \Exception('La receta seleccionada no tiene un producto asociado.');
+        }
+
+        // 🔴 CONVERTIR a número (solución para el error)
+        $cantidadRequerida = floatval($receta->cantidad_requerida);
+        $cantidadProducida = floatval($validated['cantidad_producida']);
+        
+        // Verificar que la receta tenga cantidad_requerida válida
+        if (!$cantidadRequerida || $cantidadRequerida <= 0) {
+            throw new \Exception('La receta no tiene una cantidad requerida válida. Valor: ' . $receta->cantidad_requerida);
+        }
+        
+        // Factor corregido
+        $factor = $cantidadProducida / $cantidadRequerida;
+
+        $produccion = Produccion::create([
+            'fecha_produccion' => now()->toDateString(),
+            'cantidad_producida' => $cantidadProducida,
+            'id_empleado_solicita' => Auth::user()->empleado->id_empleado,
+            'estado' => 'pendiente',
+            'fecha_solicitud' => now(),
+            'observaciones' => $validated['observaciones'] ?? null,
         ]);
 
-        DB::beginTransaction();
-        try {
-            $receta = Receta::with('detalles.insumo.item', 'producto.item')
-                ->findOrFail($validated['id_receta']);
-
-            if (!$receta->producto) {
-                throw new \Exception('La receta seleccionada no tiene un producto asociado.');
-            }
-
-            // ✅ Factor corregido: total de producto ÷ rendimiento de la receta
-            $factor = $validated['cantidad_producida'] / $receta->cantidad_requerida;
-
-            $produccion = Produccion::create([
-                'fecha_produccion' => now()->toDateString(),
-                'cantidad_producida' => $validated['cantidad_producida'],
-                'id_empleado_solicita' => Auth::user()->empleado->id_empleado,
-                'estado' => 'pendiente',
-                'fecha_solicitud' => now(),
-                'observaciones' => $validated['observaciones'] ?? null,
+        // Guardar fecha de vencimiento en sesión
+        if (!empty($validated['fecha_vencimiento_producto'])) {
+            session(['fecha_vencimiento_prod_' . $produccion->id_produccion => $validated['fecha_vencimiento_producto']]);
+            Log::info('📅 Fecha vencimiento guardada en sesión', [
+                'produccion_id' => $produccion->id_produccion,
+                'fecha' => $validated['fecha_vencimiento_producto']
             ]);
+        }
 
-            if (!empty($validated['fecha_vencimiento_producto'])) {
-                // La guardamos temporalmente en la observación del detalle de ingreso
-                // o usamos el campo 'fecha_vencimiento' si existe en detalle_produccion
-                // Mejor: la guardamos en un atributo temporal de la producción
-                session(['fecha_vencimiento_prod_' . $produccion->id_produccion => $validated['fecha_vencimiento_producto']]);
-            }
+        // Egresos de insumos (solo registro)
+        foreach ($receta->detalles as $detalleReceta) {
+            // 🔴 Convertir cantidad_requerida del detalle a número
+            $cantidadDetalle = floatval($detalleReceta->cantidad_requerida);
+            $cantidadNecesaria = $cantidadDetalle * $factor;
+            
+            $insumoItem = $detalleReceta->insumo->item;
 
-            if (!empty($validated['fecha_vencimiento_producto'])) {
-    session(['fecha_vencimiento_prod_' . $produccion->id_produccion => $validated['fecha_vencimiento_producto']]);
-    Log::info('📅 Fecha vencimiento guardada en sesión', [
-        'produccion_id' => $produccion->id_produccion,
-        'fecha' => $validated['fecha_vencimiento_producto']
-    ]);
-}
-
-            // Egresos de insumos (solo registro)
-            foreach ($receta->detalles as $detalleReceta) {
-                $insumoItem = $detalleReceta->insumo->item;
-                $cantidadNecesaria = $detalleReceta->cantidad_requerida * $factor;
-
-                DetalleProduccion::create([
-                    'id_produccion' => $produccion->id_produccion,
-                    'id_detalle_receta' => $detalleReceta->id_detalle_receta,
-                    'id_almacen' => null,
-                    'id_item' => $insumoItem->id_item,
-                    'cantidad' => $cantidadNecesaria,
-                    'tipo_movimiento' => 'egreso',
-                ]);
-            }
-
-            // Ingreso del producto final (solo registro)
-            $productoItem = $receta->producto->item;
             DetalleProduccion::create([
                 'id_produccion' => $produccion->id_produccion,
-                'id_detalle_receta' => null,
+                'id_detalle_receta' => $detalleReceta->id_detalle_receta,
                 'id_almacen' => null,
-                'id_item' => $productoItem->id_item,
-                'cantidad' => $validated['cantidad_producida'],
-                'tipo_movimiento' => 'ingreso',
+                'id_item' => $insumoItem->id_item,
+                'cantidad' => $cantidadNecesaria,
+                'tipo_movimiento' => 'egreso',
             ]);
-
-            DB::commit();
-
-            return redirect()->route('producciones.show', $produccion)
-                ->with('success', 'Producción #' . $produccion->id_produccion . ' creada. Pendiente de autorización.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('ERROR STORE: ' . $e->getMessage());
-            return back()->with('error', $e->getMessage())->withInput();
         }
+
+        // Ingreso del producto final (solo registro)
+        $productoItem = $receta->producto->item;
+        DetalleProduccion::create([
+            'id_produccion' => $produccion->id_produccion,
+            'id_detalle_receta' => null,
+            'id_almacen' => null,
+            'id_item' => $productoItem->id_item,
+            'cantidad' => $cantidadProducida,
+            'tipo_movimiento' => 'ingreso',
+        ]);
+
+        DB::commit();
+
+        return redirect()->route('producciones.show', $produccion)
+            ->with('success', 'Producción #' . $produccion->id_produccion . ' creada. Pendiente de autorización.');
+            
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('ERROR STORE: ' . $e->getMessage());
+        return back()->with('error', $e->getMessage())->withInput();
     }
+}
 
     public function show(Produccion $produccion)
     {
