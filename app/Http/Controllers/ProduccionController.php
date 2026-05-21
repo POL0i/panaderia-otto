@@ -390,28 +390,94 @@ class ProduccionController extends Controller
      * Calcula los insumos necesarios para una cantidad total de producto.
      */
     public function calcularInsumos(Request $request)
-    {
+{
+    try {
         $request->validate([
             'id_receta' => 'required|exists:recetas,id_receta',
-            'cantidad' => 'required|numeric|min:0.1', // total de producto deseado
+            'cantidad' => 'required|numeric|min:0.1',
         ]);
 
-        $receta = Receta::with('detalles.insumo.item')->findOrFail($request->id_receta);
+        $receta = Receta::with(['detalles.insumo.item'])->findOrFail($request->id_receta);
         
-        // ✅ Factor corregido: total de producto ÷ rendimiento por lote
-        $factor = $request->cantidad / $receta->cantidad_requerida;
-
-        $insumos = $receta->detalles->map(function ($detalle) use ($factor) {
-            return [
-                'insumo' => $detalle->insumo->item->nombre ?? 'Insumo',
-                'cantidad_teorica' => $detalle->cantidad_requerida,
-                'cantidad_requerida' => $detalle->cantidad_requerida * $factor,
+        // Verificar que la receta tenga detalles
+        if (!$receta->detalles || $receta->detalles->isEmpty()) {
+            return response()->json([
+                'error' => 'La receta no tiene insumos asociados',
+                'insumos' => []
+            ], 422);
+        }
+        
+        // 🔴 CONVERTIR a número (solución para el error)
+        $cantidadRequerida = floatval($receta->cantidad_requerida);
+        $cantidadSolicitada = floatval($request->cantidad);
+        
+        // Verificar que la receta tenga cantidad_requerida válida
+        if (!$cantidadRequerida || $cantidadRequerida <= 0) {
+            return response()->json([
+                'error' => 'La receta no tiene una cantidad requerida válida. Valor actual: ' . $receta->cantidad_requerida,
+                'insumos' => []
+            ], 422);
+        }
+        
+        // Calcular factor
+        $factor = $cantidadSolicitada / $cantidadRequerida;
+        
+        $insumos = [];
+        
+        foreach ($receta->detalles as $detalle) {
+            // Verificar que el detalle tenga insumo
+            if (!$detalle->insumo) {
+                \Log::warning('Detalle de receta sin insumo', ['detalle_id' => $detalle->id_detalle_receta]);
+                continue;
+            }
+            
+            // Verificar que el insumo tenga item
+            if (!$detalle->insumo->item) {
+                \Log::warning('Insumo sin item asociado', ['insumo_id' => $detalle->id_insumo]);
+                continue;
+            }
+            
+            // 🔴 Convertir cantidad_requerida del detalle a número
+            $cantidadTeorica = floatval($detalle->cantidad_requerida);
+            
+            $insumos[] = [
+                'id_insumo' => $detalle->id_insumo,
+                'insumo' => $detalle->insumo->item->nombre ?? 'Insumo desconocido',
+                'cantidad_teorica' => $cantidadTeorica,
+                'cantidad_requerida' => $cantidadTeorica * $factor,
                 'unidad' => $detalle->insumo->item->unidad_medida ?? 'unidad',
             ];
-        });
-
-        return response()->json(['insumos' => $insumos]);
+        }
+        
+        if (empty($insumos)) {
+            return response()->json([
+                'error' => 'No se pudieron calcular los insumos. Verifique que la receta tenga insumos válidos.',
+                'insumos' => []
+            ], 422);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'insumos' => $insumos,
+            'factor' => $factor,
+            'cantidad_producto' => $cantidadSolicitada,
+            'rendimiento_receta' => $cantidadRequerida
+        ]);
+        
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'error' => 'Error de validación: ' . implode(', ', $e->errors())
+        ], 422);
+    } catch (\Exception $e) {
+        \Log::error('Error en calcularInsumos: ' . $e->getMessage(), [
+            'trace' => $e->getTraceAsString()
+        ]);
+        
+        return response()->json([
+            'error' => 'Error al calcular insumos: ' . $e->getMessage()
+        ], 500);
     }
+}
 
     /**
      * Retorna el stock disponible de cada insumo requerido en un almacén específico.
