@@ -21,7 +21,7 @@ class Cliente extends Model
      */
     public function usuarios()
     {
-        return $this->hasMany(Usuario::class, 'id_cliente', 'id_cliente');
+        return $this->hasone(Usuario::class, 'id_cliente', 'id_cliente');
     }
 
     /**

@@ -625,12 +625,14 @@ class VentaController extends Controller
         $clienteId = null;
         $empleadoId = null;
 
-        if (Auth::check()) {
+         if (Auth::check()) {
             $usuario = Auth::user();
-            if ($usuario->id_cliente) {
-                $clienteId = $usuario->id_cliente;
-            } elseif ($usuario->id_empleado) {
-                $empleadoId = $usuario->id_empleado;
+
+            // ✅ CORRECTO: Usar la relación cliente() del modelo Usuario
+            if ($usuario->cliente) {
+                $clienteId = $usuario->cliente->id_cliente;
+            } elseif ($usuario->empleado) {
+                $empleadoId = $usuario->empleado->id_empleado;
                 $clienteAnonimo = $this->obtenerOCrearClienteAnonimo();
                 $clienteId = $clienteAnonimo->id_cliente;
             } else {
@@ -641,6 +643,7 @@ class VentaController extends Controller
             $clienteAnonimo = $this->obtenerOCrearClienteAnonimo();
             $clienteId = $clienteAnonimo->id_cliente;
         }
+
 
         // Crear nota de venta
         $notaVenta = NotaVenta::create([
@@ -754,11 +757,14 @@ private function obtenerOCrearClienteAnonimo()
         if ($transaccion) {
             $transaccion->update(['estado' => 'pagado']);
             $notaVenta = $transaccion->notaVenta;
-            if ($notaVenta) {
+            if ($notaVenta && $notaVenta->estado !== 'completado') {
+                // ✅ Ejecutar el descuento real
+                $this->ejecutarDescuentoInventario($notaVenta);
                 $notaVenta->update(['estado' => 'completado']);
-                Log::info('Venta #' . $notaVenta->id_nota_venta . ' completada por webhook');
+                Log::info('Venta #' . $notaVenta->id_nota_venta . ' completada por webhook con descuento');
             }
-        } else {
+        }
+        else {
             Log::error('Transacción no encontrada', [
                 'transaction_id' => $transactionId,
                 'identificador' => $identificador
@@ -767,6 +773,64 @@ private function obtenerOCrearClienteAnonimo()
 
         return response()->json(['success' => true]);
     }
+
+    private function ejecutarDescuentoInventario(NotaVenta $notaVenta)
+{
+    $metodoValuacion = ConfiguracionInventario::obtener()->metodo_valuacion_predeterminado;
+
+    foreach ($notaVenta->detalles as $detalle) {
+        // 1. Verificar stock
+        $almacenItem = AlmacenItem::where('id_almacen', $detalle->id_almacen)
+            ->where('id_item', $detalle->id_item)
+            ->lockForUpdate()
+            ->first();
+
+        if (!$almacenItem || $almacenItem->stock < $detalle->cantidad) {
+            Log::error("Stock insuficiente al completar venta #{$notaVenta->id_nota_venta}", [
+                'id_item' => $detalle->id_item,
+                'stock_actual' => $almacenItem->stock ?? 0,
+                'cantidad_requerida' => $detalle->cantidad
+            ]);
+            continue; // O lanzar excepción según prefieras
+        }
+
+        // 2. Descontar stock
+        $almacenItem->decrement('stock', $detalle->cantidad);
+
+        // 3. Consumir lote
+        if (class_exists(\App\Models\LoteInventario::class)) {
+            try {
+                \App\Models\LoteInventario::consumir(
+                    $detalle->id_almacen,
+                    $detalle->id_item,
+                    $detalle->cantidad,
+                    $metodoValuacion
+                );
+            } catch (\Exception $e) {
+                Log::warning("Error al consumir lote en venta #{$notaVenta->id_nota_venta}: " . $e->getMessage());
+            }
+        }
+
+        // 4. Registrar movimiento
+        if (class_exists(\App\Models\MovimientoInventario::class)) {
+            try {
+                \App\Models\MovimientoInventario::registrar([
+                    'tipo_movimiento' => 'egreso',
+                    'id_almacen'      => $detalle->id_almacen,
+                    'id_item'         => $detalle->id_item,
+                    'cantidad'        => -$detalle->cantidad,
+                    'precio_unitario' => $detalle->precio,
+                    'costo_total'     => -($detalle->cantidad * $detalle->precio),
+                    'referencia_id'   => $notaVenta->id_nota_venta,
+                    'referencia_tipo' => 'venta',
+                    'observaciones'   => 'Egreso automático por pago confirmado - Venta #' . $notaVenta->id_nota_venta,
+                ]);
+            } catch (\Exception $e) {
+                Log::warning("Error al registrar movimiento en venta #{$notaVenta->id_nota_venta}: " . $e->getMessage());
+            }
+        }
+    }
+}
 
     public function verificarPago($id)
     {
@@ -788,9 +852,12 @@ private function obtenerOCrearClienteAnonimo()
             $resultado = $this->libelulaService->consultarPago($transaccion->identificador);
             if ($resultado['success'] && $resultado['pagado']) {
                 $transaccion->update(['estado' => 'pagado']);
+                
+                // ✅ Ejecutar descuento real
+                $this->ejecutarDescuentoInventario($notaVenta);
                 $notaVenta->update(['estado' => 'completado']);
                 
-                Log::info('Pago confirmado por consulta activa', [
+                Log::info('Pago confirmado con descuento', [
                     'nota_venta_id' => $id,
                     'identificador' => $transaccion->identificador
                 ]);
@@ -813,16 +880,22 @@ private function obtenerOCrearClienteAnonimo()
             return back()->with('error', 'Esta venta no tiene una transacción de Libélula asociada.');
         }
 
-        if ($transaccion->estado === 'pagado') {
-            return back()->with('success', 'El pago ya estaba confirmado.');
+        if ($transaccion->estado === 'pagado' && $notaVenta->estado === 'completado') {
+            return back()->with('success', 'El pago ya estaba confirmado y la venta completada.');
         }
 
         try {
             $resultado = $this->libelulaService->consultarPago($transaccion->identificador);
             if ($resultado['success'] && $resultado['pagado']) {
                 $transaccion->update(['estado' => 'pagado']);
-                $notaVenta->update(['estado' => 'completado']);
-                Log::info('Pago confirmado manualmente', ['nota_venta_id' => $id]);
+                
+                // ✅ Ejecutar descuento real
+                if ($notaVenta->estado !== 'completado') {
+                    $this->ejecutarDescuentoInventario($notaVenta);
+                    $notaVenta->update(['estado' => 'completado']);
+                }
+                
+                Log::info('Pago confirmado manualmente con descuento', ['nota_venta_id' => $id]);
                 return back()->with('success', '¡Pago verificado! La venta ha sido completada.');
             } else {
                 return back()->with('warning', 'El pago aún no se ha realizado según Libélula.');

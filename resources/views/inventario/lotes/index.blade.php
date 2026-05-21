@@ -186,14 +186,6 @@
     <div class="filter-card">
         <form method="GET" action="{{ route('lotes.index') }}" id="filtrosForm">
             <div class="row">
-                <div class="col-md-4">
-                    <label class="text-panaderia font-weight-bold small">
-                        <i class="fas fa-search mr-1"></i> Buscar Item
-                    </label>
-                    <input type="text" name="search" class="form-control form-control-sm" 
-                           placeholder="Nombre del producto o insumo..." 
-                           value="{{ request('search') }}">
-                </div>
                 <div class="col-md-3">
                     <label class="text-panaderia font-weight-bold small">
                         <i class="fas fa-warehouse mr-1"></i> Almacén
@@ -238,34 +230,7 @@
             </div>
             
             {{-- Filtros rápidos --}}
-            <div class="mt-2">
-                <small class="text-muted">Filtros rápidos:</small>
-                <span class="filter-badge {{ request('estado') == 'disponible' && !request('vencimiento') ? 'active' : '' }}" 
-                      style="background: #d4edda; color: #155724; border-color: #28a745;"
-                      onclick="setFilter('estado', 'disponible')">
-                    <i class="fas fa-check-circle"></i> Disponibles
-                </span>
-                <span class="filter-badge {{ request('vencimiento') == 'proximo' ? 'active' : '' }}" 
-                      style="background: #fff3cd; color: #856404; border-color: #ffc107;"
-                      onclick="setFilter('vencimiento', 'proximo')">
-                    <i class="fas fa-exclamation-triangle"></i> Por vencer (30d)
-                </span>
-                <span class="filter-badge {{ request('vencimiento') == 'vencido' ? 'active' : '' }}" 
-                      style="background: #f8d7da; color: #721c24; border-color: #dc3545;"
-                      onclick="setFilter('vencimiento', 'vencido')">
-                    <i class="fas fa-skull"></i> Vencidos
-                </span>
-                <span class="filter-badge {{ request('stock_bajo') ? 'active' : '' }}" 
-                      style="background: #ffe0e0; color: #a71d2a; border-color: #ff6b6b;"
-                      onclick="setFilter('stock_bajo', '1')">
-                    <i class="fas fa-layer-group"></i> Stock bajo (≤30)
-                </span>
-                @if(request()->anyFilled(['search', 'almacen', 'estado', 'vencimiento', 'stock_bajo']))
-                    <span class="clear-filters ml-2" onclick="clearFilters()">
-                        <i class="fas fa-times-circle"></i> Limpiar filtros
-                    </span>
-                @endif
-            </div>
+            
         </form>
     </div>
 
