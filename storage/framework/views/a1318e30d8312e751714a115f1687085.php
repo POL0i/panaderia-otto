@@ -440,7 +440,8 @@
                             <?php endif; ?>
 
                             
-                            <?php if(in_array('producciones_ver', $userPermissions) || $isAdmin): ?>
+
+                            <?php if(in_array('gestionar_producciones', $userPermissions) || $isAdmin || in_array('inventario_ver', $userPermissions)): ?>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('producciones.index')); ?>" class="nav-link <?php echo e(Request::routeIs('producciones.*') ? 'active' : ''); ?>">
                                     <i class="far fa-circle nav-icon"></i>

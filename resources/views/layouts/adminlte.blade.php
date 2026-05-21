@@ -438,8 +438,9 @@
                             </li>
                             @endif
 
-                            {{-- Producciones (requiere producciones_ver) --}}
-                            @if(in_array('producciones_ver', $userPermissions) || $isAdmin)
+                            {{-- Producciones (requiere gestionar_producciones) --}}
+
+                            @if(in_array('gestionar_producciones', $userPermissions) || $isAdmin || in_array('inventario_ver', $userPermissions))
                             <li class="nav-item">
                                 <a href="{{ route('producciones.index') }}" class="nav-link {{ Request::routeIs('producciones.*') ? 'active' : '' }}">
                                     <i class="far fa-circle nav-icon"></i>
