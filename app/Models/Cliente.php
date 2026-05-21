@@ -19,9 +19,16 @@ class Cliente extends Model
     /**
      * Get all usuarios for this cliente.
      */
+    // Relación con usuarios
     public function usuarios()
     {
-        return $this->hasone(Usuario::class, 'id_cliente', 'id_cliente');
+        return $this->hasMany(Usuario::class, 'id_cliente', 'id_cliente');
+    }
+    
+    // Relación para obtener el primer usuario (si existe)
+    public function usuario()
+    {
+        return $this->hasOne(Usuario::class, 'id_cliente', 'id_cliente');
     }
 
     /**

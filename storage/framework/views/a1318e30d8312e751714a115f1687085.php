@@ -173,42 +173,31 @@
                     </li>
 
                     
+                    
+                    
                     <?php if($isAdmin): ?>
-                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('usuarios.*') || 
-                        Request::routeIs('personas.*') || 
-                        Request::routeIs('roles.*') || 
-                        Request::routeIs('permisos.*') || 
-                        Request::routeIs('rol_permisos.*') || 
-                        Request::routeIs('rol-permiso-usuarios.*') 
-                        ? 'menu-open' : ''); ?>">
-                        <a href="#" class="nav-link <?php echo e(Request::routeIs('usuarios.*') || 
-                            Request::routeIs('personas.*') || 
-                            Request::routeIs('roles.*') || 
-                            Request::routeIs('permisos.*') || 
-                            Request::routeIs('rol_permisos.*') || 
-                            Request::routeIs('rol-permiso-usuarios.*') 
-                            ? 'active' : ''); ?>">
+                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('usuarios.*') || Request::routeIs('personas.*') || Request::routeIs('roles.*') || Request::routeIs('permisos.*') || Request::routeIs('rol_permisos.*') || Request::routeIs('rol-permiso-usuarios.*') ? 'menu-open' : ''); ?>">
+                        <a href="#" class="nav-link <?php echo e(Request::routeIs('usuarios.*') || Request::routeIs('personas.*') || Request::routeIs('roles.*') || Request::routeIs('permisos.*') || Request::routeIs('rol_permisos.*') || Request::routeIs('rol-permiso-usuarios.*') ? 'active' : ''); ?>">
                             <i class="nav-icon fas fa-user-tie"></i>
                             <p>Usuarios <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
+                            <?php if(in_array('modulo_acceso_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('usuarios.create-access')); ?>" 
-                                   class="nav-link nav-link-acceso <?php echo e(Request::routeIs('usuarios.create-access') ? 'active' : ''); ?>">
+                                <a href="<?php echo e(route('usuarios.create-access')); ?>" class="nav-link <?php echo e(Request::routeIs('usuarios.create-access') ? 'active' : ''); ?>">
                                     <i class="fas fa-lock-open nav-icon"></i>
                                     <p>Módulo de Acceso</p>
                                 </a>
                             </li>
+                            <?php endif; ?>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('personas.index')); ?>" 
-                                   class="nav-link <?php echo e(Request::routeIs('personas.*') ? 'active' : ''); ?>">
+                                <a href="<?php echo e(route('personas.index')); ?>" class="nav-link <?php echo e(Request::routeIs('personas.*') ? 'active' : ''); ?>">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Personas</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('rol_permisos.index')); ?>" 
-                                   class="nav-link <?php echo e(Request::routeIs('rol_permisos.*') || Request::routeIs('roles.*') || Request::routeIs('permisos.*') ? 'active' : ''); ?>">
+                                <a href="<?php echo e(route('rol_permisos.index')); ?>" class="nav-link <?php echo e(Request::routeIs('rol_permisos.*') || Request::routeIs('roles.*') || Request::routeIs('permisos.*') ? 'active' : ''); ?>">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Roles y Permisos</p>
                                 </a>
@@ -218,85 +207,145 @@
                     <?php endif; ?>
 
                     
+                    
+                    
                     <?php if(in_array('gestion_comercial_ver', $userPermissions) || $isAdmin): ?>
-                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('notas-venta.*') || Request::routeIs('detalles-venta.*') || Request::routeIs('notas-compra.*') || Request::routeIs('detalles-compra.*') || Request::routeIs('proveedores.*') || Request::routeIs('ppersona.*') || Request::routeIs('pempresa.*') || Request::routeIs('compras.*') || Request::routeIs('ventas.*') ? 'menu-open' : ''); ?>">
+                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('compras.*') || Request::routeIs('ventas.*') || Request::routeIs('detalles-venta.*') || Request::routeIs('detalles-compra.*') || Request::routeIs('proveedores.*') || Request::routeIs('clientes.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-exchange-alt"></i>
                             <p>Gestión Comercial <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
+                            
+                            
+                            <?php if(in_array('notas_compra_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('compras.index')); ?>" class="nav-link nav-link-modulo-destacado <?php echo e(Request::routeIs('compras.index') ? 'active' : ''); ?>">
+                                <a href="<?php echo e(route('compras.index')); ?>" class="nav-link <?php echo e(Request::routeIs('compras.index') ? 'active' : ''); ?>">
                                     <i class="fas fa-shopping-cart nav-icon"></i>
                                     <p>Panel de Compras</p>
                                 </a>
                             </li>
+                            <?php endif; ?>
+                            
+                            
+                            <?php if(in_array('notas_venta_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('ventas.index')); ?>" class="nav-link nav-link-modulo-destacado <?php echo e(Request::routeIs('ventas.index') ? 'active' : ''); ?>">
+                                <a href="<?php echo e(route('ventas.index')); ?>" class="nav-link <?php echo e(Request::routeIs('ventas.index') ? 'active' : ''); ?>">
                                     <i class="fas fa-cart-shopping nav-icon"></i>
                                     <p>Panel de Ventas</p>
                                 </a>
                             </li>
+                            <?php endif; ?>
 
+                            
+                            <?php if(in_array('notas_venta_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('detalles-venta.index')); ?>" class="nav-link <?php echo e(Request::routeIs('detalles-venta.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i><p>Registros de Venta</p>
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Registros de Venta</p>
                                 </a>
                             </li>
+                            <?php endif; ?>
+
+                            
+                            <?php if(in_array('notas_compra_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('detalles-compra.index')); ?>" class="nav-link <?php echo e(Request::routeIs('detalles-compra.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i><p>Registros de Compra</p>
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Registros de Compra</p>
                                 </a>
                             </li>
+                            <?php endif; ?>
+
+                            
+                            <?php if(in_array('proveedores_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('proveedores.index')); ?>" class="nav-link <?php echo e(Request::routeIs('proveedores.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i><p>Proveedores</p>
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Proveedores</p>
                                 </a>
                             </li>
+                            <?php endif; ?>
+                            
+                            
+                            <?php if(in_array('clientes_ver', $userPermissions) || $isAdmin): ?>
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('clientes.index')); ?>" class="nav-link <?php echo e(Request::routeIs('clientes.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Clientes</p>
+                                </a>
+                            </li>
+                            <?php endif; ?>
                         </ul>
                     </li>
                     <?php endif; ?>
 
                     
+                    
+                    
                     <?php if(in_array('almacen_ver', $userPermissions) || $isAdmin): ?>
-                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('modulo-almacen.*') || Request::routeIs('almacenes.*') || Request::routeIs('productos.*') || Request::routeIs('items.*') || Request::routeIs('insumos.*') || Request::routeIs('almacen-items.*') ? 'menu-open' : ''); ?>">
+                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('modulo-almacen.*') || Request::routeIs('items.*') || Request::routeIs('almacen-items.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-warehouse"></i>
                             <p>Almacén <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
+                            
+                            
                             <?php if(in_array('panel_almacen_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('modulo-almacen.index')); ?>" class="nav-link nav-link-modulo-destacado <?php echo e(Request::routeIs('modulo-almacen.index') ? 'active' : ''); ?>">
+                                <a href="<?php echo e(route('modulo-almacen.index')); ?>" class="nav-link <?php echo e(Request::routeIs('modulo-almacen.index') ? 'active' : ''); ?>">
                                     <i class="nav-icon fas fa-warehouse"></i>
                                     <p>Panel de Almacén</p>
                                 </a>
                             </li>
                             <?php endif; ?>
+
+                            
+                            <?php if(in_array('items_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('items.index')); ?>" class="nav-link <?php echo e(Request::routeIs('items.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i><p>Items</p>
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Items</p>
                                 </a>
                             </li>
+                            <?php endif; ?>
+
+                            
+                            <?php if(in_array('productos_ver', $userPermissions) || $isAdmin): ?>
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('productos.index')); ?>" class="nav-link <?php echo e(Request::routeIs('productos.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Productos</p>
+                                </a>
+                            </li>
+                            <?php endif; ?>
+
+                            
+                            <?php if(in_array('insumos_ver', $userPermissions) || $isAdmin): ?>
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('insumos.index')); ?>" class="nav-link <?php echo e(Request::routeIs('insumos.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Insumos</p>
+                                </a>
+                            </li>
+                            <?php endif; ?>
+
+                            
+                            <?php if(in_array('almacenes_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('almacen-items.index')); ?>" class="nav-link <?php echo e(Request::routeIs('almacen-items.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i><p>Almacén-Items</p>
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Almacén-Items</p>
                                 </a>
                             </li>
+                            <?php endif; ?>
                         </ul>
                     </li>
                     <?php endif; ?>
 
                     
-                    <?php if(in_array('reportes_ver', $userPermissions) || $isAdmin): ?>
-                    <li class="nav-item">
-                        <a href="<?php echo e(route('reportes.index')); ?>" class="nav-link <?php echo e(Request::routeIs('reportes.*') ? 'active' : ''); ?>">
-                            <i class="nav-icon fas fa-chart-bar"></i>
-                            <p>Reportes</p>
-                        </a>
-                    </li>
-                    <?php endif; ?>
-
+                    
                     
                     <?php if(in_array('inventario_ver', $userPermissions) || $isAdmin): ?>
                     <li class="nav-item has-treeview <?php echo e(Request::routeIs('movimientos.*') || Request::routeIs('traspasos.*') || Request::routeIs('lotes.*') || Request::routeIs('configuracion.*') ? 'menu-open' : ''); ?>">
@@ -305,60 +354,113 @@
                             <p>Inventario <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
+                            
+                            
+                            <?php if(in_array('movimientos_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('movimientos.index')); ?>" class="nav-link <?php echo e(Request::routeIs('movimientos.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i><p>Movimientos</p>
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Movimientos</p>
                                 </a>
                             </li>
+                            <?php endif; ?>
+
+                            
+                            <?php if(in_array('traspasos_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('traspasos.index')); ?>" class="nav-link <?php echo e(Request::routeIs('traspasos.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i><p>Traspasos</p>
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Traspasos</p>
                                 </a>
                             </li>
+                            <?php endif; ?>
+
+                            
+                            <?php if(in_array('lotes_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('lotes.index')); ?>" class="nav-link <?php echo e(Request::routeIs('lotes.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i><p>Lotes</p>
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Lotes</p>
                                 </a>
                             </li>
+                            <?php endif; ?>
+
+                            
+                            <?php if(in_array('inventario_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
                                 <a href="<?php echo e(route('configuracion.edit')); ?>" class="nav-link <?php echo e(Request::routeIs('configuracion.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i><p>Configuración</p>
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Configuración</p>
                                 </a>
                             </li>
+                            <?php endif; ?>
                         </ul>
                     </li>
                     <?php endif; ?>
 
                     
-                    <?php if(in_array('produccion_ver', $userPermissions) || in_array('inventario_ver', $userPermissions) || $isAdmin): ?>
-                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('produccion.*') || Request::routeIs('recetas.*') || Request::routeIs('detalles-receta.*') || Request::routeIs('producciones.*') || Request::routeIs('produccion-items.*') ? 'menu-open' : ''); ?>">
+                    
+                    
+                    <?php if(in_array('produccion_ver', $userPermissions) || $isAdmin): ?>
+                    <li class="nav-item has-treeview <?php echo e(Request::routeIs('produccion.*') || Request::routeIs('recetas.*') || Request::routeIs('detalles-receta.*') || Request::routeIs('producciones.*') ? 'menu-open' : ''); ?>">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-industry"></i>
                             <p>Producción <i class="right fas fa-angle-left"></i></p>
                         </a>
                         <ul class="nav nav-treeview">
+                            
+                            
                             <?php if(in_array('panel_produccion_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('produccion.index')); ?>" class="nav-link nav-link-modulo-destacado <?php echo e(Request::routeIs('produccion.index') ? 'active' : ''); ?>">
+                                <a href="<?php echo e(route('produccion.index')); ?>" class="nav-link <?php echo e(Request::routeIs('produccion.index') ? 'active' : ''); ?>">
                                     <i class="nav-icon fas fa-industry"></i>
                                     <p>Panel de Producción</p>
                                 </a>
                             </li>
-                            
-                            <li class="nav-item">
-                                <a href="<?php echo e(route('detalles-receta.index')); ?>" class="nav-link <?php echo e(Request::routeIs('detalles-receta.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i><p>Detalles Receta</p>
-                                </a>
-                            </li>
-                            
                             <?php endif; ?>
 
+                            
+                            <?php if(in_array('recetas_ver', $userPermissions) || $isAdmin): ?>
                             <li class="nav-item">
-                                <a href="<?php echo e(route('producciones.index')); ?>" class="nav-link <?php echo e(Request::routeIs('producciones.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i><p>Producciones</p>
+                                <a href="<?php echo e(route('recetas.index')); ?>" class="nav-link <?php echo e(Request::routeIs('recetas.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Recetas</p>
                                 </a>
                             </li>
+                            <?php endif; ?>
+
+                            
+                            <?php if(in_array('recetas_ver', $userPermissions) || $isAdmin): ?>
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('detalles-receta.index')); ?>" class="nav-link <?php echo e(Request::routeIs('detalles-receta.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Detalles Receta</p>
+                                </a>
+                            </li>
+                            <?php endif; ?>
+
+                            
+                            <?php if(in_array('producciones_ver', $userPermissions) || $isAdmin): ?>
+                            <li class="nav-item">
+                                <a href="<?php echo e(route('producciones.index')); ?>" class="nav-link <?php echo e(Request::routeIs('producciones.*') ? 'active' : ''); ?>">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Producciones</p>
+                                </a>
+                            </li>
+                            <?php endif; ?>
                         </ul>
+                    </li>
+                    <?php endif; ?>
+
+                    
+                    
+                    
+                    <?php if(in_array('reportes_ver', $userPermissions) || $isAdmin): ?>
+                    <li class="nav-item">
+                        <a href="<?php echo e(route('reportes.index')); ?>" class="nav-link <?php echo e(Request::routeIs('reportes.*') ? 'active' : ''); ?>">
+                            <i class="nav-icon fas fa-chart-bar"></i>
+                            <p>Reportes</p>
+                        </a>
                     </li>
                     <?php endif; ?>
 
