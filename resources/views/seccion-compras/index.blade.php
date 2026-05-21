@@ -149,10 +149,6 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <button type="button" class="btn btn-sm btn-link btn-link-new mt-1" 
-                                    data-toggle="modal" data-target="#createAlmacenModal">
-                                <i class="fas fa-plus"></i> Nuevo Almacén
-                            </button>
                         </div>
                         <div class="col-md-5">
                             <label>Insumo / Item</label>
@@ -164,10 +160,6 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <button type="button" class="btn btn-sm btn-link btn-link-new mt-1" 
-                                    data-toggle="modal" data-target="#createInsumoModal">
-                                <i class="fas fa-plus"></i> Nuevo Insumo
-                            </button>
                         </div>
                         <div class="col-md-2">
                             <label>Cantidad</label>
