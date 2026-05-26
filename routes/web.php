@@ -256,6 +256,8 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permiso:inventario_ver'])->group(function () {
         Route::resource('movimientos', MovimientoInventarioController::class);
         Route::post('movimientos/filtrar', [MovimientoInventarioController::class, 'filtrar'])->name('movimientos.filtrar');
+        Route::get('/traspasos/stock', [TraspasoInventarioController::class, 'getStock'])->name('traspasos.stock');
+        Route::get('/traspasos/capacidad', [TraspasoInventarioController::class, 'getCapacidadDisponible'])->name('traspasos.capacidad');
         Route::resource('traspasos', TraspasoInventarioController::class)->except(['edit', 'update']);
         Route::put('traspasos/{traspaso}/completar', [TraspasoInventarioController::class, 'completar'])->name('traspasos.completar');
         Route::put('traspasos/{traspaso}/cancelar', [TraspasoInventarioController::class, 'cancelar'])->name('traspasos.cancelar');

@@ -100,77 +100,76 @@ class LoteInventario extends Model
      * Consumir del lote (PEPS/UEPS)
      */
     public static function consumir($idAlmacen, $idItem, $cantidad, $metodo = 'PEPS', $referenciaId = null, $tipoReferencia = 'produccion')
-    {
-        Log::info('📦 LoteInventario::consumir - PARÁMETROS', [
-                'almacen' => $idAlmacen,
-                'item' => $idItem,
-                'cantidad' => $cantidad,
-                'metodo' => $metodo,
-                'ref_id' => $referenciaId,
-                'ref_tipo' => $tipoReferencia
-            ]);
+{
+    Log::info('📦 LoteInventario::consumir - PARÁMETROS', [
+        'almacen' => $idAlmacen,
+        'item' => $idItem,
+        'cantidad' => $cantidad,
+        'metodo' => $metodo,
+        'ref_id' => $referenciaId,
+        'ref_tipo' => $tipoReferencia
+    ]);
 
-        $lotes = self::where('id_almacen', $idAlmacen)
-            ->where('id_item', $idItem)
-            ->where('estado', 'disponible')
-            ->where('cantidad_disponible', '>', 0)
-            ->when($metodo === 'PEPS', fn($q) => $q->orderBy('fecha_entrada', 'asc'))
-            ->when($metodo === 'UEPS', fn($q) => $q->orderBy('fecha_entrada', 'desc'))
-            ->lockForUpdate()
-            ->get();
+    $lotes = self::where('id_almacen', $idAlmacen)
+        ->where('id_item', $idItem)
+        ->where('estado', 'disponible')
+        ->where('cantidad_disponible', '>', 0)
+        ->when($metodo === 'PEPS', fn($q) => $q->orderBy('fecha_entrada', 'asc'))
+        ->when($metodo === 'UEPS', fn($q) => $q->orderBy('fecha_entrada', 'desc'))
+        ->lockForUpdate()
+        ->get();
 
-        \Log::info('🔢 Lotes encontrados para consumir', [
-            'cantidad_lotes' => $lotes->count(),
-            'ids' => $lotes->pluck('id_lote')->toArray()
-        ]);
+    Log::info('🔢 Lotes encontrados para consumir', [
+        'cantidad_lotes' => $lotes->count(),
+        'ids' => $lotes->pluck('id_lote')->toArray()
+    ]);
 
-        $pendiente = $cantidad;
-        $costoTotal = 0;
-        $lotesUsados = [];
+    $pendiente = $cantidad;
+    $costoTotal = 0;
+    $lotesUsados = [];
 
-        foreach ($lotes as $lote) {
-            if ($pendiente <= 0) break;
+    foreach ($lotes as $lote) {
+        if ($pendiente <= 0) break;
 
-            $consumir = min($lote->cantidad_disponible, $pendiente);
-            $lote->cantidad_disponible -= $consumir;
-            
-            // ✅ SIEMPRE registrar cuándo se consumió
-            $lote->fecha_salida = now();
-            
-            if ($lote->cantidad_disponible <= 0) {
-                $lote->estado = 'consumido';
-            }
-            
-
-            $lote->save();
-
-            \Log::info('💾 Lote actualizado', [
-                'id_lote' => $lote->id_lote,
-                'consumido' => $consumir,
-                'disponible_ahora' => $lote->cantidad_disponible,
-                'estado' => $lote->estado,
-                'fecha_salida' => $lote->fecha_salida,
-                'referencia_id' => $lote->referencia_id,
-                'referencia_tipo' => $lote->referencia_tipo
-            ]);
-            
-            $costoTotal += $consumir * $lote->precio_unitario;
-            $pendiente -= $consumir;
-            
-            $lotesUsados[] = [
-                'id_lote' => $lote->id_lote,
-                'cantidad' => $consumir,
-                'precio' => $lote->precio_unitario
-            ];
+        $consumir = min($lote->cantidad_disponible, $pendiente);
+        $lote->cantidad_disponible -= $consumir;
+        $lote->fecha_salida = now();
+        
+        if ($lote->cantidad_disponible <= 0) {
+            $lote->estado = 'consumido';
         }
 
-        return [
-            'costo_total' => $costoTotal,
-            'costo_unitario_promedio' => $cantidad > 0 ? $costoTotal / $cantidad : 0,
-            'cantidad_consumida' => $cantidad - $pendiente,
-            'lotes_usados' => $lotesUsados
+        $lote->save();
+
+        Log::info('💾 Lote actualizado', [
+            'id_lote' => $lote->id_lote,
+            'consumido' => $consumir,
+            'disponible_ahora' => $lote->cantidad_disponible,
+            'estado' => $lote->estado,
+            'fecha_salida' => $lote->fecha_salida,
+        ]);
+        
+        $costoTotal += $consumir * $lote->precio_unitario;
+        $pendiente -= $consumir;
+        
+        // ✅ AGREGAR MÁS INFORMACIÓN PARA PODER RECREAR EL LOTE EN DESTINO
+        $lotesUsados[] = [
+            'id_lote' => $lote->id_lote,
+            'cantidad' => $consumir,
+            'precio_unitario' => $lote->precio_unitario,
+            'fecha_entrada' => $lote->fecha_entrada,
+            'fecha_vencimiento' => $lote->fecha_vencimiento,
+            'metodo_valuacion' => $lote->metodo_valuacion,
         ];
     }
+
+    return [
+        'costo_total' => $costoTotal,
+        'costo_unitario_promedio' => $cantidad > 0 ? $costoTotal / $cantidad : 0,
+        'cantidad_consumida' => $cantidad - $pendiente,
+        'lotes_usados' => $lotesUsados
+    ];
+}
 
     private static function calcularCostoProduccion($produccionItem)
     {

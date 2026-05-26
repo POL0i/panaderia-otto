@@ -108,7 +108,7 @@
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
                                 <button type="button" class="btn btn-success btn-block" onclick="agregarItem()">
-                                    <i class="fas fa-plus"></i> Agregar
+                                    <i class="fas fa-plus"></i> 
                                 </button>
                             </div>
                         </div>
@@ -155,6 +155,140 @@
 
 @push('scripts')
 <script>
+
+    // Variables globales
+let stockOrigen = 0;
+let capacidadDisponible = null;
+let itemSeleccionado = null;
+
+// Cuando cambia el almacén origen, actualizar información de stock para el item seleccionado
+$('#almacen_origen').on('change', function() {
+    if (itemSeleccionado) {
+        verificarStock();
+    }
+});
+
+// Cuando cambia el almacén destino, verificar capacidad disponible
+$('#almacen_destino').on('change', function() {
+    const destinoId = $(this).val();
+    if (destinoId) {
+        $.get('{{ route("traspasos.capacidad") }}', { id_almacen: destinoId })
+            .done(function(res) {
+                if (res.success) {
+                    capacidadDisponible = res.disponible;
+                    let msg = '';
+                    if (res.sin_limite) {
+                        msg = '✅ Sin límite de capacidad';
+                    } else {
+                        msg = `📦 Capacidad total: ${res.capacidad} | Ocupado: ${res.stock_actual} | Disponible: ${res.disponible}`;
+                    }
+                    $('#destino_info').html(msg).removeClass('text-danger text-success').addClass('text-info');
+                }
+            })
+            .fail(() => $('#destino_info').text('⚠️ Error al obtener capacidad').addClass('text-danger'));
+    } else {
+        $('#destino_info').empty();
+        capacidadDisponible = null;
+    }
+    actualizarBotonSubmit();
+});
+
+// Al seleccionar un item, mostrar stock en origen
+$('#item_select').on('change', function() {
+    const item = $(this).find(':selected');
+    if (item.val()) {
+        itemSeleccionado = {
+            id: item.val(),
+            nombre: item.data('nombre'),
+            tipo: item.data('tipo'),
+            unidad: item.data('unidad')
+        };
+        verificarStock();
+    } else {
+        itemSeleccionado = null;
+        $('#origen_info').empty();
+    }
+});
+
+function verificarStock() {
+    const origenId = $('#almacen_origen').val();
+    if (!origenId || !itemSeleccionado) return;
+    
+    $.get('{{ route("traspasos.stock") }}', { id_almacen: origenId, id_item: itemSeleccionado.id })
+        .done(function(res) {
+            if (res.success) {
+                stockOrigen = res.stock;
+                $('#origen_info').html(`📦 Stock disponible: ${stockOrigen} ${res.unidad}`)
+                    .removeClass('text-danger text-success')
+                    .addClass(stockOrigen > 0 ? 'text-success' : 'text-danger');
+            }
+        })
+        .fail(() => $('#origen_info').text('⚠️ Error al consultar stock').addClass('text-danger'));
+}
+
+function agregarItem() {
+    const origenId = $('#almacen_origen').val();
+    const destinoId = $('#almacen_destino').val();
+    const cantidad = parseFloat($('#cantidad_input').val());
+    
+    $('#error_item').hide();
+    
+    if (!origenId || !destinoId) {
+        mostrarError('Seleccione ambos almacenes primero.');
+        return;
+    }
+    if (!itemSeleccionado) {
+        mostrarError('Seleccione un item.');
+        return;
+    }
+    if (!cantidad || cantidad <= 0) {
+        mostrarError('Ingrese una cantidad válida.');
+        return;
+    }
+    
+    // Validar stock suficiente
+    if (cantidad > stockOrigen) {
+        mostrarError(`Stock insuficiente. Disponible: ${stockOrigen} ${itemSeleccionado.unidad}`);
+        return;
+    }
+    
+    // Validar capacidad en destino (si aplica)
+    if (capacidadDisponible !== null && capacidadDisponible < cantidad) {
+        mostrarError(`El almacén destino no tiene suficiente espacio. Disponible: ${capacidadDisponible} unidades (sumando todos los items)`);
+        return;
+    }
+    
+    // Validar compatibilidad de tipos (ya lo tienes)
+    // ... (código actual de validación de tipos)
+    
+    // Verificar duplicados
+    if (cart.some(i => i.id_item == itemSeleccionado.id)) {
+        mostrarError('Este item ya está en la lista.');
+        return;
+    }
+    
+    // Agregar al carrito
+    cart.push({
+        id_item: itemSeleccionado.id,
+        nombre: itemSeleccionado.nombre,
+        tipo: itemSeleccionado.tipo,
+        unidad: itemSeleccionado.unidad,
+        cantidad: cantidad,
+        stock_origen: stockOrigen,
+        stock_nuevo_origen: stockOrigen - cantidad
+    });
+    
+    // Actualizar stockOrigen local (simulado) para evitar que se agregue otra vez el mismo item
+    stockOrigen -= cantidad;
+    $('#origen_info').html(`📦 Stock disponible después del traspaso: ${stockOrigen} ${itemSeleccionado.unidad}`);
+    
+    $('#item_select').val('');
+    $('#cantidad_input').val('');
+    itemSeleccionado = null;
+    renderCart();
+    actualizarBotonSubmit();
+}
+
 let cart = [];
 
 // Validar almacenes al cambiar
