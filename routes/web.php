@@ -58,26 +58,31 @@ Route::prefix('carrito')->name('carrito.')->group(function () {
     Route::get('/count', [VentaController::class, 'carritoCount'])->name('count');
 });
 
-// Procesar pedido (crea nota de venta y va a Libélula)
-Route::get('/procesar-pedido', [VentaController::class, 'procesarPedido'])->name('procesar.pedido');
+    // Procesar pedido (crea nota de venta y va a Libélula)
+    Route::get('/procesar-pedido', [VentaController::class, 'procesarPedido'])->name('procesar.pedido');
 
-// Webhook de pago (Libélula)
-Route::post('/webhook/libelula/pago-exitoso', [VentaController::class, 'webhookPagoExitoso'])
-    ->name('webhook.libelula');
+    // Webhook de pago (Libélula)
+    Route::post('/webhook/libelula/pago-exitoso', [VentaController::class, 'webhookPagoExitoso'])
+        ->name('webhook.libelula');
 
-// Verificar pago (cliente)
-Route::get('/pago/verificar/{id}', [VentaController::class, 'verificarPago'])->name('pago.verificar');
-Route::get('/pago/exito/{id}', [VentaController::class, 'pagoExito'])->name('pago.exito');
+    // Verificar pago (cliente)
+    Route::get('/pago/verificar/{id}', [VentaController::class, 'verificarPago'])->name('pago.verificar');
+    Route::get('/pago/exito/{id}', [VentaController::class, 'pagoExito'])->name('pago.exito');
 
-// Registro rápido de clientes
-Route::post('/registro/cliente/rapido', [UsuarioController::class, 'registroClienteRapido'])
-    ->name('registro.cliente.rapido');
+    // En routes/web.php
+    Route::post('/ventas/{id}/completar-manual', [VentaController::class, 'completarVentaManual'])
+        ->name('ventas.completar-manual')
+        ->middleware(['auth', 'permiso:ventas_completar']);
+        
+    // Registro rápido de clientes
+    Route::post('/registro/cliente/rapido', [UsuarioController::class, 'registroClienteRapido'])
+        ->name('registro.cliente.rapido');
 
-Route::post('/theme/change', function (Request $request) {
-    $request->validate([
-        'theme' => 'sometimes|in:ninos,jovenes,adultos',
-        'mode'  => 'sometimes|in:light,dark,auto'
-    ]);
+    Route::post('/theme/change', function (Request $request) {
+        $request->validate([
+            'theme' => 'sometimes|in:ninos,jovenes,adultos',
+            'mode'  => 'sometimes|in:light,dark,auto'
+        ]);
     
     if ($request->has('theme')) {
         session(['theme' => $request->theme]);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Log;
 
 class LoteInventario extends Model
 {
@@ -100,14 +101,14 @@ class LoteInventario extends Model
      */
     public static function consumir($idAlmacen, $idItem, $cantidad, $metodo = 'PEPS', $referenciaId = null, $tipoReferencia = 'produccion')
     {
-        \Log::info('📦 INICIO consumir()', [
-            'almacen' => $idAlmacen,
-            'item' => $idItem,
-            'cantidad' => $cantidad,
-            'metodo' => $metodo,
-            'ref_id' => $referenciaId,
-            'ref_tipo' => $tipoReferencia
-        ]);
+        Log::info('📦 LoteInventario::consumir - PARÁMETROS', [
+                'almacen' => $idAlmacen,
+                'item' => $idItem,
+                'cantidad' => $cantidad,
+                'metodo' => $metodo,
+                'ref_id' => $referenciaId,
+                'ref_tipo' => $tipoReferencia
+            ]);
 
         $lotes = self::where('id_almacen', $idAlmacen)
             ->where('id_item', $idItem)
