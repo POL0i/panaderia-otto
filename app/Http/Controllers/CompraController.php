@@ -243,24 +243,44 @@ class CompraController extends Controller
     /**
      * Get items by almacen.
      */
-    public function getItemsByAlmacen($idAlmacen)
-    {
-        $items = AlmacenItem::where('id_almacen', $idAlmacen)
-            ->with(['item.insumo', 'item.producto'])
-            ->get()
-            ->map(function($almacenItem) {
-                $item = $almacenItem->item;
-                $nombre = $item->insumo ? $item->insumo->nombre : ($item->producto ? $item->producto->nombre : 'Item');
-                return [
-                    'id_item' => $item->id_item,
-                    'nombre' => $nombre,
-                    'stock' => $almacenItem->stock,
-                    'unidad' => $item->insumo ? ($item->insumo->unidad_medida ?? 'unidad') : 'unidad'
-                ];
-            });
-        
-        return response()->json(['items' => $items]);
+   /**
+ * Obtener items por almacén (para AJAX)
+ */
+/**
+ * Obtener items por almacén (versión simplificada)
+ */
+public function getItemsByAlmacen(Request $request)
+{
+    $idAlmacen = $request->input('id_almacen');
+    
+    if (!$idAlmacen) {
+        return response()->json(['success' => false, 'items' => []]);
     }
+    
+    // ✅ Para compras, SOLO devolver INSUMOS
+    $items = Item::where('tipo_item', 'insumo')
+        ->whereHas('almacenItems', function($query) use ($idAlmacen) {
+            $query->where('id_almacen', $idAlmacen);
+        })
+        ->get();
+    
+    return response()->json([
+        'success' => true,
+        'items' => $items->map(function($item) use ($idAlmacen) {
+            $stock = AlmacenItem::where('id_almacen', $idAlmacen)
+                ->where('id_item', $item->id_item)
+                ->value('stock') ?? 0;
+                
+            return [
+                'id_item' => $item->id_item,
+                'nombre' => $item->nombre,
+                'tipo_item' => $item->tipo_item,
+                'unidad_medida' => $item->unidad_medida,
+                'stock' => $stock,
+            ];
+        })
+    ]);
+}
 
     /**
      * Get purchase note details.
@@ -610,5 +630,68 @@ private function generarHtmlComprobante($notaCompra)
     </body>
     </html>
     ";
+}
+
+/**
+ * Obtener items por almacén (para compras)
+ */
+public function getItemsPorAlmacen(Request $request)
+{
+    $idAlmacen = $request->input('id_almacen');
+    
+    if (!$idAlmacen) {
+        return response()->json(['success' => false, 'items' => []]);
+    }
+    
+    $almacen = Almacen::find($idAlmacen);
+    
+    // ✅ Para compras, mostrar TODOS los insumos (no solo los que tienen stock)
+    // Porque vamos a AÑADIR stock, no a consumir
+    $items = Item::where('tipo_item', 'insumo')
+        ->with(['insumo', 'producto'])
+        ->get();
+    
+    return response()->json([
+        'success' => true,
+        'items' => $items->map(function($item) use ($idAlmacen) {
+            // Obtener stock actual (solo para mostrar, no para bloquear)
+            $stockActual = AlmacenItem::where('id_almacen', $idAlmacen)
+                ->where('id_item', $item->id_item)
+                ->value('stock') ?? 0;
+                
+            return [
+                'id_item' => $item->id_item,
+                'nombre' => $item->nombre,
+                'tipo_item' => $item->tipo_item,
+                'unidad_medida' => $item->unidad_medida,
+                'stock_actual' => $stockActual,  // Stock actual (solo informativo)
+            ];
+        })
+    ]);
+}
+
+
+
+/**
+ * Obtener capacidad disponible de un almacén
+ */
+public function getCapacidadDisponible(Request $request)
+{
+    $request->validate([
+        'id_almacen' => 'required|exists:almacenes,id_almacen',
+    ]);
+
+    $almacen = Almacen::find($request->id_almacen);
+    $stockActual = AlmacenItem::where('id_almacen', $request->id_almacen)->sum('stock');
+    $capacidad = $almacen->capacidad;
+    $disponible = $capacidad ? $capacidad - $stockActual : null;
+
+    return response()->json([
+        'success' => true,
+        'stock_actual' => $stockActual,
+        'capacidad' => $capacidad,
+        'disponible' => $disponible,
+        'sin_limite' => is_null($capacidad) || $capacidad == 0,
+    ]);
 }
 }

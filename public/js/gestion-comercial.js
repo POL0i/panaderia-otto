@@ -1,14 +1,24 @@
 // =====================================================
+// VARIABLES GLOBALES
+// =====================================================
+let cart = [];
+let selectedProveedorId = null;
+let cartVenta = [];
+let selectedClienteId = null;
+
+// Variables para validaciones (compras)
+let itemsDisponibles = [];
+let capacidadDisponible = null;
+
+// =====================================================
 // FUNCIONES COMUNES
 // =====================================================
 
 function openModal(modalId) {
-    // AdminLTE usa Bootstrap 4 + jQuery
     if (typeof $ !== 'undefined') {
         $('#' + modalId).modal('show');
         return;
     }
-    // Fallback vanilla JS
     const modalElement = document.getElementById(modalId);
     if (!modalElement) return;
     modalElement.classList.add('show');
@@ -38,50 +48,155 @@ function closeModal(modalId) {
 // FUNCIONES PARA COMPRAS
 // =====================================================
 
-let cart = [];
-let selectedProveedorId = null;
+function validarFormularioAgregarCompra() {
+    const almacenId = $('#itemAlmacen').val();
+    const itemId = $('#itemSelect').val();
+    const cantidad = parseFloat($('#itemCantidad').val());
+    const precio = parseFloat($('#itemPrecio').val());
+    let isValid = true;
+    let errorMsg = '';
 
-function addItemToCart() {
-    const pageType = document.getElementById('clientesList') ? 'ventas' : 'compras';
-    if (pageType === 'ventas') {
-        addItemToCartVenta();
-        return;
+    if (!almacenId) {
+        isValid = false;
+        errorMsg = 'Seleccione un almacén';
+    } else if (!itemId) {
+        isValid = false;
+        errorMsg = 'Seleccione un item';
+    } else if (!cantidad || cantidad <= 0) {
+        isValid = false;
+        errorMsg = 'Ingrese una cantidad válida';
+    } else if (capacidadDisponible !== null && cantidad > capacidadDisponible) {
+        isValid = false;
+        errorMsg = `⚠️ La cantidad (${cantidad}) excede el espacio disponible (${capacidadDisponible} unidades)`;
+        $('#cantidadMsg').html(`<span class="text-danger">${errorMsg}</span>`);
+    } else if (!precio || precio <= 0) {
+        isValid = false;
+        errorMsg = 'Ingrese un precio válido';
+    } else {
+        $('#cantidadMsg').empty();
     }
-    addItemToCartCompra();
+
+    if (errorMsg && errorMsg !== $('#cantidadMsg').text()) {
+        $('#cantidadMsg').html(`<span class="text-danger">${errorMsg}</span>`);
+    }
+
+    $('#btnAddItem').prop('disabled', !isValid);
+    return isValid;
+}
+
+function verificarItemDuplicadoCompra(idItem, almacenId) {
+    const existe = cart.some(item => item.id_item == idItem && item.id_almacen == almacenId);
+    if (existe) {
+        toastr.warning('Este item ya está en el carrito. Si necesita más cantidad, edite el existente.');
+        return true;
+    }
+    return false;
 }
 
 function addItemToCartCompra() {
-    const almacenId = document.getElementById('itemAlmacen')?.value;
-    const itemId = document.getElementById('itemSelect')?.value;
-    const cantidad = parseInt(document.getElementById('itemCantidad')?.value);
-    const precio = parseFloat(document.getElementById('itemPrecio')?.value);
-    const fechaVenc = document.getElementById('itemFechaVencimiento')?.value || null;
+    const almacenId = $('#itemAlmacen').val();
+    const itemId = $('#itemSelect').val();
+    const itemNombre = $('#itemSelect option:selected').data('nombre') || $('#itemSelect option:selected').text();
+    const cantidad = parseFloat($('#itemCantidad').val());
+    const precio = parseFloat($('#itemPrecio').val());
+    const fechaVencimiento = $('#itemFechaVencimiento').val();
     
-    if (!almacenId || !itemId || !cantidad || !precio) {
-        toastr.warning('Complete todos los campos');
+    if (!validarFormularioAgregarCompra()) return;
+    
+    // Verificar duplicados
+    if (verificarItemDuplicadoCompra(itemId, almacenId)) return;
+    
+    // Verificar capacidad nuevamente
+    if (capacidadDisponible !== null && cantidad > capacidadDisponible) {
+        toastr.warning(`La cantidad excede el espacio disponible (${capacidadDisponible} unidades)`);
         return;
     }
-    
-    const itemSelect = document.getElementById('itemSelect');
-    const itemNombre = itemSelect?.options[itemSelect.selectedIndex]?.getAttribute('data-nombre') || '';
-    const almacenSelect = document.getElementById('itemAlmacen');
-    const almacenNombre = almacenSelect?.options[almacenSelect.selectedIndex]?.text || '';
     
     cart.push({
         id_almacen: parseInt(almacenId),
         id_item: parseInt(itemId),
-        cantidad, precio,
-        fecha_vencimiento: fechaVenc,
         nombre: itemNombre,
-        almacen_nombre: almacenNombre
+        cantidad: cantidad,
+        precio: precio,
+        fecha_vencimiento: fechaVencimiento
     });
     
+    // Actualizar capacidad disponible
+    if (capacidadDisponible !== null) {
+        capacidadDisponible -= cantidad;
+        $('#capacidadInfo').html(`📦 Espacio restante: ${capacidadDisponible} unidades`);
+    }
+    
+    // Limpiar formulario
+    $('#itemSelect').val('');
+    $('#itemCantidad').val('');
+    $('#itemPrecio').val('');
+    $('#itemFechaVencimiento').val('');
+    $('#btnAddItem').prop('disabled', true);
+    
     updateCartDisplay();
-    document.getElementById('itemCantidad').value = '';
-    document.getElementById('itemPrecio').value = '';
-    document.getElementById('itemSelect').value = '';
-    document.getElementById('itemFechaVencimiento').value = '';
-    toastr.success('Item agregado');
+    updateCartCount();
+    toastr.success('Item agregado al carrito');
+}
+
+function initComprasValidaciones() {
+    $('#itemAlmacen').on('change', function() {
+        const almacenId = $(this).val();
+        
+        if (almacenId) {
+            // Cargar items disponibles
+            $.get('/compras/items-por-almacen', { id_almacen: almacenId })
+                .done(function(res) {
+                    if (res.success) {
+                        itemsDisponibles = res.items;
+                        const select = $('#itemSelect');
+                        select.empty().append('<option value="">Seleccione item...</option>');
+                        
+                        itemsDisponibles.forEach(item => {
+                            select.append(`<option value="${item.id_item}" 
+                                data-nombre="${item.nombre}"
+                                data-tipo="${item.tipo_item}"
+                                data-unidad="${item.unidad_medida}">
+                                ${item.nombre} (${item.unidad_medida})
+                            </option>`);
+                        });
+                        
+                        select.prop('disabled', false);
+                        $('#itemInfo').html(`✅ ${itemsDisponibles.length} items disponibles`).removeClass('text-danger').addClass('text-success');
+                    }
+                })
+                .fail(() => {
+                    $('#itemInfo').text('⚠️ Error al cargar items').addClass('text-danger');
+                    $('#itemSelect').prop('disabled', true);
+                });
+            
+            // Verificar capacidad
+            $.get('/compras/capacidad', { id_almacen: almacenId })
+                .done(function(res) {
+                    if (res.success) {
+                        capacidadDisponible = res.disponible;
+                        let msg = '';
+                        if (res.sin_limite) {
+                            msg = '✅ Sin límite de capacidad';
+                        } else {
+                            msg = `📦 Capacidad: ${res.capacidad} | Ocupado: ${res.stock_actual} | Disponible: ${res.disponible} unidades`;
+                        }
+                        $('#capacidadInfo').html(msg).removeClass('text-danger').addClass('text-info');
+                    }
+                })
+                .fail(() => $('#capacidadInfo').text('⚠️ Error al consultar capacidad').addClass('text-danger'));
+        } else {
+            $('#itemSelect').prop('disabled', true).empty().append('<option value="">Primero seleccione almacén</option>');
+            $('#itemInfo').empty();
+            $('#capacidadInfo').empty();
+            capacidadDisponible = null;
+        }
+        validarFormularioAgregarCompra();
+    });
+
+    $('#itemCantidad, #itemPrecio').on('input', function() {
+        validarFormularioAgregarCompra();
+    });
 }
 
 function updateCartDisplay() {
@@ -105,7 +220,7 @@ function updateCartDisplay() {
             <div class="d-flex justify-content-between">
                 <div>
                     <strong>${item.nombre}</strong><br>
-                    <small>${item.almacen_nombre}</small><br>
+                    <small>${item.almacen_nombre || ''}</small><br>
                     <small>${item.cantidad} x Bs. ${item.precio.toFixed(2)}</small>
                 </div>
                 <div class="text-right">
@@ -196,10 +311,12 @@ function verDetalleNota(id) {
                 const subtotal = d.cantidad * d.precio;
                 total += subtotal;
                 itemsHtml += `<tr>
-                    <td>${d.cantidad}</td><td>${d.item?.nombre || 'Item'}</td>
+                    <td>${d.cantidad}</td>
+                    <td>${d.item?.nombre || 'Item'}</td>
                     <td>${d.almacen?.nombre || 'N/A'}</td>
                     <td class="text-right">Bs. ${parseFloat(d.precio).toFixed(2)}</td>
-                    <td class="text-right">Bs. ${subtotal.toFixed(2)}</td></tr>`;
+                    <td class="text-right">Bs. ${subtotal.toFixed(2)}</td>
+                </tr>`;
             });
             
             document.getElementById('reciboItemsBody').innerHTML = itemsHtml || '<tr><td colspan="5">No hay detalles</td></tr>';
@@ -213,9 +330,6 @@ function verDetalleNota(id) {
 // =====================================================
 // FUNCIONES PARA VENTAS
 // =====================================================
-
-let cartVenta = [];
-let selectedClienteId = null;
 
 function addItemToCartVenta() {
     const almacenId = document.getElementById('selectedAlmacenId')?.value;
@@ -261,7 +375,8 @@ function updateCartVentaDisplay() {
                 <small>${item.cantidad} x Bs. ${item.precio.toFixed(2)}</small></div>
                 <div class="text-right"><strong>Bs. ${subtotal.toFixed(2)}</strong><br>
                 <button class="btn btn-sm btn-danger mt-2" onclick="removeFromCartVenta(${index})"><i class="fas fa-trash"></i></button></div>
-            </div></div>`;
+            </div>
+        </div>`;
     });
     
     cartDiv.innerHTML = html;
@@ -270,7 +385,11 @@ function updateCartVentaDisplay() {
     checkConfirmButton();
 }
 
-function removeFromCartVenta(index) { cartVenta.splice(index, 1); updateCartVentaDisplay(); toastr.info('Producto eliminado'); }
+function removeFromCartVenta(index) { 
+    cartVenta.splice(index, 1); 
+    updateCartVentaDisplay(); 
+    toastr.info('Producto eliminado'); 
+}
 
 function confirmSale() {
     if (!selectedClienteId) { toastr.warning('Seleccione un cliente'); return; }
@@ -280,7 +399,8 @@ function confirmSale() {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Content-Type': 'application/json', 'Accept': 'application/json'
+            'Content-Type': 'application/json', 
+            'Accept': 'application/json'
         },
         body: JSON.stringify({ id_cliente: selectedClienteId, detalles: cartVenta.map(i => ({ id_almacen: i.id_almacen, id_item: i.id_item, cantidad: i.cantidad, precio: i.precio })) })
     })
@@ -288,12 +408,15 @@ function confirmSale() {
     .then(r => {
         if (r.success) {
             toastr.success(r.message);
-            cartVenta = []; selectedClienteId = null;
+            cartVenta = []; 
+            selectedClienteId = null;
             updateCartVentaDisplay();
             document.querySelectorAll('.cliente-card').forEach(c => c.classList.remove('selected'));
             document.getElementById('selectedCliente').value = '';
             setTimeout(() => location.reload(), 1500);
-        } else { toastr.error(r.message); }
+        } else { 
+            toastr.error(r.message); 
+        }
     })
     .catch(() => toastr.error('Error al registrar venta'));
 }
@@ -318,10 +441,12 @@ function verDetalleNotaVenta(id) {
                 const subtotal = d.cantidad * d.precio;
                 total += subtotal;
                 itemsHtml += `<tr>
-                    <td>${d.cantidad}</td><td>${d.producto_nombre || d.item?.nombre || 'Producto'}</td>
+                    <td>${d.cantidad}</td>
+                    <td>${d.producto_nombre || d.item?.nombre || 'Producto'}</td>
                     <td>${d.almacen_nombre || d.almacen?.nombre || 'N/A'}</td>
                     <td class="text-right">Bs. ${parseFloat(d.precio).toFixed(2)}</td>
-                    <td class="text-right">Bs. ${subtotal.toFixed(2)}</td></tr>`;
+                    <td class="text-right">Bs. ${subtotal.toFixed(2)}</td>
+                </tr>`;
             });
             
             document.getElementById('reciboVentaItemsBody').innerHTML = itemsHtml || '<tr><td colspan="5">No hay detalles</td></tr>';
@@ -337,7 +462,6 @@ function imprimirReciboVenta() {
     if (!modalContent) return;
     
     const contenido = modalContent.cloneNode(true);
-    // Eliminar botones del clon
     contenido.querySelector('.modal-footer')?.remove();
     contenido.querySelector('.modal-header .close')?.remove();
     
@@ -368,6 +492,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const isVentas = !!document.getElementById('clientesList');
     
     if (isCompras) {
+        // Inicializar validaciones de compras
+        initComprasValidaciones();
+        
+        // Selección de proveedores
         document.querySelectorAll('.proveedor-card').forEach(card => {
             card.addEventListener('click', function() {
                 document.querySelectorAll('.proveedor-card').forEach(c => c.classList.remove('selected'));
@@ -379,6 +507,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 checkConfirmButton();
             });
         });
+        
+        // Sobrescribir addItemToCart global
+        window.addItemToCart = addItemToCartCompra;
     }
     
     if (isVentas) {
@@ -393,6 +524,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 checkConfirmButton();
             });
         });
+        
+        // Sobrescribir addItemToCart global
         window.addItemToCart = addItemToCartVenta;
     }
 });

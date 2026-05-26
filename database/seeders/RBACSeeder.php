@@ -441,7 +441,7 @@ class RBACSeeder extends Seeder
         );
         $clientes[] = $cliente;
 
-        // Crear usuario para este cliente (sin rol, tipo_usuario = 'cliente')
+        // ✅ Crear usuario para este cliente con id_cliente asignado
         $usuario = \App\Models\Usuario::updateOrCreate(
             ['correo' => $data['correo']],
             [
@@ -449,15 +449,21 @@ class RBACSeeder extends Seeder
                 'contraseña' => \Illuminate\Support\Facades\Hash::make($data['contraseña']),
                 'estado' => 'activo',
                 'tipo_usuario' => 'cliente',
-                'id_empleado' => null,   // no es empleado
-                // Si tu tabla usuarios tiene campo id_cliente, agrégalo aquí
-                // 'id_cliente' => $cliente->id_cliente,
+                'id_empleado' => null,
+                'id_cliente' => $cliente->id_cliente,  // ← DESCOMENTAR Y ASIGNAR
             ]
         );
         $usuarios[] = $usuario;
+        
+        // Log para verificar
+        \Log::info('Cliente y usuario creado', [
+            'cliente_id' => $cliente->id_cliente,
+            'usuario_id' => $usuario->id_usuario,
+            'usuario_correo' => $usuario->correo,
+            'usuario_id_cliente' => $usuario->id_cliente
+        ]);
     }
 
     return ['clientes' => $clientes, 'usuarios' => $usuarios];
 }
-
 }

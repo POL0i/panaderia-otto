@@ -148,6 +148,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/almacenes', [CompraController::class, 'getAlmacenes'])->name('almacenes');
         Route::get('/items', [CompraController::class, 'getItems'])->name('items');
         Route::post('/enviar-correo', [CompraController::class, 'enviarCorreoCompra'])->name('enviar-correo');
+        
+        //  Rutas AJAX 
+        Route::get('/items-por-almacen', [CompraController::class, 'getItemsPorAlmacen'])->name('items-por-almacen');
+        Route::get('/capacidad', [CompraController::class, 'getCapacidadDisponible'])->name('capacidad');
     });
 
     // =============================================

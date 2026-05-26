@@ -132,61 +132,64 @@
             </div>
 
             
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-cart-plus"></i> Agregar Items a la Compra</h5>
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-cart-plus"></i> Agregar Items a la Compra</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <label>Almacén</label>
+                                <select class="form-control" id="itemAlmacen" required>
+                                    <option value="">Seleccionar Almacén</option>
+                                    <?php $__currentLoopData = $almacenes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $almacen): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        
+                                        <?php if($almacen->tipo_almacen === 'insumo' || $almacen->tipo_almacen === 'mixto'): ?>
+                                            <option value="<?php echo e($almacen->id_almacen); ?>" 
+                                                    data-tipo="<?php echo e($almacen->tipo_almacen); ?>"
+                                                    data-capacidad="<?php echo e($almacen->capacidad ?? 0); ?>">
+                                                <?php echo e($almacen->nombre); ?> 
+                                                (<?php echo e($almacen->tipo_almacen === 'insumo' ? 'Solo Insumos' : 'Mixto'); ?>)
+                                            </option>
+                                        <?php endif; ?>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </select>
+                                <small class="text-muted" id="capacidadInfo"></small>
+                            </div>
+                            <div class="col-md-5">
+                                <label>Insumo / Item</label>
+                                <select class="form-control" id="itemSelect" required>
+                                    <option value="">Primero seleccione almacén</option>
+                                </select>
+                                <small class="text-muted" id="itemInfo"></small>
+                            </div>
+                            <div class="col-md-2">
+                                <label>Cantidad</label>
+                                <input type="number" class="form-control" id="itemCantidad" placeholder="Cantidad" required>
+                                <small class="text-muted" id="cantidadMsg"></small>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <label>Precio Unitario (Bs.)</label>
+                                <input type="number" step="0.01" class="form-control" id="itemPrecio" 
+                                    placeholder="Precio unitario" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label>Fecha de Vencimiento</label>
+                                <input type="date" class="form-control" id="itemFechaVencimiento">
+                                <small class="text-muted">Si aplica, dejar en blanco si no caduca</small>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <button type="button" class="btn btn-add-item btn-block" onclick="addItemToCart()" id="btnAddItem" disabled>
+                                    <i class="fas fa-plus-circle"></i> Agregar a la Compra
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-5">
-                            <label>Almacén</label>
-                            <select class="form-control" id="itemAlmacen" required>
-                                <option value="">Seleccionar Almacén</option>
-                                <?php $__currentLoopData = $almacenes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $almacen): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($almacen->id_almacen); ?>" data-tipo="<?php echo e($almacen->tipo_almacen); ?>">
-                                        <?php echo e($almacen->nombre); ?> 
-                                        (<?php echo e($almacen->tipo_almacen === 'insumo' ? 'Solo Insumos' : 'Mixto'); ?>)
-                                    </option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </select>
-                        </div>
-                        <div class="col-md-5">
-                            <label>Insumo / Item</label>
-                            <select class="form-control" id="itemSelect" required>
-                                <option value="">Seleccionar Item</option>
-                                <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($item->id_item); ?>" data-nombre="<?php echo e($item->nombre ?? 'Item'); ?>">
-                                        <?php echo e($item->nombre ?? 'Item'); ?> (<?php echo e($item->unidad_medida ?? 'unidad'); ?>)
-                                    </option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label>Cantidad</label>
-                            <input type="number" class="form-control" id="itemCantidad" placeholder="Cantidad" required>
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-md-6">
-                            <label>Precio Unitario (Bs.)</label>
-                            <input type="number" step="0.01" class="form-control" id="itemPrecio" 
-                                   placeholder="Precio unitario" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label>Fecha de Vencimiento</label>
-                            <input type="date" class="form-control" id="itemFechaVencimiento">
-                            <small class="text-muted">Si aplica, dejar en blanco si no caduca</small>
-                        </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-12">
-                            <button type="button" class="btn btn-add-item btn-block" onclick="addItemToCart()">
-                                <i class="fas fa-plus-circle"></i> Agregar a la Compra
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         
@@ -429,9 +432,102 @@
 <?php echo $__env->make('seccion-compras.partials.modal-proveedor', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <?php $__env->stopSection(); ?>
-
 <?php $__env->startPush('scripts'); ?>
 <script>
+$(document).ready(function() {
+    let itemsDisponibles = [];
+    let capacidadDisponible = null;
+
+    // ==========================================
+    // EVENTO: Cambio de almacén
+    // ==========================================
+    $('#itemAlmacen').on('change', function() {
+        const almacenId = $(this).val();
+        
+        if (almacenId) {
+            // Cargar items disponibles
+            $.get('/compras/items-por-almacen', { id_almacen: almacenId })
+                .done(function(res) {
+                    if (res.success) {
+                        itemsDisponibles = res.items;
+                        const select = $('#itemSelect');
+                        select.empty().append('<option value="">Seleccione item...</option>');
+                        
+                        // Filtrar solo insumos
+                        let itemsFiltrados = itemsDisponibles.filter(item => item.tipo_item === 'insumo');
+                        
+                        itemsFiltrados.forEach(item => {
+                            select.append(`<option value="${item.id_item}" 
+                                data-nombre="${item.nombre}"
+                                data-tipo="${item.tipo_item}"
+                                data-unidad="${item.unidad_medida}">
+                                ${item.nombre} (${item.unidad_medida})
+                            </option>`);
+                        });
+                        
+                        select.prop('disabled', false);
+                        $('#itemInfo').html(`✅ ${itemsFiltrados.length} insumos disponibles`).removeClass('text-danger').addClass('text-success');
+                    }
+                })
+                .fail(function() {
+                    $('#itemInfo').html('⚠️ Error al cargar items').addClass('text-danger');
+                    $('#itemSelect').prop('disabled', true);
+                });
+            
+            // Verificar capacidad
+            $.get('/compras/capacidad', { id_almacen: almacenId })
+                .done(function(res) {
+                    if (res.success) {
+                        capacidadDisponible = res.disponible;
+                        let msg = '';
+                        if (res.sin_limite) {
+                            msg = '✅ Sin límite de capacidad';
+                        } else {
+                            msg = `📦 Capacidad: ${res.capacidad} | Ocupado: ${res.stock_actual} | Disponible: ${res.disponible} unidades`;
+                        }
+                        $('#capacidadInfo').html(msg).removeClass('text-danger').addClass('text-info');
+                    }
+                })
+                .fail(function() {
+                    $('#capacidadInfo').html('⚠️ Error al consultar capacidad').addClass('text-danger');
+                });
+        } else {
+            $('#itemSelect').prop('disabled', true).empty().append('<option value="">Primero seleccione almacén</option>');
+            $('#itemInfo').empty();
+            $('#capacidadInfo').empty();
+            capacidadDisponible = null;
+        }
+    });
+
+    // ==========================================
+    // VALIDACIÓN DE CANTIDAD Y PRECIO
+    // ==========================================
+    $('#itemCantidad, #itemPrecio').on('input', function() {
+        validarFormularioAgregar();
+    });
+
+    function validarFormularioAgregar() {
+        const almacenId = $('#itemAlmacen').val();
+        const itemId = $('#itemSelect').val();
+        const cantidad = parseFloat($('#itemCantidad').val());
+        const precio = parseFloat($('#itemPrecio').val());
+        let isValid = true;
+        
+        if (!almacenId) isValid = false;
+        else if (!itemId) isValid = false;
+        else if (!cantidad || cantidad <= 0) isValid = false;
+        else if (capacidadDisponible !== null && cantidad > capacidadDisponible) {
+            isValid = false;
+            $('#cantidadMsg').html(`<span class="text-danger">⚠️ Excede espacio disponible (${capacidadDisponible} unidades)</span>`);
+        } else if (!precio || precio <= 0) isValid = false;
+        else $('#cantidadMsg').empty();
+        
+        $('#btnAddItem').prop('disabled', !isValid);
+    }
+
+    // ==========================================
+    // RUTAS
+    // ==========================================
     window.routes = {
         comprasStore: '<?php echo e(route("compras.store")); ?>',
         comprasProveedores: '<?php echo e(route("compras.proveedores")); ?>',
@@ -439,7 +535,7 @@
     };
 
     // ==========================================
-    // ABRIR MODAL DE ENVÍO DE CORREO (COMPRAS)
+    // ENVÍO DE CORREO
     // ==========================================
     $(document).on('click', '#btnEnviarCorreo', function() {
         $('#modalDetalleNota').modal('hide');
@@ -448,9 +544,6 @@
         }, 300);
     });
 
-    // ==========================================
-    // ENVIAR CORREO (COMPRAS)
-    // ==========================================
     $(document).on('click', '#btnConfirmarEnvio', function() {
         const correo = $('#correoDestino').val().trim();
         const idCompra = $('#idNotaCompraEnvio').val();
@@ -464,7 +557,7 @@
         btn.html('<i class="fas fa-spinner fa-spin"></i> Enviando...').prop('disabled', true);
         
         $.ajax({
-            url: window.routes.comprasEnviarCorreo || '/compras/enviar-correo',
+            url: window.routes.comprasEnviarCorreo,
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
@@ -493,7 +586,7 @@
     });
 
     // ==========================================
-    // IMPRIMIR RECIBO (COMPRAS)
+    // IMPRIMIR RECIBO
     // ==========================================
     window.imprimirRecibo = function() {
         const modalContent = document.querySelector('#modalDetalleNota .modal-content');
@@ -520,6 +613,7 @@
         printWindow.document.close();
         setTimeout(() => printWindow.print(), 500);
     };
+});
 </script>
 <script src="<?php echo e(asset('js/gestion-comercial.js')); ?>"></script>
 <?php $__env->stopPush(); ?>
