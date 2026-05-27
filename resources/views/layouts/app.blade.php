@@ -548,19 +548,6 @@
                         @enderror
                     </div>
                     
-                    {{-- Recordar y Olvidé contraseña --}}
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <div class="form-check">
-                            <input type="checkbox" name="remember" id="remember" class="form-check-input">
-                            <label class="form-check-label" for="remember">Recordarme</label>
-                        </div>
-                        
-                        <div class="forgot-password">
-                            <a href="{{ route('password.request') }}">
-                                <i class="fas fa-question-circle"></i> ¿Olvidaste tu contraseña?
-                            </a>
-                        </div>
-                    </div>
                     
                     {{-- Botón Login --}}
                     <button type="submit" class="btn btn-login">
@@ -575,7 +562,7 @@
                 
                 <div class="text-center">
                     <button type="button" class="btn btn-register" id="btnRegistroRapido">
-                        <i class="fas fa-user-plus me-2"></i> Registrarse como Cliente
+                        <i class="fas fa-user-plus me-2"></i> Registrarse
                     </button>
                     <p class="mt-3" style="font-size: 12px; color: var(--color-text-light);">
                         Al registrarte podrás realizar pedidos y ver tu historial de compras
