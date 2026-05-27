@@ -3,7 +3,7 @@
 <?php $__env->startSection('page-description', 'Registro de ventas a clientes'); ?>
 
 <?php $__env->startPush('styles'); ?>
-<style>
+<style> 
     /* ==========================================
        ESTILOS ESPECÍFICOS DEL PANEL DE VENTAS
        ========================================== */
@@ -637,15 +637,25 @@
 <?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
+    
     let productosData = [];
 
     // Cargar productos al abrir el modal
-    $('#btnSeleccionarProducto').on('click', function() {
+      $(document).on('click', '#btnSeleccionarProducto', function(e) {
+        e.preventDefault();
+        console.log('Botón clickeado - versión delegada');
         cargarProductosParaModal();
-        $('#seleccionProductoModal').modal('show');
+        
+        // Forzar apertura del modal
+        $('#seleccionProductoModal').modal({
+            backdrop: 'static',
+            keyboard: true,
+            show: true
+        });
     });
 
     function cargarProductosParaModal() {
+        console.log('Cargando productos...');
         $('#productosGrid').html(
             '<div class="col-12 text-center py-5">' +
             '<i class="fas fa-spinner fa-spin fa-2x"></i>' +
@@ -656,6 +666,7 @@ $(document).ready(function() {
             url: '<?php echo e(route("ventas.getProductosConStock")); ?>',
             method: 'GET',
             success: function(response) {
+                console.log('Productos cargados:', response);
                 if (response.success) {
                     productosData = response.productos;
                     renderProductosGrid(productosData);
@@ -665,13 +676,15 @@ $(document).ready(function() {
                     );
                 }
             },
-            error: function() {
+            error: function(xhr) {
+                console.error('Error AJAX:', xhr);
                 $('#productosGrid').html(
                     '<div class="col-12 text-center text-danger">Error al cargar productos</div>'
                 );
             }
         });
     }
+    
 
     function renderProductosGrid(productos) {
         if (productos.length === 0) {
@@ -853,6 +866,8 @@ window.routes = {
     ventasClientes: '<?php echo e(route("ventas.clientes")); ?>',
     ventasEnviarCorreo: '<?php echo e(route("ventas.enviar-correo")); ?>'
 };
+
+});
 </script>
 <script src="<?php echo e(asset('js/gestion-comercial.js')); ?>"></script>
 <?php $__env->stopPush(); ?>
