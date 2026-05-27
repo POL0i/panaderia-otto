@@ -557,6 +557,7 @@
 {{-- SCRIPTS                                     --}}
 {{-- ============================================ --}}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.0/sweetalert2.min.js"></script>
@@ -585,6 +586,8 @@
             .replace(/'/g, '&#39;');
     }
 
+
+    
     // Función para cargar items del almacén
     function cargarItemsAlmacen(almacenId) {
         $('#itemsAlmacenBody').html(
@@ -850,6 +853,62 @@
             
             cargarItemsAlmacen(almacenId);
         });
+
+        // ============================================
+        // MANEJADOR PARA COMPLETAR VENTA (Panel Ventas)
+        // ============================================
+        $(document).on('click', '.btn-completar-venta', function() {
+            const idVenta = $(this).data('id');
+            const btn = $(this);
+
+            Swal.fire({
+                title: '¿Completar venta?',
+                text: `¿Estás seguro de completar la venta #${idVenta}? Esto actualizará el inventario.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, completar',
+                cancelButtonText: 'Cancelar',
+                target: document.body,
+                backdrop: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+                    $.ajax({
+                        url: '/ventas/' + idVenta + '/completar',
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                            'Accept': 'application/json'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Venta completada!',
+                                    text: response.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                                setTimeout(() => location.reload(), 2000);
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                                btn.prop('disabled', false).html('<i class="fas fa-check"></i>');
+                            }
+                        },
+                        error: function(xhr) {
+                            let message = 'Error al completar la venta';
+                            if (xhr.responseJSON?.message) message = xhr.responseJSON.message;
+                            Swal.fire('Error', message, 'error');
+                            btn.prop('disabled', false).html('<i class="fas fa-check"></i>');
+                        }
+                    });
+                }
+            });
+        });
+
     });
 </script>
 

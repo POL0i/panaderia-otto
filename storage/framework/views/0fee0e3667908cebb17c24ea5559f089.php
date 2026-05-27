@@ -797,110 +797,56 @@ $(document).ready(function() {
         $('#maxStockMsg').empty();
     });
 
-    // Completar venta
-    $(document).on('click', '.btn-completar-venta', function() {
-        const idVenta = $(this).data('id');
+    // Abrir modal de envío de correo
+    $('#btnEnviarCorreoVenta').on('click', function() {
+        $('#modalDetalleNotaVenta').modal('hide');
+        setTimeout(function() {
+            $('#modalEnvioCorreoVenta').modal('show');
+        }, 300);
+    });
+
+    // Enviar correo
+    $('#btnConfirmarEnvioVenta').on('click', function() {
+        const correo = $('#correoDestinoVenta').val().trim();
+        const idVenta = $('#idNotaVentaEnvio').val();
+        
+        if (!correo || !correo.includes('@')) {
+            toastr.error('Ingrese un correo electrónico válido');
+            return;
+        }
+        
         const btn = $(this);
-
-        Swal.fire({
-            title: '¿Completar venta?',
-            text: `¿Estás seguro de completar la venta #${idVenta}? Esto actualizará el inventario.`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#28a745',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Sí, completar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
-
-                $.ajax({
-                    url: '/ventas/' + idVenta + '/completar',
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                        'Accept': 'application/json'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: '¡Venta completada!',
-                                text: response.message,
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
-                            setTimeout(() => location.reload(), 2000);
-                        } else {
-                            Swal.fire('Error', response.message, 'error');
-                            btn.prop('disabled', false).html('<i class="fas fa-check"></i>');
-                        }
-                    },
-                    error: function(xhr) {
-                        let message = 'Error al completar la venta';
-                        if (xhr.responseJSON?.message) message = xhr.responseJSON.message;
-                        else if (xhr.status === 404) message = 'Ruta no encontrada';
-                        else if (xhr.status === 419) message = 'Sesión expirada. Recarga la página.';
-                        Swal.fire('Error', message, 'error');
-                        btn.prop('disabled', false).html('<i class="fas fa-check"></i>');
-                    }
-                });
+        btn.html('<i class="fas fa-spinner fa-spin"></i> Enviando...').prop('disabled', true);
+        
+        $.ajax({
+            url: '/ventas/enviar-correo',
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'Accept': 'application/json'
+            },
+            data: {
+                id_venta: idVenta,
+                correo: correo
+            },
+            success: function(response) {
+                if (response.success) {
+                    toastr.success(response.message || 'Correo enviado exitosamente');
+                    $('#modalEnvioCorreoVenta').modal('hide');
+                    $('#correoDestinoVenta').val('');
+                } else {
+                    toastr.error(response.message || 'Error al enviar el correo');
+                }
+            },
+            error: function(xhr) {
+                const message = xhr.responseJSON?.message || 'Error al enviar el correo';
+                toastr.error(message);
+            },
+            complete: function() {
+                btn.html('<i class="fas fa-paper-plane"></i> Enviar').prop('disabled', false);
             }
         });
     });
-});
-
-// Abrir modal de envío de correo
-$('#btnEnviarCorreoVenta').on('click', function() {
-    $('#modalDetalleNotaVenta').modal('hide');
-    setTimeout(function() {
-        $('#modalEnvioCorreoVenta').modal('show');
-    }, 300);
-});
-
-// Enviar correo
-$('#btnConfirmarEnvioVenta').on('click', function() {
-    const correo = $('#correoDestinoVenta').val().trim();
-    const idVenta = $('#idNotaVentaEnvio').val();
-    
-    if (!correo || !correo.includes('@')) {
-        toastr.error('Ingrese un correo electrónico válido');
-        return;
-    }
-    
-    const btn = $(this);
-    btn.html('<i class="fas fa-spinner fa-spin"></i> Enviando...').prop('disabled', true);
-    
-    $.ajax({
-        url: '/ventas/enviar-correo',
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-            'Accept': 'application/json'
-        },
-        data: {
-            id_venta: idVenta,
-            correo: correo
-        },
-        success: function(response) {
-            if (response.success) {
-                toastr.success(response.message || 'Correo enviado exitosamente');
-                $('#modalEnvioCorreoVenta').modal('hide');
-                $('#correoDestinoVenta').val('');
-            } else {
-                toastr.error(response.message || 'Error al enviar el correo');
-            }
-        },
-        error: function(xhr) {
-            const message = xhr.responseJSON?.message || 'Error al enviar el correo';
-            toastr.error(message);
-        },
-        complete: function() {
-            btn.html('<i class="fas fa-paper-plane"></i> Enviar').prop('disabled', false);
-        }
-    });
-});
 
 window.routes = {
     ventasStore: '<?php echo e(route("ventas.store")); ?>',
