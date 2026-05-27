@@ -420,16 +420,6 @@
                             <?php endif; ?>
 
                             
-                            <?php if(in_array('recetas_ver', $userPermissions) || $isAdmin): ?>
-                            <li class="nav-item">
-                                <a href="<?php echo e(route('detalles-receta.index')); ?>" class="nav-link <?php echo e(Request::routeIs('detalles-receta.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Detalles Receta</p>
-                                </a>
-                            </li>
-                            <?php endif; ?>
-
-                            
 
                             <?php if(in_array('gestionar_producciones', $userPermissions) || $isAdmin || in_array('inventario_ver', $userPermissions)): ?>
                             <li class="nav-item">

@@ -418,16 +418,6 @@
                             </li>
                             @endif
 
-                            {{-- Detalles Receta (requiere recetas_ver) --}}
-                            @if(in_array('recetas_ver', $userPermissions) || $isAdmin)
-                            <li class="nav-item">
-                                <a href="{{ route('detalles-receta.index') }}" class="nav-link {{ Request::routeIs('detalles-receta.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Detalles Receta</p>
-                                </a>
-                            </li>
-                            @endif
-
                             {{-- Producciones (requiere gestionar_producciones) --}}
 
                             @if(in_array('gestionar_producciones', $userPermissions) || $isAdmin || in_array('inventario_ver', $userPermissions))
