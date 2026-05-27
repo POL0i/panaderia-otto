@@ -313,25 +313,41 @@
 
                     
                     <?php if(auth()->guard()->check()): ?>
-                        <li class="nav-item ms-1">
-                            <div class="user-menu-wrapper">
-                                <span class="btn-user-info">
-                                    <i class="fas fa-user-circle"></i>
-                                    <?php echo e(Str::limit(Auth::user()->name ?? explode('@', Auth::user()->correo)[0], 12)); ?>
+                        <li class="nav-item dropdown ms-1">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle"></i>
+                                <?php echo e(Str::limit(Auth::user()->name ?? explode('@', Auth::user()->correo)[0], 12)); ?>
 
-                                </span>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end">
+                                
+                                <a class="dropdown-item" href="<?php echo e(route('mis-pedidos')); ?>">
+                                    <i class="fas fa-shopping-bag"></i> Mis Pedidos
+                                </a>
+                                
+                                
                                 <?php if(Auth::user()->tipo_usuario === 'empleado' || (method_exists(Auth::user(), 'esAdmin') && Auth::user()->esAdmin())): ?>
-                                <a href="<?php echo e(url('/home')); ?>" class="btn-sistema" title="Sistema"><i class="fas fa-desktop"></i></a>
+                                    <a class="dropdown-item" href="<?php echo e(url('/home')); ?>">
+                                        <i class="fas fa-desktop"></i> Panel de Control
+                                    </a>
                                 <?php endif; ?>
-                                <form action="<?php echo e(route('logout')); ?>" method="POST" style="display:inline;">
+                                
+                                <hr class="dropdown-divider">
+                                
+                                
+                                <form action="<?php echo e(route('logout')); ?>" method="POST">
                                     <?php echo csrf_field(); ?>
-                                    <button type="submit" class="btn-logout" title="Salir"><i class="fas fa-sign-out-alt"></i></button>
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                                    </button>
                                 </form>
                             </div>
                         </li>
                     <?php else: ?>
                         <li class="nav-item ms-1">
-                            <a class="nav-link btn-login" href="<?php echo e(route('login')); ?>"><i class="fas fa-sign-in-alt"></i> Ingresar</a>
+                            <a class="nav-link btn-login" href="<?php echo e(route('login')); ?>">
+                                <i class="fas fa-sign-in-alt"></i> Ingresar
+                            </a>
                         </li>
                     <?php endif; ?>
                 </ul>

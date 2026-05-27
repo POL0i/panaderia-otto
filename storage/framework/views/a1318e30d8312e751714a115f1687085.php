@@ -266,16 +266,6 @@
                                 </a>
                             </li>
                             <?php endif; ?>
-                            
-                            
-                            <?php if(in_array('clientes_ver', $userPermissions) || $isAdmin): ?>
-                            <li class="nav-item">
-                                <a href="<?php echo e(route('clientes.index')); ?>" class="nav-link <?php echo e(Request::routeIs('clientes.*') ? 'active' : ''); ?>">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Clientes</p>
-                                </a>
-                            </li>
-                            <?php endif; ?>
                         </ul>
                     </li>
                     <?php endif; ?>
@@ -567,11 +557,10 @@
 
 
 
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.0/sweetalert2.min.js"></script>
 
 <script>
     // Reloj en tiempo real
@@ -586,7 +575,54 @@
     updateClock();
     setInterval(updateClock, 60000);
 
-    // Activar treeview
+    // Función auxiliar para escapar HTML
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // Función para cargar items del almacén
+    function cargarItemsAlmacen(almacenId) {
+        $('#itemsAlmacenBody').html(
+            '<tr><td colspan="4" class="text-center text-muted">' +
+            '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando inventario...</td></tr>'
+        );
+        
+        $.get('/modulo-almacen/' + almacenId + '/items', function(response) {
+            var html = '';
+            if (response.items && response.items.length > 0) {
+                response.items.forEach(function(item) {
+                    var nombreItem = item.item_nombre || item.nombre || 'N/A';
+                    var tipoItem = item.tipo_item || item.tipo || 'N/A';
+                    var tipoBadgeClass = tipoItem === 'producto' ? 'badge-tipo-producto' : 'badge-tipo-insumo';
+                    var tipoTexto = tipoItem === 'producto' ? 'Producto' : (tipoItem === 'insumo' ? 'Insumo' : tipoItem);
+                    
+                    html += '<tr>';
+                    html += '<td><strong>' + escapeHtml(nombreItem) + '</strong></td>';
+                    html += '<td><span class="badge ' + tipoBadgeClass + '">' + tipoTexto + '</span></td>';
+                    html += '<td>' + (item.stock || 0) + '</td>';
+                    html += '<td>' + (item.unidad_medida || 'unidad') + '</td>';
+                    html += '</tr>';
+                });
+            } else {
+                html = '<tr><td colspan="4" class="text-center text-muted">' +
+                       '<i class="fas fa-inbox mr-2"></i>Este almacén no tiene items</td></tr>';
+            }
+            $('#itemsAlmacenBody').html(html);
+        }).fail(function() {
+            $('#itemsAlmacenBody').html(
+                '<tr><td colspan="4" class="text-center text-danger">' +
+                '<i class="fas fa-exclamation-circle mr-2"></i>Error al cargar items</td></tr>'
+            );
+        });
+    }
+
+    // Activar treeview y manejadores
     $(document).ready(function() {
         $('.has-treeview.menu-open > .nav-link').each(function() {
             $(this).find('.right').addClass('fa-angle-down').removeClass('fa-angle-left');
@@ -621,7 +657,6 @@
                 var originalText = $btn.html();
                 var formKey = formId;
                 
-                // Limpiar timeout anterior
                 if (modalSubmitTimeouts[formKey]) clearTimeout(modalSubmitTimeouts[formKey]);
                 
                 var hasFile = $form.attr('enctype') === 'multipart/form-data' || $form.find('input[type="file"]').length > 0;
@@ -729,18 +764,92 @@
             });
         }
 
-        // Inicializar los manejadores
-        $(document).ready(function() {
-            manejarFormularioModal('#formCrearEmpleado', '#createEmpleadoModal', 'Creando...', 'Empleado creado', 'Error al crear empleado');
-            manejarFormularioModal('#formCrearCliente', '#createClienteModal', 'Creando...', 'Cliente creado', 'Error al crear cliente');
-            manejarFormularioModal('#formCrearUsuario', '#createUsuarioModal', 'Creando...', 'Usuario creado', 'Error al crear usuario');
-            // ... otros manejadores
+        // ============================================
+        // MANEJADORES PARA MÓDULO ALMACÉN
+        // ============================================
+        
+        // 1. Crear Almacén
+        manejarFormularioModal('#formCreateAlmacen', '#createAlmacenModal', 'Creando...', 'Almacén creado exitosamente', 'Error al crear almacén', function(response) {
+            if (response.almacen) {
+                var newLink = `<a href="#" class="list-group-item list-group-item-action almacen-list-item" data-id="${response.almacen.id_almacen}">
+                                    <i class="fas fa-warehouse mr-2"></i> ${escapeHtml(response.almacen.nombre)}
+                                    <span class="badge badge-primary float-right">0</span>
+                                </a>`;
+                $('#listaAlmacenes').append(newLink);
+                toastr.success('Almacén creado. Selecciona otro almacén para actualizar la lista.');
+            }
+        });
+
+        // 2. Crear Categoría de Insumo
+        manejarFormularioModal('#formCreateCategoriaInsumo', '#createCategoriaInsumoModal', 'Creando...', 'Categoría creada exitosamente', 'Error al crear categoría', function(response) {
+            if (response.categoria) {
+                var newOption = new Option(response.categoria.nombre, response.categoria.id_cat_insumo);
+                $('#id_cat_insumo, #edit_id_cat_insumo').append(newOption);
+                toastr.success('Categoría agregada al formulario');
+            }
+        });
+
+        // 3. Crear Insumo
+        manejarFormularioModal('#formCreateInsumo', '#createInsumoModal', 'Creando...', 'Insumo creado exitosamente', 'Error al crear insumo', function(response) {
+            if (response.item) {
+                var newOption = new Option(response.item.nombre, response.item.id_item);
+                $('#id_item, #edit_id_item').append(newOption);
+                toastr.success('Insumo agregado a la lista');
+            }
+        });
+
+        // 4. Crear Categoría de Producto
+        manejarFormularioModal('#formCreateCategoriaProducto', '#createCategoriaProductoModal', 'Creando...', 'Categoría creada exitosamente', 'Error al crear categoría', function(response) {
+            if (response.categoria) {
+                var newOption = new Option(response.categoria.nombre, response.categoria.id_cat_producto);
+                $('#id_cat_producto, #edit_id_cat_producto').append(newOption);
+                toastr.success('Categoría agregada al formulario');
+            }
+        });
+
+        // 5. Crear Producto
+        manejarFormularioModal('#formCreateProducto', '#createProductoModal', 'Creando...', 'Producto creado exitosamente', 'Error al crear producto', function(response) {
+            if (response.producto && response.item) {
+                var newOption = new Option(response.producto.nombre, response.item.id_item);
+                $('#id_item, #edit_id_item').append(newOption);
+                toastr.success('Producto agregado a la lista');
+            }
+        });
+
+        // 6. Gestionar Stock
+        manejarFormularioModal('#formManageStock', '#manageStockModal', 'Procesando...', 'Stock actualizado exitosamente', 'Error al gestionar stock', function(response) {
+            var almacenActivo = $('.almacen-list-item.active').data('id');
+            if (almacenActivo) {
+                cargarItemsAlmacen(almacenActivo);
+            }
+        });
+
+        // 7. Crear Empleado
+        manejarFormularioModal('#formCrearEmpleado', '#createEmpleadoModal', 'Creando...', 'Empleado creado', 'Error al crear empleado');
+
+        // 8. Crear Cliente
+        manejarFormularioModal('#formCrearCliente', '#createClienteModal', 'Creando...', 'Cliente creado', 'Error al crear cliente');
+
+        // 9. Crear Usuario
+        manejarFormularioModal('#formCrearUsuario', '#createUsuarioModal', 'Creando...', 'Usuario creado', 'Error al crear usuario');
+
+        // Resetear al cerrar modales
+        $('.modal').on('hidden.bs.modal', function() {
+            isSubmittingModal = false;
+            $(this).find('button[type="submit"]').prop('disabled', false);
+        });
+
+        // ============================================
+        // CARGAR ITEMS DE ALMACÉN
+        // ============================================
+        $(document).on('click', '.almacen-list-item', function(e) {
+            e.preventDefault();
+            var almacenId = $(this).data('id');
             
-            // Resetear al cerrar modales
-            $('.modal').on('hidden.bs.modal', function() {
-                isSubmittingModal = false;
-                $(this).find('button[type="submit"]').prop('disabled', false);
-            });
+            $('.almacen-list-item').removeClass('active');
+            $(this).addClass('active');
+            
+            cargarItemsAlmacen(almacenId);
         });
     });
 </script>
@@ -793,141 +902,6 @@ function cambiarModo(nuevoModo) {
         body: JSON.stringify({ mode: nuevoModo })
     }).then(() => window.location.reload());
 }
-
-$(document).ready(function() {
-
-    // ==========================================
-    // CREAR EMPLEADO POR AJAX (Global)
-    // ==========================================
-    var isSubmittingEmpleado = false;
-    
-    $(document).on('submit', '#formCrearEmpleado', function(e) {
-        e.preventDefault();
-        
-        if (isSubmittingEmpleado) return false;
-        
-        var form = $(this);
-        var submitBtn = form.find('button[type="submit"]');
-        var originalText = submitBtn.html();
-        
-        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
-        isSubmittingEmpleado = true;
-        
-        $.ajax({
-            url: form.attr('action'),
-            method: 'POST',
-            data: form.serialize(),
-            success: function(response) {
-                if (response.success) {
-                    $('#createEmpleadoModal').modal('hide');
-                    form[0].reset();
-                    
-                    // Notificación con Swal o toastr
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡Empleado creado!',
-                        text: response.message,
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    
-                    // Agregar a selects si existen
-                    if (response.empleado) {
-                        var newOption = new Option(
-                            response.empleado.nombre + ' ' + (response.empleado.apellido || ''),
-                            response.empleado.id_empleado,
-                            true,
-                            true
-                        );
-                        $('#id_empleado, #edit_id_empleado').append(newOption);
-                        $('#id_empleado').val(response.empleado.id_empleado).trigger('change');
-                    }
-                    
-                    // Recargar después de un momento
-                    setTimeout(() => location.reload(), 1500);
-                }
-            },
-            error: function(xhr) {
-                var message = 'Error al crear empleado';
-                if (xhr.responseJSON?.errors) {
-                    message = Object.values(xhr.responseJSON.errors).flat().join('\n');
-                } else if (xhr.responseJSON?.message) {
-                    message = xhr.responseJSON.message;
-                }
-                Swal.fire('Error', message, 'error');
-            },
-            complete: function() {
-                submitBtn.html(originalText).prop('disabled', false);
-                isSubmittingEmpleado = false;
-            }
-        });
-    });
-
-    // ==========================================
-    // CREAR CLIENTE POR AJAX (Global)
-    // ==========================================
-    var isSubmittingCliente = false;
-    
-    $(document).on('submit', '#formCrearCliente', function(e) {
-        e.preventDefault();
-        
-        if (isSubmittingCliente) return false;
-        
-        var form = $(this);
-        var submitBtn = form.find('button[type="submit"]');
-        var originalText = submitBtn.html();
-        
-        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando...').prop('disabled', true);
-        isSubmittingCliente = true;
-        
-        $.ajax({
-            url: form.attr('action'),
-            method: 'POST',
-            data: form.serialize(),
-            success: function(response) {
-                if (response.success) {
-                    $('#createClienteModal').modal('hide');
-                    form[0].reset();
-                    
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡Cliente creado!',
-                        text: response.message,
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    
-                    if (response.cliente) {
-                        var newOption = new Option(
-                            response.cliente.nombre + ' ' + (response.cliente.apellido || ''),
-                            response.cliente.id_cliente,
-                            true,
-                            true
-                        );
-                        $('#id_cliente, #edit_id_cliente').append(newOption);
-                        $('#id_cliente').val(response.cliente.id_cliente).trigger('change');
-                    }
-                    
-                    setTimeout(() => location.reload(), 1500);
-                }
-            },
-            error: function(xhr) {
-                var message = 'Error al crear cliente';
-                if (xhr.responseJSON?.errors) {
-                    message = Object.values(xhr.responseJSON.errors).flat().join('\n');
-                } else if (xhr.responseJSON?.message) {
-                    message = xhr.responseJSON.message;
-                }
-                Swal.fire('Error', message, 'error');
-            },
-            complete: function() {
-                submitBtn.html(originalText).prop('disabled', false);
-                isSubmittingCliente = false;
-            }
-        });
-    });
-
-});
 </script>
 
 <?php echo $__env->yieldPushContent('scripts'); ?>

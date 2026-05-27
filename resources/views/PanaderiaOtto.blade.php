@@ -313,24 +313,40 @@
 
                     {{-- Usuario --}}
                     @auth
-                        <li class="nav-item ms-1">
-                            <div class="user-menu-wrapper">
-                                <span class="btn-user-info">
-                                    <i class="fas fa-user-circle"></i>
-                                    {{ Str::limit(Auth::user()->name ?? explode('@', Auth::user()->correo)[0], 12) }}
-                                </span>
+                        <li class="nav-item dropdown ms-1">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle"></i>
+                                {{ Str::limit(Auth::user()->name ?? explode('@', Auth::user()->correo)[0], 12) }}
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end">
+                                {{-- Mis Pedidos --}}
+                                <a class="dropdown-item" href="{{ route('mis-pedidos') }}">
+                                    <i class="fas fa-shopping-bag"></i> Mis Pedidos
+                                </a>
+                                
+                                {{-- Acceso al sistema (solo empleados/admin) --}}
                                 @if(Auth::user()->tipo_usuario === 'empleado' || (method_exists(Auth::user(), 'esAdmin') && Auth::user()->esAdmin()))
-                                <a href="{{ url('/home') }}" class="btn-sistema" title="Sistema"><i class="fas fa-desktop"></i></a>
+                                    <a class="dropdown-item" href="{{ url('/home') }}">
+                                        <i class="fas fa-desktop"></i> Panel de Control
+                                    </a>
                                 @endif
-                                <form action="{{ route('logout') }}" method="POST" style="display:inline;">
+                                
+                                <hr class="dropdown-divider">
+                                
+                                {{-- Cerrar Sesión --}}
+                                <form action="{{ route('logout') }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="btn-logout" title="Salir"><i class="fas fa-sign-out-alt"></i></button>
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                                    </button>
                                 </form>
                             </div>
                         </li>
                     @else
                         <li class="nav-item ms-1">
-                            <a class="nav-link btn-login" href="{{ route('login') }}"><i class="fas fa-sign-in-alt"></i> Ingresar</a>
+                            <a class="nav-link btn-login" href="{{ route('login') }}">
+                                <i class="fas fa-sign-in-alt"></i> Ingresar
+                            </a>
                         </li>
                     @endauth
                 </ul>

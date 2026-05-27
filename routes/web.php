@@ -37,6 +37,7 @@ use App\Http\Controllers\CompraController;
 use App\Http\Controllers\VentaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\PedidoClienteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,6 +66,8 @@ Route::prefix('carrito')->name('carrito.')->group(function () {
     Route::post('/webhook/libelula/pago-exitoso', [VentaController::class, 'webhookPagoExitoso'])
         ->name('webhook.libelula');
 
+
+        
     // Verificar pago (cliente)
     Route::get('/pago/verificar/{id}', [VentaController::class, 'verificarPago'])->name('pago.verificar');
     Route::get('/pago/exito/{id}', [VentaController::class, 'pagoExito'])->name('pago.exito');
@@ -107,6 +110,11 @@ Auth::routes();
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
+
+
+    Route::get('/mis-pedidos', [PedidoClienteController::class, 'index'])->name('mis-pedidos');
+    Route::delete('/mis-pedidos/{id}/cancelar', [PedidoClienteController::class, 'cancelar'])->name('mis-pedidos.cancelar');
+    Route::get('/pago/reintentar/{id}', [VentaController::class, 'reintentarPago'])->name('pago.reintentar');
 
     // =============================================
     // DASHBOARD

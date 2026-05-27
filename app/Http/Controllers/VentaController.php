@@ -1138,4 +1138,83 @@ public function completarVentaManual($id)
             ], 500);
         }
     }
+
+   public function reintentarPago($id)
+{
+    $notaVenta = NotaVenta::findOrFail($id);
+    
+    // Verificar autenticación
+    if (!Auth::check()) {
+        return redirect()->route('login')->with('error', 'Debes iniciar sesión para continuar.');
+    }
+    
+    $usuario = Auth::user();
+    
+    // Obtener el ID del cliente (puede ser del usuario o del empleado)
+    $clienteId = null;
+    
+    if ($usuario->cliente) {
+        $clienteId = $usuario->cliente->id_cliente;
+    } elseif ($usuario->empleado) {
+        // Buscar cliente con el nombre del empleado
+        $empleado = $usuario->empleado;
+        $cliente = \App\Models\Cliente::where('nombre', $empleado->nombre)
+            ->where('apellido', $empleado->apellido ?? '')
+            ->first();
+        if ($cliente) {
+            $clienteId = $cliente->id_cliente;
+        }
+    }
+    
+    // Verificar que el pedido pertenezca al cliente
+    if ($clienteId != $notaVenta->id_cliente) {
+        abort(403, 'No autorizado');
+    }
+    
+    if ($notaVenta->estado !== 'pendiente') {
+        return redirect()->route('landing')->with('info', 'Este pedido ya fue procesado.');
+    }
+    
+    // Obtener la transacción existente
+    $transaccion = $notaVenta->transaccionLibelula;
+    
+    // Si ya pagó, redirigir con mensaje
+    if ($transaccion && $transaccion->estado === 'pagado') {
+        return redirect()->route('landing')->with('success', 'Este pedido ya fue pagado. Gracias por tu compra.');
+    }
+    
+    // Si tiene URL de pago, mostrar la misma
+    if ($transaccion && $transaccion->url_pasarela) {
+        return view('cliente.reintentar-pago', [
+            'notaVenta' => $notaVenta,
+            'qr_url' => $transaccion->qr_url,
+            'url_pasarela' => $transaccion->url_pasarela,
+            'id_transaccion' => $transaccion->id_transaccion_libelula,
+        ]);
+    }
+    
+    // Si no hay transacción, crear una nueva
+    try {
+        $resultado = app(\App\Services\LibelulaService::class)->registrarPago($notaVenta, [
+            'nombre_cliente' => $notaVenta->cliente->nombre ?? 'Cliente',
+            'apellido_cliente' => $notaVenta->cliente->apellido ?? '',
+            'email_cliente' => Auth::user()->correo,
+        ]);
+        
+        if ($resultado['success'] && !empty($resultado['url_pasarela'])) {
+            return view('cliente.reintentar-pago', [
+                'notaVenta' => $notaVenta,
+                'qr_url' => $resultado['qr_url'] ?? null,
+                'url_pasarela' => $resultado['url_pasarela'],
+                'id_transaccion' => $resultado['id_transaccion'] ?? null,
+            ]);
+        } else {
+            return redirect()->route('mis-pedidos')->with('error', $resultado['message'] ?? 'Error al generar el pago');
+        }
+    } catch (\Exception $e) {
+        \Log::error('Error reintentar pago: ' . $e->getMessage());
+        return redirect()->route('mis-pedidos')->with('error', 'Error al procesar el pago. Intente más tarde.');
+    }
+}
+
 }
