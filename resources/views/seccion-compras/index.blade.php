@@ -453,7 +453,6 @@ $(document).ready(function() {
                         const select = $('#itemSelect');
                         select.empty().append('<option value="">Seleccione item...</option>');
                         
-                        // Filtrar solo insumos
                         let itemsFiltrados = itemsDisponibles.filter(item => item.tipo_item === 'insumo');
                         
                         itemsFiltrados.forEach(item => {
@@ -474,7 +473,6 @@ $(document).ready(function() {
                     $('#itemSelect').prop('disabled', true);
                 });
             
-            // Verificar capacidad
             $.get('/compras/capacidad', { id_almacen: almacenId })
                 .done(function(res) {
                     if (res.success) {
@@ -535,9 +533,10 @@ $(document).ready(function() {
     };
 
     // ==========================================
-    // ENVÍO DE CORREO
+    // ENVÍO DE CORREO (MANEJADOR DIRECTO)
     // ==========================================
     $(document).on('click', '#btnEnviarCorreo', function() {
+        console.log('Botón Enviar Correo clickeado'); // Debug
         $('#modalDetalleNota').modal('hide');
         setTimeout(function() {
             $('#modalEnvioCorreo').modal('show');
@@ -545,11 +544,20 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '#btnConfirmarEnvio', function() {
+        console.log('Botón Confirmar Envío clickeado'); // Debug
+        
         const correo = $('#correoDestino').val().trim();
         const idCompra = $('#idNotaCompraEnvio').val();
         
+        console.log('Correo:', correo, 'ID Compra:', idCompra); // Debug
+        
         if (!correo || !correo.includes('@')) {
             toastr.error('Ingrese un correo electrónico válido');
+            return;
+        }
+        
+        if (!idCompra) {
+            toastr.error('No se pudo identificar la compra');
             return;
         }
         
@@ -568,6 +576,7 @@ $(document).ready(function() {
                 correo: correo
             },
             success: function(response) {
+                console.log('Respuesta:', response); // Debug
                 if (response.success) {
                     toastr.success(response.message || 'Correo enviado exitosamente');
                     $('#modalEnvioCorreo').modal('hide');
@@ -577,7 +586,12 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
-                toastr.error(xhr.responseJSON?.message || 'Error al enviar');
+                console.error('Error:', xhr); // Debug
+                let message = 'Error al enviar el correo';
+                if (xhr.responseJSON?.message) {
+                    message = xhr.responseJSON.message;
+                }
+                toastr.error(message);
             },
             complete: function() {
                 btn.html('<i class="fas fa-paper-plane"></i> Enviar').prop('disabled', false);
