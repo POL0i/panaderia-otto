@@ -66,7 +66,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     ports:
-      - "127.0.0.1:3306:3306"         # solo localhost, no expuesto al exterior
+      - "127.0.0.1:33060:3306"        # puerto host 33060 para evitar conflictos con MySQL local
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
       interval: 10s
