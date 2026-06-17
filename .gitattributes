@@ -1,11 +1,49 @@
+# Normalización de saltos de línea: el repo almacena LF, Windows checkout usa CRLF automáticamente
 * text=auto eol=lf
 
+# Código fuente — siempre LF
+*.php text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.vue text eol=lf
+*.html text eol=lf
+*.blade.php text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.xml text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.env text eol=lf
+*.sh text eol=lf
+artisan text eol=lf
+
+# Binarios — sin conversión
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.svg binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+*.pdf binary
+*.zip binary
+*.gz binary
+
+# Diffs para revisiones de código
 *.blade.php diff=html
 *.css diff=css
 *.html diff=html
 *.md diff=markdown
 *.php diff=php
 
+# Exclusiones de export
 /.github export-ignore
 CHANGELOG.md export-ignore
 .styleci.yml export-ignore
