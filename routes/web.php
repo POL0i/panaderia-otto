@@ -197,9 +197,9 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('rol-permiso-usuarios', RolPermisoUsuarioController::class);
 
         Route::prefix('roles')->name('roles.')->group(function () {
-            Route::get('{id}/edit', [RolPermisoController::class, 'editRole'])->name('edit');
-            Route::put('{id}', [RolPermisoController::class, 'updateRole'])->name('update');
-            Route::delete('{id}', [RolPermisoController::class, 'destroyRole'])->name('destroy');
+            Route::get('{id}/permisos/edit', [RolPermisoController::class, 'editRole'])->name('permisos.edit');
+            Route::put('{id}/permisos', [RolPermisoController::class, 'updateRole'])->name('permisos.update');
+            Route::delete('{id}/permisos', [RolPermisoController::class, 'destroyRole'])->name('permisos.destroy');
             Route::delete('{id}/clear-permissions', [RolPermisoController::class, 'clearPermissions'])->name('clear-permissions');
         });
 
