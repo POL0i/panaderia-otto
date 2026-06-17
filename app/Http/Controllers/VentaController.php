@@ -203,8 +203,16 @@ class VentaController extends Controller
 
     public function buscar(Request $request)
     {
-        $query = $request->input('q');
-        
+        // Validar y sanitizar el término de búsqueda
+        $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        // Sanitizar: quitar HTML, espacios extra y caracteres de control
+        $query = strip_tags(trim($request->input('q', '')));
+        $query = preg_replace('/[\x00-\x1F\x7F]/', '', $query); // quitar chars de control
+        $query = mb_substr($query, 0, 100);                      // límite de 100 chars
+
         if (empty($query)) {
             return redirect()->route('landing');
         }

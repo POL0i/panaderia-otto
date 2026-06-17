@@ -99,7 +99,7 @@ Route::prefix('carrito')->name('carrito.')->group(function () {
 
 // Búsqueda rápida (en ventas)
 
-Route::get('/buscar', [VentaController::class, 'buscar'])->name('buscar');
+Route::get('/buscar', [VentaController::class, 'buscar'])->name('buscar')->middleware('throttle:30,1');
 
 // Autenticación (login, registro, etc.)
 Auth::routes();

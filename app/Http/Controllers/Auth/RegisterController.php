@@ -48,8 +48,30 @@ class RegisterController extends Controller
     protected function validator(array $data)
     {
         return Validator::make($data, [
-            'correo' => ['required', 'string', 'email', 'max:255', 'unique:usuarios'],
-            'contraseña' => ['required', 'string', 'min:8', 'confirmed'],
+            // Honeypot: campo invisible que solo los bots llenan
+            'website'    => ['size:0'],
+
+            'correo'     => [
+                'required',
+                'string',
+                'email:rfc,dns',   // valida formato Y que el dominio exista
+                'max:255',
+                'unique:usuarios',
+            ],
+            'contraseña' => [
+                'required',
+                'string',
+                'min:8',
+                'max:128',
+                'confirmed',
+                // Debe tener al menos una letra y un número
+                'regex:/^(?=.*[a-zA-Z])(?=.*\d).+$/',
+            ],
+        ], [
+            'website.size'         => 'Error de validación.',
+            'contraseña.regex'     => 'La contraseña debe tener al menos una letra y un número.',
+            'correo.email'         => 'El correo electrónico no es válido.',
+            'correo.unique'        => 'Este correo ya está registrado.',
         ]);
     }
 
@@ -61,9 +83,10 @@ class RegisterController extends Controller
     protected function create(array $data)
     {
         return Usuario::create([
-            'correo' => $data['correo'],
+            // Sanitizar correo: quitar espacios y etiquetas HTML
+            'correo'     => strtolower(strip_tags(trim($data['correo']))),
             'contraseña' => Hash::make($data['contraseña']),
-            'estado' => 'activo',
+            'estado'     => 'activo',
         ]);
     }
 }
