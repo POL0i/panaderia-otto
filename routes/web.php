@@ -268,7 +268,7 @@ Route::middleware(['auth'])->group(function () {
     // MÓDULO: INVENTARIO
     // =============================================
     Route::middleware(['permiso:inventario_ver'])->group(function () {
-        Route::resource('movimientos', MovimientoInventarioController::class);
+        Route::resource('movimientos', MovimientoInventarioController::class)->except(['show']);
         Route::post('movimientos/filtrar', [MovimientoInventarioController::class, 'filtrar'])->name('movimientos.filtrar');
         Route::get('/traspasos/stock', [TraspasoInventarioController::class, 'getStock'])->name('traspasos.stock');
         Route::get('/traspasos/capacidad', [TraspasoInventarioController::class, 'getCapacidadDisponible'])->name('traspasos.capacidad');
