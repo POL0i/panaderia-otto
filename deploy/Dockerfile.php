@@ -31,8 +31,11 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         intl \
         opcache
 
-# Instalar Redis extension
-RUN pecl install redis && docker-php-ext-enable redis
+# Instalar Redis extension (requiere dependencias de compilación en Alpine)
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del -f .build-deps
 
 # Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
