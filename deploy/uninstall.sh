@@ -22,7 +22,7 @@ cd "$DEPLOY_DIR"
 
 # ── Detener y eliminar contenedores ──
 echo "🛑 Deteniendo contenedores..."
-docker compose down --remove-orphans 2>/dev/null || true
+docker compose --env-file ../.env down --remove-orphans 2>/dev/null || true
 
 # ── Eliminar imágenes del proyecto ──
 echo "🗑️  Eliminando imágenes..."

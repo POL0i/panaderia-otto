@@ -33,7 +33,7 @@ else
     echo "✅ Docker ya instalado: $(docker --version)"
 fi
 
-if ! command -v docker &>/dev/null || ! docker compose version &>/dev/null; then
+if ! command -v docker &>/dev/null || ! docker compose --env-file ../.env version &>/dev/null; then
     echo "❌ Docker Compose no disponible. Instala Docker Desktop o el plugin."
     exit 1
 fi
@@ -95,8 +95,8 @@ fi
 echo ""
 echo "🐳 Construyendo y levantando contenedores..."
 cd "$DEPLOY_DIR"
-docker compose build --no-cache php
-docker compose up -d
+docker compose --env-file ../.env build --no-cache php
+docker compose --env-file ../.env up -d
 
 echo ""
 echo "⏳ Esperando que MySQL esté listo..."
@@ -104,23 +104,23 @@ sleep 15
 
 # ── 7. Instalar dependencias dentro del contenedor PHP ──
 echo "📦 Instalando dependencias de Composer..."
-docker compose exec php composer install --no-dev --optimize-autoloader
+docker compose --env-file ../.env exec php composer install --no-dev --optimize-autoloader
 
 echo "📦 Compilando assets con Vite..."
-docker compose exec php npm ci
-docker compose exec php npm run build
+docker compose --env-file ../.env exec php npm ci
+docker compose --env-file ../.env exec php npm run build
 
 # ── 8. Configurar Laravel ──
 echo "⚙️  Configurando Laravel..."
-docker compose exec php php artisan key:generate --force
-docker compose exec php php artisan storage:link
-docker compose exec php php artisan config:cache
-docker compose exec php php artisan route:cache
-docker compose exec php php artisan view:cache
+docker compose --env-file ../.env exec php php artisan key:generate --force
+docker compose --env-file ../.env exec php php artisan storage:link
+docker compose --env-file ../.env exec php php artisan config:cache
+docker compose --env-file ../.env exec php php artisan route:cache
+docker compose --env-file ../.env exec php php artisan view:cache
 
 # ── 9. Migrar base de datos ──
 echo "🗄️  Ejecutando migraciones..."
-docker compose exec php php artisan migrate --force
+docker compose --env-file ../.env exec php php artisan migrate --force
 
 echo ""
 echo "╔══════════════════════════════════════════════╗"
@@ -130,6 +130,6 @@ echo "║   🌐 https://$DOMINIO          ║"
 echo "╚══════════════════════════════════════════════╝"
 echo ""
 echo "Comandos útiles:"
-echo "  Ver logs:      docker compose -f deploy/docker-compose.yml logs -f"
-echo "  Detener:       docker compose -f deploy/docker-compose.yml stop"
+echo "  Ver logs:      docker compose --env-file ../.env -f deploy/docker-compose.yml logs -f"
+echo "  Detener:       docker compose --env-file ../.env -f deploy/docker-compose.yml stop"
 echo "  Desinstalar:   bash deploy/uninstall.sh"

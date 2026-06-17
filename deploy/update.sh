@@ -17,19 +17,19 @@ git pull origin main
 
 # Reinstalar dependencias si cambiaron
 cd "$DEPLOY_DIR"
-docker compose exec php composer install --no-dev --optimize-autoloader
-docker compose exec php npm ci
-docker compose exec php npm run build
+docker compose --env-file ../.env exec php composer install --no-dev --optimize-autoloader
+docker compose --env-file ../.env exec php npm ci
+docker compose --env-file ../.env exec php npm run build
 
 # Aplicar migraciones pendientes
-docker compose exec php php artisan migrate --force
+docker compose --env-file ../.env exec php php artisan migrate --force
 
 # Limpiar cachés
-docker compose exec php php artisan config:cache
-docker compose exec php php artisan route:cache
-docker compose exec php php artisan view:cache
+docker compose --env-file ../.env exec php php artisan config:cache
+docker compose --env-file ../.env exec php php artisan route:cache
+docker compose --env-file ../.env exec php php artisan view:cache
 
 # Reiniciar PHP-FPM
-docker compose restart php
+docker compose --env-file ../.env restart php
 
 echo "✅ Actualización completa"
