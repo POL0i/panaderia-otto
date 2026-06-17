@@ -147,6 +147,9 @@ class RBACSeeder extends Seeder
             'proveedores_ver',
             'clientes_ver',
 
+            // Permisos de acción
+            'ventas_completar',
+
             // Sub-módulos de Almacén
             'almacenes_ver',
             'productos_ver',
@@ -213,6 +216,7 @@ class RBACSeeder extends Seeder
             'produccion_ver', 'reportes_ver',
             'panel_almacen_ver', 'panel_produccion_ver',
             'gestionar_produccion',
+            'clientes_ver', // Gerente puede ver clientes
         ];
         foreach ($permisosGerente as $nombre) {
             if (isset($permisos[$nombre])) {
@@ -220,8 +224,8 @@ class RBACSeeder extends Seeder
             }
         }
 
-        // ENCARGADO VENTA
-        $permisosVenta = ['gestion_comercial_ver', 'notas_venta_ver', 'clientes_ver'];
+        // ENCARGADO VENTA - Gestión comercial y notas de venta (sin acceso a clientes)
+        $permisosVenta = ['gestion_comercial_ver', 'notas_venta_ver'];
         foreach ($permisosVenta as $nombre) {
             if (isset($permisos[$nombre])) {
                 $this->crearRolPermiso($roles['Encargado Venta'], $permisos[$nombre]);
@@ -259,8 +263,8 @@ class RBACSeeder extends Seeder
             }
         }
 
-        // EMPLEADO - Solo lectura básica
-        $permisosEmpleado = ['gestion_comercial_ver', 'almacen_ver', 'inventario_ver', 'produccion_ver'];
+        // EMPLEADO - Solo lectura de operaciones (sin gestión comercial)
+        $permisosEmpleado = ['almacen_ver', 'inventario_ver', 'produccion_ver'];
         foreach ($permisosEmpleado as $nombre) {
             if (isset($permisos[$nombre])) {
                 $this->crearRolPermiso($roles['Empleado'], $permisos[$nombre]);

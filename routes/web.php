@@ -75,7 +75,7 @@ Route::prefix('carrito')->name('carrito.')->group(function () {
     // En routes/web.php
     Route::post('/ventas/{id}/completar-manual', [VentaController::class, 'completarVentaManual'])
         ->name('ventas.completar-manual')
-        ->middleware(['auth', 'permiso:ventas_completar']);
+        ->middleware(['auth', 'admin']); // Solo admin puede completar ventas manualmente
         
     // Registro rápido de clientes
     Route::post('/registro/cliente/rapido', [UsuarioController::class, 'registroClienteRapido'])
@@ -163,10 +163,12 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // =============================================
-    // MÓDULO: CLIENTES
+    // MÓDULO: CLIENTES (Solo Admin y Gerente)
     // =============================================
-    Route::resource('clientes', ClienteController::class)
-        ->only(['index', 'show', 'edit', 'update']);
+    Route::middleware(['permiso:clientes_ver'])->group(function () {
+        Route::resource('clientes', ClienteController::class)
+            ->only(['index', 'show', 'edit', 'update']);
+    });
 
     // =============================================
     // MÓDULO: USUARIOS Y SEGURIDAD (Solo Admin)
