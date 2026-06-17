@@ -1,0 +1,110 @@
+version: "3.9"
+
+# ============================================================
+# Panadería Otto — Stack de producción con Docker Compose
+# Servicios: Nginx, PHP-FPM 8.2, MySQL 8, Redis
+# ============================================================
+
+services:
+
+  # ----------------------------------------------------------
+  # NGINX — Servidor web / proxy inverso
+  # ----------------------------------------------------------
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: panaderia_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../:/var/www/html:ro          # código de la app (solo lectura)
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro # certificados SSL
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - php
+    networks:
+      - panaderia_net
+
+  # ----------------------------------------------------------
+  # PHP-FPM 8.2 — Procesador de PHP
+  # ----------------------------------------------------------
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile.php
+    container_name: panaderia_php
+    restart: unless-stopped
+    volumes:
+      - ../:/var/www/html              # código de la app (lectura/escritura para storage)
+      - php_logs:/var/log/php
+    environment:
+      - APP_ENV=production
+    env_file:
+      - ../.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - panaderia_net
+
+  # ----------------------------------------------------------
+  # MYSQL 8 — Base de datos
+  # ----------------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: panaderia_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-panaderia_otto}
+      MYSQL_USER: ${DB_USERNAME:-panaderia}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "127.0.0.1:3306:3306"         # solo localhost, no expuesto al exterior
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - panaderia_net
+
+  # ----------------------------------------------------------
+  # REDIS — Caché y sesiones
+  # ----------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: panaderia_redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - panaderia_net
+
+# ----------------------------------------------------------
+# VOLÚMENES persistentes (se conservan al reiniciar)
+# ----------------------------------------------------------
+volumes:
+  mysql_data:
+    name: panaderia_mysql_data
+  redis_data:
+    name: panaderia_redis_data
+  nginx_logs:
+    name: panaderia_nginx_logs
+  php_logs:
+    name: panaderia_php_logs
+
+# ----------------------------------------------------------
+# RED interna (los contenedores se comunican por nombre)
+# ----------------------------------------------------------
+networks:
+  panaderia_net:
+    name: panaderia_net
+    driver: bridge
