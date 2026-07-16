@@ -438,6 +438,10 @@
                                 inventario
                             </button>
                             <button type="button" class="btn btn-sm btn-outline-info sugerencia-btn" 
+                                    data-correo="compra@panaderia-otto.shop" style="font-size: 0.75rem; padding: 2px 8px;">
+                                compra
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-info sugerencia-btn" 
                                     data-correo="produccion@panaderia-otto.shop" style="font-size: 0.75rem; padding: 2px 8px;">
                                 produccion
                             </button>

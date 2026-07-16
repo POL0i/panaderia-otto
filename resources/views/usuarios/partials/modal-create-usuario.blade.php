@@ -95,6 +95,17 @@
                             </div>
                         </div>
 
+                        {{-- Fecha de Contrato --}}
+                        <div class="col-md-6">
+                            <div class="form-group
+">
+                                <label class="text-panaderia" for="fecha_contrato">
+                                    <i class="fas fa-calendar-alt mr-1"></i>Fecha de Contrato
+                                </label>
+                                <input type="date" name="fecha_contrato" id="fecha_contrato" class="form-control">
+                            </div>
+                        </div>
+
                         {{-- ✅ Contenedores de Empleado y Cliente (se muestran según tipo) --}}
                         <div class="col-md-12">
                             {{-- Contenedor de Empleado --}}
