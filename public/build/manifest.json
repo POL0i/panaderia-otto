@@ -8,8 +8,17 @@
       "app.css"
     ]
   },
+  "resources/css/panaderia-theme.css": {
+    "file": "assets/panaderia-theme-Bb2lHIsK.css",
+    "src": "resources/css/panaderia-theme.css",
+    "isEntry": true,
+    "name": "panaderia-theme",
+    "names": [
+      "panaderia-theme.css"
+    ]
+  },
   "resources/js/app.js": {
-    "file": "assets/app-Db8QfRvV.js",
+    "file": "assets/app-C_NGR6Hx.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

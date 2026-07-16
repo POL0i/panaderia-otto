@@ -6,12 +6,19 @@
             <div class="card">
                 <div class="card-header">{{ __('Register') }}</div>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('register') }}">
+                    <form method="POST" action="{{ route('register') }}" autocomplete="on">
                         @csrf
+                        {{-- Honeypot anti-bots --}}
+                        <div style="display:none" aria-hidden="true">
+                            <input type="text" name="website" value="" tabindex="-1" autocomplete="off">
+                        </div>
                         <div class="row mb-3">
                             <label for="correo" class="col-md-4 col-form-label text-md-end">{{ __('Correo') }}</label>
                             <div class="col-md-6">
-                                <input id="correo" type="email" class="form-control @error('correo') is-invalid @enderror" name="correo" value="{{ old('correo') }}" required autocomplete="email">
+                                <input id="correo" type="email" class="form-control @error('correo') is-invalid @enderror"
+                                    name="correo" value="{{ old('correo') }}"
+                                    required autocomplete="email"
+                                    maxlength="255" inputmode="email">
                                 @error('correo')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -20,7 +27,10 @@
                         <div class="row mb-3">
                             <label for="contraseña" class="col-md-4 col-form-label text-md-end">{{ __('Contraseña') }}</label>
                             <div class="col-md-6">
-                                <input id="contraseña" type="password" class="form-control @error('contraseña') is-invalid @enderror" name="contraseña" required autocomplete="new-password">
+                                <input id="contraseña" type="password" class="form-control @error('contraseña') is-invalid @enderror"
+                                    name="contraseña" required autocomplete="new-password"
+                                    maxlength="128" minlength="8">
+                                <small class="form-text text-muted">Mínimo 8 caracteres, una letra y un número.</small>
                                 @error('contraseña')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>

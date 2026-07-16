@@ -1,0 +1,168 @@
+version: "3.9"
+
+# ============================================================
+# Panadería Otto — Stack de producción con Docker Compose
+# Servicios: Nginx, PHP-FPM 8.2, MySQL 8, Redis
+# ============================================================
+
+services:
+
+  # ----------------------------------------------------------
+  # NGINX — Servidor web / proxy inverso
+  # ----------------------------------------------------------
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: panaderia_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../:/var/www/html:ro          # código de la app (solo lectura)
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/micro.conf:/etc/nginx/conf.d/micro.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro # certificados SSL
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - php
+    networks:
+      - panaderia_net
+      - panaderia-micro_panaderia_net
+
+  # ----------------------------------------------------------
+  # PHP-FPM 8.2 — Procesador de PHP
+  # ----------------------------------------------------------
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile.php
+    container_name: panaderia_php
+    restart: unless-stopped
+    volumes:
+      - ../:/var/www/html              # código de la app (lectura/escritura para storage)
+      - php_logs:/var/log/php
+    environment:
+      - APP_ENV=production
+    env_file:
+      - ../.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - panaderia_net
+
+  # ----------------------------------------------------------
+  # MYSQL 8 — Base de datos
+  # ----------------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: panaderia_otto_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-panaderia_otto}
+      MYSQL_USER: ${DB_USERNAME:-panaderia}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "127.0.0.1:33060:3306"        # puerto host 33060 para evitar conflictos con MySQL local
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - panaderia_net
+
+  # ----------------------------------------------------------
+  # REDIS — Caché y sesiones
+  # ----------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: panaderia_redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - panaderia_net
+
+  # ----------------------------------------------------------
+  # MAILSERVER — Servidor de Correo (Postfix + Dovecot)
+  # ----------------------------------------------------------
+  mailserver:
+    image: docker.io/mailserver/docker-mailserver:latest
+    container_name: panaderia_mailserver
+    hostname: correo.panaderia-otto.shop
+    domainname: panaderia-otto.shop
+    ports:
+      - "25:25"
+      - "143:143"
+      - "587:587"
+      - "993:993"
+    volumes:
+      - mailserver_data:/var/mail
+      - mailserver_state:/var/mail-state
+      - mailserver_logs:/var/log/mail
+      - ./mailserver/config:/tmp/docker-mailserver
+    environment:
+      - ENABLE_SPAMASSASSIN=0
+      - ENABLE_CLAMAV=0
+      - ENABLE_FAIL2BAN=0
+      - ENABLE_POSTGREY=0
+      - ONE_DIR=1
+      - PERMIT_DOCKER=network # Permite a contenedores internos enviar sin auth si es necesario
+    restart: unless-stopped
+    networks:
+      - panaderia_net
+
+  # ----------------------------------------------------------
+  # ROUNDCUBE — Cliente de correo web
+  # ----------------------------------------------------------
+  roundcube:
+    image: roundcube/roundcubemail:latest
+    container_name: panaderia_roundcube
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
+    environment:
+      - ROUNDCUBEMAIL_DEFAULT_HOST=panaderia_mailserver
+      - ROUNDCUBEMAIL_SMTP_SERVER=panaderia_mailserver
+      - ROUNDCUBEMAIL_DEFAULT_PORT=143
+      - ROUNDCUBEMAIL_SMTP_PORT=587
+    depends_on:
+      - mailserver
+    networks:
+      - panaderia_net
+
+# ----------------------------------------------------------
+# VOLÚMENES persistentes (se conservan al reiniciar)
+# ----------------------------------------------------------
+volumes:
+  mysql_data:
+    name: panaderia_mysql_data
+  redis_data:
+    name: panaderia_redis_data
+  nginx_logs:
+    name: panaderia_nginx_logs
+  php_logs:
+    name: panaderia_php_logs
+  mailserver_data:
+    name: panaderia_mailserver_data
+  mailserver_state:
+    name: panaderia_mailserver_state
+  mailserver_logs:
+    name: panaderia_mailserver_logs
+
+# ----------------------------------------------------------
+# RED interna (los contenedores se comunican por nombre)
+# ----------------------------------------------------------
+networks:
+  panaderia_net:
+    name: panaderia_net
+    driver: bridge
+  panaderia-micro_panaderia_net:
+    external: true

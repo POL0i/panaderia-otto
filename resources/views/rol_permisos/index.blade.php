@@ -75,7 +75,7 @@
                                                 </button>
                                                 
                                                 {{-- Editar Rol --}}
-                                                <a href="{{ route('roles.edit', $rol->id_rol) }}" 
+                                                <a href="{{ route('roles.permisos.edit', $rol->id_rol) }}" 
                                                    class="btn btn-outline-primary"
                                                    title="Editar rol">
                                                     <i class="fas fa-edit"></i>

@@ -75,7 +75,7 @@ Route::prefix('carrito')->name('carrito.')->group(function () {
     // En routes/web.php
     Route::post('/ventas/{id}/completar-manual', [VentaController::class, 'completarVentaManual'])
         ->name('ventas.completar-manual')
-        ->middleware(['auth', 'permiso:ventas_completar']);
+        ->middleware(['auth', 'admin']); // Solo admin puede completar ventas manualmente
         
     // Registro rápido de clientes
     Route::post('/registro/cliente/rapido', [UsuarioController::class, 'registroClienteRapido'])
@@ -99,7 +99,7 @@ Route::prefix('carrito')->name('carrito.')->group(function () {
 
 // Búsqueda rápida (en ventas)
 
-Route::get('/buscar', [VentaController::class, 'buscar'])->name('buscar');
+Route::get('/buscar', [VentaController::class, 'buscar'])->name('buscar')->middleware('throttle:30,1');
 
 // Autenticación (login, registro, etc.)
 Auth::routes();
@@ -163,10 +163,12 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // =============================================
-    // MÓDULO: CLIENTES
+    // MÓDULO: CLIENTES (Solo Admin y Gerente)
     // =============================================
-    Route::resource('clientes', ClienteController::class)
-        ->only(['index', 'show', 'edit', 'update']);
+    Route::middleware(['permiso:clientes_ver'])->group(function () {
+        Route::resource('clientes', ClienteController::class)
+            ->only(['index', 'show', 'edit', 'update']);
+    });
 
     // =============================================
     // MÓDULO: USUARIOS Y SEGURIDAD (Solo Admin)
@@ -195,9 +197,9 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('rol-permiso-usuarios', RolPermisoUsuarioController::class);
 
         Route::prefix('roles')->name('roles.')->group(function () {
-            Route::get('{id}/edit', [RolPermisoController::class, 'editRole'])->name('edit');
-            Route::put('{id}', [RolPermisoController::class, 'updateRole'])->name('update');
-            Route::delete('{id}', [RolPermisoController::class, 'destroyRole'])->name('destroy');
+            Route::get('{id}/permisos/edit', [RolPermisoController::class, 'editRole'])->name('permisos.edit');
+            Route::put('{id}/permisos', [RolPermisoController::class, 'updateRole'])->name('permisos.update');
+            Route::delete('{id}/permisos', [RolPermisoController::class, 'destroyRole'])->name('permisos.destroy');
             Route::delete('{id}/clear-permissions', [RolPermisoController::class, 'clearPermissions'])->name('clear-permissions');
         });
 
@@ -266,7 +268,7 @@ Route::middleware(['auth'])->group(function () {
     // MÓDULO: INVENTARIO
     // =============================================
     Route::middleware(['permiso:inventario_ver'])->group(function () {
-        Route::resource('movimientos', MovimientoInventarioController::class);
+        Route::resource('movimientos', MovimientoInventarioController::class)->except(['show']);
         Route::post('movimientos/filtrar', [MovimientoInventarioController::class, 'filtrar'])->name('movimientos.filtrar');
         Route::get('/traspasos/stock', [TraspasoInventarioController::class, 'getStock'])->name('traspasos.stock');
         Route::get('/traspasos/capacidad', [TraspasoInventarioController::class, 'getCapacidadDisponible'])->name('traspasos.capacidad');
