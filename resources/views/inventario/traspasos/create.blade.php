@@ -2,6 +2,11 @@
 
 @section('title', 'Crear Traspaso de Inventario')
 
+@push('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css" rel="stylesheet">
+@endpush
+
 @section('content')
 <div class="container-fluid">
     <div class="row mb-3">
@@ -49,7 +54,7 @@
                                         @foreach($almacenes as $alm)
                                             <option value="{{ $alm->id_almacen }}" 
                                                     data-tipo="{{ $alm->tipo_almacen }}">
-                                                {{ $alm->nombre }} ({{ $alm->tipo_almacen }})
+                                                #{{ $alm->id_almacen }} - {{ $alm->nombre }} ({{ $alm->tipo_almacen }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -64,7 +69,7 @@
                                         @foreach($almacenes as $alm)
                                             <option value="{{ $alm->id_almacen }}" 
                                                     data-tipo="{{ $alm->tipo_almacen }}">
-                                                {{ $alm->nombre }} ({{ $alm->tipo_almacen }})
+                                                #{{ $alm->id_almacen }} - {{ $alm->nombre }} ({{ $alm->tipo_almacen }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -93,7 +98,7 @@
                                                     data-nombre="{{ $item->nombre }}"
                                                     data-tipo="{{ $item->tipo_item }}"
                                                     data-unidad="{{ $item->unidad_medida }}">
-                                                {{ $item->nombre }} ({{ $item->tipo_item }})
+                                                #{{ $item->id_item }} - {{ $item->nombre }} ({{ $item->tipo_item }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -154,7 +159,31 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+
+$(document).ready(function() {
+    $('#almacen_origen').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Seleccione origen...',
+        allowClear: true
+    });
+
+    $('#almacen_destino').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Seleccione destino...',
+        allowClear: true
+    });
+
+    $('#item_select').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Seleccione item...',
+        allowClear: true
+    });
+});
 
     // Variables globales
 let stockOrigen = 0;

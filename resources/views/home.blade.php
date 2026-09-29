@@ -59,32 +59,33 @@
 
     /* Variantes de color para small boxes */
     .small-box-primary {
-        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        background: linear-gradient(135deg, #4a3525 0%, #362519 100%);
     }
     .small-box-accent {
-        background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark, #c9a871) 100%);
+        background: linear-gradient(135deg, #c88647 0%, #b07238 100%);
     }
     .small-box-accent .inner h3,
-    .small-box-accent .inner p { color: var(--color-primary-dark); }
-    .small-box-accent .icon { color: var(--color-primary-dark); }
+    .small-box-accent .inner p { color: #fff; }
+    .small-box-accent .icon { color: #fff; }
     .small-box-secondary {
-        background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary-dark) 100%);
+        background: linear-gradient(135deg, #8c7361 0%, #7b6b59 100%);
     }
     .small-box-tertiary {
-        background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+        background: linear-gradient(135deg, #eaddd3 0%, #c88647 100%);
+        color: #4a3525 !important;
     }
 
     /* Top productos */
     .top-product-item {
         transition: background 0.2s;
         padding: 0.5rem;
-        border-radius: var(--border-radius-sm);
+        border-radius: 8px;
     }
-    .top-product-item:hover { background: var(--color-bg-lighter); }
-    .top-product-icon { color: var(--color-primary); }
+    .top-product-item:hover { background: #f4f1ea; }
+    .top-product-icon { color: #c88647; }
     .top-product-badge {
-        background: var(--color-accent);
-        color: var(--color-primary-dark);
+        background: #f4f1ea;
+        color: #4a3525;
         padding: 8px 12px;
         border-radius: 20px;
         font-weight: 500;
@@ -351,7 +352,7 @@
                             legend: {
                                 labels: {
                                     color: primaryColor,
-                                    font: { family: 'Poppins', size: 12 }
+                                    font: { family: 'Outfit', size: 12 }
                                 }
                             }
                         },
@@ -360,7 +361,7 @@
                                 grid: { display: false },
                                 ticks: { 
                                     color: primaryColor,
-                                    font: { family: 'Poppins' }
+                                    font: { family: 'Outfit' }
                                 }
                             },
                             y: {
@@ -368,7 +369,7 @@
                                 grid: { color: accentColor + '30' },
                                 ticks: {
                                     color: primaryColor,
-                                    font: { family: 'Poppins' },
+                                    font: { family: 'Outfit' },
                                     callback: function(value) {
                                         return 'Bs. ' + value;
                                     }

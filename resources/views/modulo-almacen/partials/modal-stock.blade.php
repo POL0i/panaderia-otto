@@ -19,7 +19,7 @@
                             <option value="">Seleccionar...</option>
                             @foreach($almacenes as $alm)
                                 <option value="{{ $alm->id_almacen }}" data-tipo="{{ $alm->tipo_almacen }}">
-                                    {{ $alm->nombre }} 
+                                    #{{ $alm->id_almacen }} - {{ $alm->nombre }} 
                                     ({{ $alm->tipo_almacen === 'insumo' ? 'Solo Insumos' : ($alm->tipo_almacen === 'producto' ? 'Solo Productos' : 'Mixto') }})
                                 </option>
                             @endforeach
@@ -109,7 +109,7 @@ $(document).ready(function() {
             $itemSelect.append('<option value="">Seleccionar item...</option>');
             filteredItems.forEach(item => {
                 $itemSelect.append(
-                    '<option value="' + item.id + '">' + item.nombre + 
+                    '<option value="' + item.id + '">#' + item.id + ' - ' + item.nombre + 
                     ' (' + (item.tipo === 'producto' ? 'Producto' : 'Insumo') + ')</option>'
                 );
             });

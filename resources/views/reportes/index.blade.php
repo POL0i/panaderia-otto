@@ -88,6 +88,13 @@
 
 @section('content')
 <div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12 text-right">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalEnviarReporte">
+                <i class="fas fa-envelope mr-1"></i> Enviar Reporte PDF
+            </button>
+        </div>
+    </div>
     
     {{-- Cards de acceso a reportes --}}
     <div class="row">
@@ -235,4 +242,118 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Enviar Reporte -->
+<div class="modal fade" id="modalEnviarReporte" tabindex="-1" role="dialog" aria-labelledby="modalEnviarReporteTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalEnviarReporteTitle"><i class="fas fa-paper-plane mr-2"></i>Enviar Reporte por Correo</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="formEnviarReporte" action="{{ route('reportes.enviar-pdf') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Tipo de Reporte <span class="text-danger">*</span></label>
+                        <select class="form-control" name="tipo" required>
+                            <option value="comercial">Comercial</option>
+                            <option value="inventario">Inventario</option>
+                            <option value="produccion">Producción</option>
+                        </select>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Fecha Inicio</label>
+                                <input type="date" class="form-control" name="fecha_inicio" value="{{ now()->subDays(30)->format('Y-m-d') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Fecha Fin</label>
+                                <input type="date" class="form-control" name="fecha_fin" value="{{ now()->format('Y-m-d') }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Destinatarios (Usuarios) <span class="text-danger">*</span></label>
+                        <select class="form-control select2" name="correos[]" multiple="multiple" required style="width: 100%;">
+                            @foreach($usuarios as $user)
+                                <option value="{{ $user->correo }}">{{ $user->nombre }} ({{ $user->correo }})</option>
+                            @endforeach
+                            <!-- Permite ingresar correos libres no registrados -->
+                        </select>
+                        <small class="form-text text-muted">Selecciona los usuarios a los que quieres enviar el PDF.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Mensaje opcional</label>
+                        <textarea class="form-control" name="mensaje" rows="3" placeholder="Ej: Adjunto los reportes del mes..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnEnviar">
+                        <i class="fas fa-paper-plane mr-1"></i> Enviar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        // Inicializar Select2
+        if($.fn.select2) {
+            $('.select2').select2({
+                placeholder: "Selecciona usuarios o escribe un correo",
+                tags: true,
+                tokenSeparators: [',', ' ']
+            });
+        }
+        
+        // Manejar el envío AJAX
+        $('#formEnviarReporte').on('submit', function(e) {
+            e.preventDefault();
+            let $btn = $('#btnEnviar');
+            let $form = $(this);
+            
+            $btn.html('<i class="fas fa-spinner fa-spin mr-1"></i> Enviando...').prop('disabled', true);
+            
+            $.ajax({
+                url: $form.attr('action'),
+                method: 'POST',
+                data: $form.serialize(),
+                success: function(res) {
+                    if (res.success) {
+                        toastr.success(res.message);
+                        $('#modalEnviarReporte').modal('hide');
+                        $form[0].reset();
+                        if($.fn.select2) {
+                            $('.select2').val(null).trigger('change');
+                        }
+                    } else {
+                        toastr.error('Error al enviar el correo');
+                    }
+                },
+                error: function(err) {
+                    toastr.error('Ocurrió un error al intentar enviar el reporte.');
+                    console.error(err);
+                },
+                complete: function() {
+                    $btn.html('<i class="fas fa-paper-plane mr-1"></i> Enviar').prop('disabled', false);
+                }
+            });
+        });
+    });
+</script>
+@endpush
+
 @endsection

@@ -49,7 +49,9 @@ class ReporteController extends Controller
             ->limit(10)
             ->get();
 
-        return view('reportes.index', compact('lotesBajos', 'lotesPorVencer', 'lotesVencidos'));
+        $usuarios = \App\Models\Usuario::where('estado', 'activo')->get();
+
+        return view('reportes.index', compact('lotesBajos', 'lotesPorVencer', 'lotesVencidos', 'usuarios'));
     }
 
     /**

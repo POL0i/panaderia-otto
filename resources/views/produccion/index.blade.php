@@ -6,6 +6,8 @@
 @section('page-description', 'Gestión de recetas, insumos y categorías')
 
 @push('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css" rel="stylesheet">
 <style>
     /* ==========================================
        ESTILOS ESPECÍFICOS DEL PANEL DE PRODUCCIÓN
@@ -253,7 +255,7 @@
                                                     data-producto="{{ $receta->producto->item->nombre ?? 'Sin producto' }}"
                                                     data-rinde="{{ $receta->cantidad_requerida }}"
                                                     data-unidad="{{ $receta->producto->item->unidad_medida ?? 'unidad' }}">
-                                                {{ $receta->nombre }}
+                                                #{{ $receta->id_receta }} - {{ $receta->nombre }}
                                                 @if($receta->producto && $receta->producto->item)
                                                     ({{ $receta->producto->item->nombre }} - 
                                                     {{ $receta->cantidad_requerida }} {{ $receta->producto->item->unidad_medida }}/lote)
@@ -432,7 +434,7 @@
                                     <option value="">Seleccione...</option>
                                     @foreach(\App\Models\Producto::with('item')->get() as $producto)
                                         <option value="{{ $producto->id_producto }}">
-                                            {{ $producto->item->nombre }}
+                                            #{{ $producto->id_producto }} - {{ $producto->item->nombre }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -497,6 +499,14 @@
                 <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
             </div>
             <div class="modal-body bg-panaderia-light p-2">
+                <div class="mb-2 px-1">
+                    <div class="input-group input-group-sm">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        </div>
+                        <input type="text" id="buscadorInsumos" class="form-control" placeholder="Buscar insumo por nombre...">
+                    </div>
+                </div>
                 <div id="insumosContainer" class="insumos-container">
                     @foreach($categorias ?? [] as $categoria)
                         @if($categoria->insumos->count() > 0)
@@ -553,9 +563,25 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(document).ready(function() {
     
+    $('#produccion_receta').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Seleccione receta...',
+        allowClear: true
+    });
+
+    $('#recetaProducto').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Seleccione producto final...',
+        dropdownParent: $('#createRecetaModal'),
+        allowClear: true
+    });
+
     // ==========================================
     // SCRIPT PARA NUEVA PRODUCCIÓN
     // ==========================================
@@ -632,6 +658,34 @@ $(document).ready(function() {
         var count = $('.insumo-checkbox:checked').length;
         $('#insumosCountBadge').text(count);
     }
+
+    // Buscador de insumos
+    $('#buscadorInsumos').on('keyup', function() {
+        var term = $(this).val().toLowerCase();
+        
+        // Mostrar todas las categorías primero para que :visible funcione correctamente
+        $('.insumo-category-header').parent().show();
+
+        $('.insumo-item').each(function() {
+            var text = $(this).find('.text-panaderia').text().toLowerCase();
+            if (text.indexOf(term) > -1) {
+                $(this).closest('.col-12').show();
+            } else {
+                $(this).closest('.col-12').hide();
+            }
+        });
+        
+        // Ocultar categorías vacías
+        $('.insumo-category-header').each(function() {
+            var categoryBlock = $(this).parent();
+            var visibleItems = categoryBlock.find('.col-12:visible').length;
+            if (visibleItems > 0) {
+                categoryBlock.show();
+            } else {
+                categoryBlock.hide();
+            }
+        });
+    });
 
     // Botón "Aplicar selección"
     $('#btnAplicarSeleccion').on('click', function() {

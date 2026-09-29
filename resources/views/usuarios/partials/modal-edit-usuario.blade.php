@@ -1,17 +1,17 @@
 {{-- resources/views/usuarios/partials/modal-edit-usuario.blade.php --}}
 <div class="modal fade" id="editUsuarioModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content border-panaderia">
-            <div class="modal-header" style="background: linear-gradient(135deg, var(--color-primary-medium) 0%, var(--color-primary-dark) 100%);">
-                <h5 class="modal-title text-white">
-                    <i class="fas fa-user-edit mr-2"></i> Editar Usuario
+        <div class="modal-content glass-card" style="border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.95);">
+            <div class="modal-header bakery-header" style="background: transparent; border-bottom: 1px solid rgba(74,53,37,0.1); padding: 1.5rem;">
+                <h5 class="modal-title font-weight-bold" style="color: #4a3525;">
+                    <i class="fas fa-user-edit mr-2" style="color: #c88647;"></i> Editar Usuario
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                <button type="button" class="close" data-dismiss="modal" style="color: #4a3525;">&times;</button>
             </div>
             <form id="formEditarUsuario">
                 @csrf
                 @method('PUT')
-                <div class="modal-body bg-panaderia-light">
+                <div class="modal-body" style="background: transparent; padding: 1.5rem;">
                     <input type="hidden" name="id_usuario" id="edit_id_usuario">
                     
                     <div class="row">
@@ -70,7 +70,7 @@
                                     @endforeach
                                 </select>
                                 <div class="input-group-append">
-                                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#createEmpleadoModal">
+                                    <button type="button" class="btn btn-caramel" data-toggle="modal" data-target="#createEmpleadoModal" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px;">
                                         <i class="fas fa-plus"></i> Nuevo
                                     </button>
                                 </div>
@@ -92,7 +92,7 @@
                                     @endforeach
                                 </select>
                                 <div class="input-group-append">
-                                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#createClienteModal">
+                                    <button type="button" class="btn btn-caramel" data-toggle="modal" data-target="#createClienteModal" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px;">
                                         <i class="fas fa-plus"></i> Nuevo
                                     </button>
                                 </div>
@@ -101,11 +101,11 @@
                     </div>
                 </div>
                 
-                <div class="modal-footer bg-panaderia-lighter">
-                    <button type="button" class="btn btn-cancel" data-dismiss="modal">
+                <div class="modal-footer" style="background: transparent; border-top: 1px solid rgba(74,53,37,0.1);">
+                    <button type="button" class="btn btn-light" data-dismiss="modal" style="border-radius: 50px; color: #8c7361;">
                         <i class="fas fa-times mr-1"></i> Cancelar
                     </button>
-                    <button type="submit" class="btn btn-save">
+                    <button type="submit" class="btn btn-coffee" style="border-radius: 50px;">
                         <i class="fas fa-save mr-1"></i> Actualizar Usuario
                     </button>
                 </div>

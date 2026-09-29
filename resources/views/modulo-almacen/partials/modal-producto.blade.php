@@ -58,7 +58,7 @@
                                     <select name="id_cat_producto" id="productoCategoria" class="form-control" required>
                                         <option value="">Seleccionar categoría...</option>
                                         @foreach($categorias ?? [] as $categoria)
-                                            <option value="{{ $categoria->id_cat_producto }}">{{ $categoria->nombre }}</option>
+                                            <option value="{{ $categoria->id_cat_producto }}">#{{ $categoria->id_cat_producto }} - {{ $categoria->nombre }}</option>
                                         @endforeach
                                     </select>
                                     <div class="input-group-append">

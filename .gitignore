@@ -78,3 +78,8 @@ $RECYCLE.BIN/
 # Tests
 .phpunit.cache/
 coverage/
+# Docker mailserver data
+docker/mailserver/log/
+docker/mailserver/mail/
+docker/mailserver/state/
+docker/mailserver/config/ssl/

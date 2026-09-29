@@ -5,6 +5,8 @@
 @section('page-description', 'Gestión de almacenes, productos, insumos y stock')
 
 @push('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css" rel="stylesheet">
 <style>
     /* ==========================================
        ESTILOS ESPECÍFICOS - MÓDULO ALMACÉN
@@ -268,3 +270,42 @@
 @include('modulo-almacen.partials.modal-stock', ['almacenes' => $almacenes, 'items' => $items])
 
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('#productoCategoria').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Seleccionar categoría...',
+        dropdownParent: $('#createProductoModal'),
+        allowClear: true
+    });
+
+    $('#insumoCategoria').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Seleccionar categoría...',
+        dropdownParent: $('#createInsumoModal'),
+        allowClear: true
+    });
+
+    $('#stockAlmacenSelect').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Seleccionar...',
+        dropdownParent: $('#manageStockModal'),
+        allowClear: true
+    });
+
+    $('#stockItemSelect').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Primero selecciona un almacén...',
+        dropdownParent: $('#manageStockModal'),
+        allowClear: true
+    });
+});
+</script>
+@endpush

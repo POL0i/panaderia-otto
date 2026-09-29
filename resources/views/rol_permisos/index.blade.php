@@ -7,10 +7,10 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <div class="card animate-fade-in-up">
-                <div class="card-header bg-gradient-primary">
-                    <h3 class="card-title">
-                        <i class="fas fa-shield-alt mr-2"></i>
+            <div class="card card-modern animate-fade-in-up">
+                <div class="card-header bakery-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title font-weight-bold" style="color: #4a3525;">
+                        <i class="fas fa-shield-alt mr-2" style="color: #c88647;"></i>
                         Gestión de Roles y Permisos
                     </h3>
                     <div class="card-tools">
@@ -23,7 +23,7 @@
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
-                            <thead class="bg-light">
+                            <thead style="background: #f4f1ea;">
                                 <tr>
                                     <th style="width: 5%">#</th>
                                     <th>
@@ -246,17 +246,45 @@ $(function () {
 
 @push('styles')
 <style>
+/* Estilos modernos de Panadería */
+.card-modern {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255, 0.6);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(74, 53, 37, 0.08);
+    overflow: hidden;
+    margin-bottom: 25px;
+}
+.bakery-header {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(74, 53, 37, 0.1) !important;
+    padding: 1.5rem !important;
+}
+.btn-save {
+    background: #4a3525;
+    color: white;
+    border-radius: 50px;
+    border: none;
+}
+.btn-save:hover { background: #362519; color: white; }
+.btn-back {
+    background: #c88647;
+    color: white;
+    border-radius: 50px;
+}
+.btn-back:hover { background: #b07238; color: white; }
+
 .fa-info-circle {
     cursor: help;
     opacity: 0.7;
-    color: rgba(255, 255, 255, 0.8) !important;
+    color: #4a3525 !important;
 }
-
 .fa-info-circle:hover {
     opacity: 1;
-    color: #ffffff !important;
+    color: #c88647 !important;
 }
-
 .tooltip .tooltip-inner {
     max-width: 300px;
     padding: 10px 15px;
@@ -265,15 +293,12 @@ $(function () {
     font-size: 0.85rem;
     border-radius: 4px;
 }
-
 .tooltip .tooltip-inner br:last-child {
     display: none;
 }
-
 .tooltip .arrow::before {
     border-bottom-color: #343a40;
 }
-
 .btn-group .btn {
     margin-right: 2px;
 }

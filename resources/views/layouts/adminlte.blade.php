@@ -6,10 +6,38 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Panadería Otto - Sistema de Gestión')</title>
 
-    <!-- Google Font: Poppins -->
+    <!-- Google Font: Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body, .main-sidebar, .main-header, .content-wrapper, .card, .btn, .nav-link, h1, h2, h3, h4, h5, h6 {
+            font-family: 'Outfit', sans-serif !important;
+        }
+        
+        /* Tema Panadería para Sidebar y Navbar */
+        .main-sidebar {
+            background-color: #362519 !important; /* Café muy oscuro */
+        }
+        .main-sidebar .brand-link, .main-sidebar .user-panel {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: #f8f6f0 !important;
+        }
+        .main-sidebar .nav-sidebar .nav-link {
+            color: #eaddd3 !important;
+        }
+        .main-sidebar .nav-sidebar .nav-link:hover, .main-sidebar .nav-sidebar .nav-link.active {
+            background-color: #c88647 !important; /* Caramelo */
+            color: #fff !important;
+        }
+        .main-header.navbar {
+            background-color: #f8f6f0 !important;
+            border-bottom: 1px solid #eaddd3 !important;
+        }
+        .main-header.navbar .nav-link {
+            color: #4a3525 !important;
+        }
+    </style>
 
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">

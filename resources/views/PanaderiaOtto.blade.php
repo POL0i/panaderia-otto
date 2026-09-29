@@ -398,7 +398,18 @@
                             @endif
                         </div>
                         <div class="product-body">
-                            <h3 class="product-title">{{ $producto->nombre }}</h3>
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h3 class="product-title mb-0" style="margin-bottom: 0 !important;">{{ $producto->nombre }}</h3>
+                                <button type="button" class="btn btn-link p-0 text-decoration-none ms-2 mt-1" 
+                                        data-bs-toggle="popover" 
+                                        data-bs-placement="top" 
+                                        data-bs-trigger="focus"
+                                        data-bs-custom-class="custom-popover"
+                                        title="{{ $producto->stock_total > 0 ? 'Disponible' : 'Agotado' }}" 
+                                        data-bs-content="{{ $producto->stock_total > 10 ? 'Contamos con stock suficiente' : ($producto->stock_total > 0 ? '¡Últimas ' . (int)$producto->stock_total . ' unidades!' : 'Por el momento no tenemos stock.') }}">
+                                    <i class="fas fa-circle" style="color: {{ $producto->stock_total > 0 ? '#28a745' : '#dc3545' }}; font-size: 14px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));"></i>
+                                </button>
+                            </div>
                             <p class="product-desc">{{ Str::limit($producto->descripcion ?: 'Delicioso producto artesanal', 80) }}</p>
                             
                             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -414,24 +425,6 @@
                                         {{ $nivel['disabled'] ? 'disabled' : '' }}>
                                     <i class="fas fa-shopping-cart"></i> Agregar
                                 </button>
-                            </div>
-                            
-                            {{-- Indicador de stock visual (sin números) --}}
-                            <div class="stock-indicator">
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <i class="fas {{ $nivel['icono'] }} text-{{ $nivel['clase'] }}"></i>
-                                    <small class="text-{{ $nivel['clase'] }} fw-bold">
-                                        {{ $nivel['texto'] }}
-                                    </small>
-                                    <small class="text-muted ms-2">{{ $nivel['mensaje'] }}</small>
-                                </div>
-                                
-                                {{-- Barra de disponibilidad --}}
-                                <div class="progress mt-2" style="height: 6px; border-radius: 3px; background: #e9ecef;">
-                                    <div class="progress-bar bg-{{ $nivel['clase'] }}" 
-                                        style="width: {{ $nivel['barra_width'] }}%; transition: width 0.5s ease;"
-                                        role="progressbar"></div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -640,6 +633,12 @@
         let cartModal = null;
 
         $(document).ready(function() {
+            // Inicializar Popovers de Bootstrap
+            var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+            var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl)
+            })
+
             cartModal = new bootstrap.Modal(document.getElementById('cartModal'));
             actualizarContadorCarrito();
 

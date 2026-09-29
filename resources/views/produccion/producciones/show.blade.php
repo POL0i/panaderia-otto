@@ -6,6 +6,8 @@
 @section('page-description', 'Revisión y autorización de orden de producción')
 
 @push('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css" rel="stylesheet">
 <style>
     .info-row p { margin-bottom: 0.5rem; }
     .info-row strong { color: var(--color-primary-dark); }
@@ -324,7 +326,7 @@
                                     <option value="">Seleccione de dónde sacar insumos...</option>
                                     @foreach(\App\Models\Almacen::whereIn('tipo_almacen', ['insumo', 'mixto'])->get() as $alm)
                                         <option value="{{ $alm->id_almacen }}">
-                                            {{ $alm->nombre }} ({{ $alm->tipo_almacen }})
+                                            #{{ $alm->id_almacen }} - {{ $alm->nombre }} ({{ $alm->tipo_almacen }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -341,7 +343,7 @@
                                     <option value="">Seleccione dónde guardar producto...</option>
                                     @foreach(\App\Models\Almacen::whereIn('tipo_almacen', ['producto', 'mixto'])->get() as $alm)
                                         <option value="{{ $alm->id_almacen }}">
-                                            {{ $alm->nombre }} ({{ $alm->tipo_almacen }})
+                                            #{{ $alm->id_almacen }} - {{ $alm->nombre }} ({{ $alm->tipo_almacen }})
                                             @if($alm->capacidad > 0) - Cap: {{ $alm->capacidad }} @endif
                                         </option>
                                     @endforeach
@@ -418,17 +420,31 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const produccionId = {{ $produccion->id_produccion }};
-    const selectOrigen = document.getElementById('almacen_origen');
     const divInsumos = document.getElementById('info-stock-insumos');
-    const selectDestino = document.getElementById('almacen_destino');
     const divCapacidad = document.getElementById('info-capacidad-producto');
 
-    if (selectOrigen) {
-        selectOrigen.addEventListener('change', function() {
-            const almacenId = this.value;
+    // Inicializar Select2
+    $('#almacen_origen').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Seleccione de dónde sacar insumos...',
+        allowClear: true
+    });
+
+    $('#almacen_destino').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Seleccione dónde guardar producto...',
+        allowClear: true
+    });
+
+    if ($('#almacen_origen').length) {
+        $('#almacen_origen').on('change', function() {
+            const almacenId = $(this).val();
             if (!almacenId) { divInsumos.innerHTML = ''; return; }
             divInsumos.innerHTML = '<span class="text-muted"><i class="fas fa-spinner fa-pulse"></i> Verificando...</span>';
 
@@ -458,9 +474,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    if (selectDestino) {
-        selectDestino.addEventListener('change', function() {
-            const almacenId = this.value;
+    if ($('#almacen_destino').length) {
+        $('#almacen_destino').on('change', function() {
+            const almacenId = $(this).val();
             if (!almacenId) { divCapacidad.innerHTML = ''; return; }
             divCapacidad.innerHTML = '<span class="text-muted"><i class="fas fa-spinner fa-pulse"></i> Verificando...</span>';
 

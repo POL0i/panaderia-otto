@@ -2,116 +2,207 @@
 @extends('layouts.adminlte')
 
 @section('title', 'Módulo de Acceso - Panadería Otto')
-@section('page-title', 'Módulo de Gestión de Acceso')
-@section('page-description', 'Administración de usuarios, roles y permisos')
+{{-- El título y descripción se muestran alineados con los botones más abajo --}}
 
 @push('styles')
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('css/panaderia-theme.css') }}">
 <style>
     /* ==========================================
-        SECCIÓN DE ESTILOS PARA ACCESO
+        MODERN UI/UX PANADERÍA (Coffee & Cream)
        ========================================== */
-    
-    /* Tarjetas de usuario */
-    .usuario-card {
-        transition: all 0.3s ease;
-        border-radius: 15px;
-        overflow: hidden;
-        height: 100%;
-        background: white;
+    body {
+        font-family: 'Outfit', sans-serif;
+        background-color: #f8f6f0;
     }
     
-    .usuario-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(93, 58, 26, 0.15);
-    }
-    
-    .usuario-card .card-header {
-        background: linear-gradient(135deg, var(--color-primary-medium) 0%, var(--color-primary-dark) 100%);
-        color: white;
-        padding: 1rem;
-    }
-    
-    .usuario-card .card-body {
-        background: var(--color-bg-light);
-        padding: 1.25rem;
-    }
-    
-    .usuario-card .card-footer {
-        background: var(--color-bg-lighter);
-        border-top: 1px solid var(--color-accent);
-        padding: 1rem;
-    }
-    
-    /* Badges de permisos */
-    .permiso-badge {
-        display: inline-block;
-        margin: 2px;
-        padding: 4px 8px;
-        font-size: 0.75rem;
-        border-radius: 20px;
-        background: var(--color-accent);
-        color: var(--color-primary-dark);
-    }
-    
-    /* Contenedor de permisos en modal */
-    .permisos-container {
-        max-height: 350px;
-        overflow-y: auto;
-        border: 1px solid var(--color-accent);
-        border-radius: 10px;
-        padding: 10px;
-        background: white;
-    }
-    
-    .permisos-container::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    .permisos-container::-webkit-scrollbar-track {
-        background: var(--color-bg-light);
-        border-radius: 3px;
-    }
-    
-    .permisos-container::-webkit-scrollbar-thumb {
-        background: var(--color-accent);
-        border-radius: 3px;
-    }
-    
-    /* Botones de acción rápida */
-    .quick-actions {
-        background: var(--color-bg-lighter);
-        border-radius: 50px;
-        padding: 0.5rem;
-        display: inline-flex;
-        gap: 0.5rem;
-    }
-    
-    .quick-actions .btn {
-        border-radius: 50px !important;
-        padding: 0.6rem 1.8rem !important;
-    }
-    
-    /* Estadísticas */
-    .stat-card {
-        background: white;
-        border-radius: 15px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        border-left: 4px solid var(--color-primary-medium);
-    }
-    
-    .stat-number {
-        font-size: 2rem;
+    .admin-title {
         font-weight: 700;
-        color: var(--color-primary-dark);
+        color: #4a3525;
+        letter-spacing: -0.5px;
     }
-    
-    .stat-label {
-        color: var(--color-secondary);
-        font-size: 0.9rem;
+
+    /* Tarjetas Glassmorphism */
+    .card-modern {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255, 0.6);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(74, 53, 37, 0.08);
+        overflow: hidden;
+        margin-bottom: 25px;
+    }
+
+    .card-modern .card-header {
+        background: transparent;
+        border-bottom: 1px solid rgba(0,0,0,0.04);
+        padding: 1.5rem;
+    }
+
+    /* Tabla moderna compacta */
+    .table-modern {
+        border-collapse: separate;
+        border-spacing: 0 8px;
+        margin-top: -8px;
+        width: 100%;
+    }
+    .table-modern thead th {
+        border: none;
+        color: #8c7361;
+        font-weight: 600;
+        font-size: 0.8rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        padding: 10px 15px;
+    }
+    .table-modern tbody tr {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        border-radius: 12px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .table-modern tbody tr:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(74, 53, 37, 0.08);
+    }
+    .table-modern tbody td {
+        border: none;
+        padding: 4px 10px; /* Reducido para comprimir el espacio vertical */
+        vertical-align: middle;
+        font-size: 0.9rem;
+        color: #4a3525;
+    }
+    .table-modern tbody td:first-child {
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+    }
+    .table-modern tbody td:last-child {
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+
+    /* Botones píldora */
+    .quick-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+    .quick-actions .btn {
+        border-radius: 50px;
+        padding: 0.6rem 1.8rem;
+        font-weight: 500;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    .quick-actions .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .btn-coffee { background: #4a3525; color: white; border: none; }
+    .btn-coffee:hover { background: #362519; color: white; }
+    .btn-caramel { background: #c88647; color: white; border: none; }
+    .btn-caramel:hover { background: #b07238; color: white; }
+    .btn-cream { background: white; color: #4a3525; border: 1px solid #eaddd3; }
+    .btn-cream:hover { background: #f4f1ea; color: #4a3525; }
+
+    /* Buscador */
+    .search-modern {
+        background: #f4f1ea;
+        border: none;
+        border-radius: 50px;
+        padding: 0.5rem 1.2rem;
+        font-size: 0.9rem;
+        width: 250px;
+        color: #4a3525;
+    }
+    .search-modern:focus {
+        outline: none;
+        background: white;
+        box-shadow: 0 0 0 2px #c88647;
+    }
+
+    /* Badges compactos */
+    .badge-compact {
+        padding: 4px 8px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        border-radius: 8px;
+    }
+    .badge-coffee { background: rgba(74, 53, 37, 0.1); color: #4a3525; }
+    .badge-caramel { background: rgba(200, 134, 71, 0.15); color: #b07238; }
+    .badge-gray { background: #f4f1ea; color: #8c7361; }
+    .badge-success-soft { background: rgba(40, 167, 69, 0.1); color: #28a745; }
+    .badge-danger-soft { background: rgba(220, 53, 69, 0.1); color: #dc3545; }
+
+    /* Botón flotante para correo */
+    .email-btn {
+        background: #f4f1ea;
+        color: #8c7361;
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .email-btn:hover {
+        background: #c88647;
+        color: white;
+    }
+
+    /* Estadísticas al pie */
+    .stats-footer {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .stat-compact {
+        background: white;
+        border-radius: 16px;
+        padding: 0.8rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: 0 4px 15px rgba(74, 53, 37, 0.05);
+        border: 1px solid rgba(74, 53, 37, 0.05);
+    }
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+    .stat-info h4 { margin: 0; font-size: 1.3rem; font-weight: 700; color: #4a3525; line-height: 1; }
+    .stat-info p { margin: 0; font-size: 0.75rem; color: #8c7361; font-weight: 600; text-transform: uppercase; }
+
+    .icon-users { background: rgba(74, 53, 37, 0.1); color: #4a3525; }
+    .icon-roles { background: rgba(200, 134, 71, 0.15); color: #c88647; }
+    .icon-perms { background: rgba(40, 167, 69, 0.1); color: #28a745; }
+    
+    /* Avatar / Icono de Usuario */
+    .user-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 10px;
+        background: #f4f1ea;
+        color: #c88647;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-right: 10px;
     }
 </style>
 @endpush
@@ -134,146 +225,149 @@
         </div>
     @endif
 
-    {{-- Estadísticas rápidas --}}
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="stat-card">
-                <div class="stat-number">{{ $usuarios->count() }}</div>
-                <div class="stat-label"><i class="fas fa-users mr-2"></i>Usuarios Totales</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card">
-                <div class="stat-number">{{ $roles->count() }}</div>
-                <div class="stat-label"><i class="fas fa-tags mr-2"></i>Roles</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card">
-                <div class="stat-number">{{ $permisos->count() }}</div>
-                <div class="stat-label"><i class="fas fa-key mr-2"></i>Permisos</div>
-            </div>
-        </div>
-    </div>
+    {{-- Stats movidas al final --}}
 
-    {{-- Botones de acción rápida --}}
-    <div class="row mb-4">
-        <div class="col-12 text-center">
-            <div class="quick-actions">
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createUsuarioModal">
+    {{-- Botones de acción rápida modernos movidos a la cabecera --}}
+    <div class="row mb-3 align-items-center">
+        <div class="col-md-5">
+            <h2 class="mb-1" style="color: #4a3525; font-weight: 700;">Módulo de Gestión de Acceso</h2>
+            <p class="text-muted mb-0" style="color: #7b6b59 !important;">Administración de usuarios, roles y permisos</p>
+        </div>
+        <div class="col-md-7 text-right">
+            <div class="quick-actions justify-content-end mb-0">
+                <button type="button" class="btn btn-coffee" data-toggle="modal" data-target="#createUsuarioModal">
                     <i class="fas fa-user-plus mr-2"></i> Nuevo Usuario
                 </button>
-                <a href="{{ route('personas.index') }}" class="btn btn-info">
-                    <i class="fas fa-address-book mr-2"></i> Directorio de Personas
+                <a href="{{ route('personas.index') }}" class="btn btn-cream">
+                    <i class="fas fa-address-book mr-2"></i> Directorio
                 </a>
-                <a href="{{ route('rol_permisos.index') }}" class="btn btn-warning">
+                <a href="{{ route('rol_permisos.index') }}" class="btn btn-caramel">
                     <i class="fas fa-shield-alt mr-2"></i> Roles y Permisos
                 </a>
             </div>
         </div>
     </div>
 
-    {{-- Lista de Usuarios --}}
+    {{-- Lista de Usuarios (Comprimida) --}}
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-users mr-2"></i> Usuarios del Sistema
-                    </h5>
-                    <div class="card-tools">
-                        <input type="text" id="searchUsuario" class="form-control form-control-sm" 
-                            placeholder="Buscar usuario..." style="width: 250px;">
+            <div class="card card-modern glass-card">
+                <div class="card-header bakery-header d-flex justify-content-between align-items-center" style="border-bottom: 1px solid rgba(74, 53, 37, 0.1);">
+                    <h4 class="mb-0 admin-title font-weight-bold" style="color: #4a3525;">
+                        Control de Accesos
+                    </h4>
+                    <div class="card-tools ml-auto">
+                        <div class="input-group" style="background: #f4f1ea; border-radius: 50px; overflow: hidden;">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-transparent border-0 text-muted"><i class="fas fa-search"></i></span>
+                            </div>
+                            <input type="text" id="searchUsuario" class="form-control border-0 bg-transparent shadow-none" placeholder="Buscar usuario...">
+                        </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-2 p-md-3">
     @if ($message = Session::get('success'))
-        <div class="alert alert-success alert-dismissible fade show">
+        <div class="alert alert-success alert-dismissible fade show" style="border-radius: 12px;">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
-            <strong>Éxito!</strong> {{ $message }}
+            <i class="fas fa-check-circle mr-2"></i> {{ $message }}
         </div>
     @endif
 
     @if ($message = Session::get('error'))
-        <div class="alert alert-danger alert-dismissible fade show">
+        <div class="alert alert-danger alert-dismissible fade show" style="border-radius: 12px;">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
-            <strong>Error!</strong> {{ $message }}
+            <i class="fas fa-exclamation-circle mr-2"></i> {{ $message }}
         </div>
     @endif
 
     <div class="table-responsive">
-        <table class="table table-bordered table-striped table-hover" id="usuariosTable">
+        <table class="table-modern w-100" id="usuariosTable">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Usuario</th>
-                    <th>Correo</th>
+                    <th class="text-center">Correo</th>
                     <th>Tipo</th>
                     <th>Estado</th>
                     <th>Roles</th>
                     <th>Permisos</th>
-                    <th>Acciones</th>
+                    <th class="text-right">Acciones</th>
                 </tr>
             </thead>
             <tbody id="usuariosContainer">
                 @forelse($usuarios as $usuario)
+                    @php 
+                        $nombreCompleto = $usuario->empleado ? $usuario->empleado->nombre . ' ' . $usuario->empleado->apellido : ($usuario->cliente ? $usuario->cliente->nombre : 'Usuario');
+                        $inicial = substr($nombreCompleto, 0, 1);
+                    @endphp
                     <tr class="usuario-row">
-                        <td>{{ $usuario->id_usuario }}</td>
                         <td>
-                            <strong>{{ $usuario->empleado ? $usuario->empleado->nombre . ' ' . $usuario->empleado->apellido : ($usuario->cliente ? $usuario->cliente->nombre : 'Usuario') }}</strong>
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar">{{ strtoupper($inicial) }}</div>
+                                <strong>{{ $nombreCompleto }}</strong>
+                            </div>
                         </td>
-                        <td>{{ $usuario->correo }}</td>
-                        <td>
-                            <span class="badge badge-info">{{ ucfirst($usuario->tipo_usuario) }}</span>
+                        <td class="text-center">
+                            {{-- Correo comprimido con tooltip --}}
+                            <button class="email-btn" data-toggle="tooltip" data-placement="top" title="{{ $usuario->correo }}">
+                                <i class="fas fa-envelope"></i>
+                            </button>
                         </td>
                         <td>
-                            <span class="badge {{ $usuario->estado == 'activo' ? 'badge-success' : 'badge-danger' }}">
-                                {{ ucfirst($usuario->estado) }}
+                            <span class="badge-compact {{ $usuario->tipo_usuario == 'empleado' ? 'badge-coffee' : 'badge-caramel' }}">
+                                {{ ucfirst($usuario->tipo_usuario) }}
                             </span>
                         </td>
                         <td>
+                            <span class="badge-compact {{ $usuario->estado == 'activo' ? 'badge-success-soft' : 'badge-danger-soft' }}">
+                                <i class="fas fa-circle mr-1" style="font-size: 8px;"></i> {{ ucfirst($usuario->estado) }}
+                            </span>
+                        </td>
+                        <td>
+                            {{-- Roles comprimidos --}}
                             @php $rolesUsuario = $usuario->obtenerRoles(); @endphp
                             @if(count($rolesUsuario) > 0)
-                                @foreach(array_slice($rolesUsuario, 0, 2) as $rol)
-                                    <span class="badge badge-primary mr-1">{{ $rol }}</span>
-                                @endforeach
-                                @if(count($rolesUsuario) > 2)
-                                    <span class="badge badge-secondary">+{{ count($rolesUsuario) - 2 }}</span>
-                                @endif
+                                <div class="d-flex flex-wrap gap-1" style="gap: 4px;">
+                                    @foreach(array_slice($rolesUsuario, 0, 2) as $rol)
+                                        <span class="badge-compact badge-gray">{{ $rol }}</span>
+                                    @endforeach
+                                    @if(count($rolesUsuario) > 2)
+                                        <span class="badge-compact badge-gray" data-toggle="tooltip" title="{{ implode(', ', array_slice($rolesUsuario, 2)) }}">+{{ count($rolesUsuario) - 2 }}</span>
+                                    @endif
+                                </div>
                             @else
-                                <span class="text-muted">Sin roles</span>
+                                <span class="text-muted small">Sin roles</span>
                             @endif
                         </td>
                         <td>
                             @php $totalPermisos = count($usuario->obtenerPermisos()); @endphp
-                            <span class="badge badge-secondary">{{ $totalPermisos }} permisos</span>
+                            <span class="badge-compact badge-gray" data-toggle="tooltip" title="Ver o gestionar permisos"><i class="fas fa-key mr-1"></i> {{ $totalPermisos }}</span>
                         </td>
-                        <td>
-                            <div class="d-flex gap-1" style="gap: 4px;">
-                                <button class="btn btn-warning btn-xs btn-edit-usuario" 
-                                        style="padding: 2px 6px; font-size: 11px;"
+                        <td class="text-right">
+                            <div class="d-flex justify-content-end gap-1" style="gap: 6px;">
+                                <button class="btn btn-sm btn-outline-secondary btn-edit-usuario" 
+                                        style="border-radius: 8px; width: 32px; height: 32px; padding: 0;"
                                         data-id="{{ $usuario->id_usuario }}"
                                         data-correo="{{ $usuario->correo }}"
                                         data-tipo="{{ $usuario->tipo_usuario }}"
                                         data-estado="{{ $usuario->estado }}"
                                         data-id-empleado="{{ $usuario->id_empleado ?? '' }}"
                                         data-id-cliente="{{ $usuario->id_cliente ?? '' }}"
-                                        title="Editar usuario">
-                                    <i class="fas fa-edit"></i>
+                                        data-toggle="tooltip" title="Editar">
+                                    <i class="fas fa-pen"></i>
                                 </button>
                                 
                                 @if($usuario->tipo_usuario !== 'cliente')
-                                    <button class="btn btn-primary btn-xs btn-gestionar-permisos" 
-                                            style="padding: 2px 6px; font-size: 11px;"
+                                    <button class="btn btn-sm btn-outline-warning btn-gestionar-permisos" 
+                                            style="border-radius: 8px; width: 32px; height: 32px; padding: 0; color: #c88647; border-color: #c88647;"
                                             data-id="{{ $usuario->id_usuario }}"
-                                            data-nombre="{{ $usuario->empleado ? $usuario->empleado->nombre : ($usuario->cliente ? $usuario->cliente->nombre : $usuario->correo) }}"
-                                            title="Gestionar permisos">
-                                        <i class="fas fa-lock"></i>
+                                            data-nombre="{{ $nombreCompleto }}"
+                                            data-toggle="tooltip" title="Permisos">
+                                        <i class="fas fa-shield-alt"></i>
                                     </button>
                                 @else
-                                    <button class="btn btn-secondary btn-xs" disabled 
-                                            style="padding: 2px 6px; font-size: 11px;"
-                                            title="Los clientes no tienen permisos asignables">
+                                    <button class="btn btn-sm btn-outline-secondary" disabled 
+                                            style="border-radius: 8px; width: 32px; height: 32px; padding: 0; opacity: 0.5;"
+                                            data-toggle="tooltip" title="Sin permisos asignables">
                                         <i class="fas fa-ban"></i>
                                     </button>
                                 @endif
@@ -282,10 +376,11 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center">
-                            <div class="alert alert-info text-center py-4 mb-0">
-                                <i class="fas fa-info-circle fa-2x mb-3"></i>
-                                <p>No hay usuarios registrados. Crea uno nuevo usando el botón "Nuevo Usuario".</p>
+                        <td colspan="7" class="text-center">
+                            <div class="py-5 text-muted">
+                                <i class="fas fa-inbox fa-3x mb-3" style="color: #eaddd3;"></i>
+                                <h5>No hay usuarios registrados</h5>
+                                <p class="mb-0">Crea uno nuevo usando el botón "Nuevo Usuario".</p>
                             </div>
                         </td>
                     </tr>
@@ -294,6 +389,35 @@
         </table>
     </div>
 </div>
+            </div>
+        </div>
+    </div>
+    
+    {{-- Estadísticas como Conclusión al final --}}
+    <div class="row">
+        <div class="col-12">
+            <div class="stats-footer">
+                <div class="stat-compact">
+                    <div class="stat-icon icon-users"><i class="fas fa-users"></i></div>
+                    <div class="stat-info">
+                        <h4>{{ $usuarios->count() }}</h4>
+                        <p>Usuarios</p>
+                    </div>
+                </div>
+                <div class="stat-compact">
+                    <div class="stat-icon icon-roles"><i class="fas fa-tags"></i></div>
+                    <div class="stat-info">
+                        <h4>{{ $roles->count() }}</h4>
+                        <p>Roles</p>
+                    </div>
+                </div>
+                <div class="stat-compact">
+                    <div class="stat-icon icon-perms"><i class="fas fa-key"></i></div>
+                    <div class="stat-info">
+                        <h4>{{ $permisos->count() }}</h4>
+                        <p>Permisos</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -327,10 +451,13 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // Búsqueda de usuarios
+    // Activar tooltips de Bootstrap
+    $('[data-toggle="tooltip"]').tooltip();
+
+    // Búsqueda de usuarios EN LA TABLA
     $('#searchUsuario').on('keyup', function() {
         var value = $(this).val().toLowerCase();
-        $('.usuario-card-container').filter(function() {
+        $('.usuario-row').filter(function() {
             $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
         });
     });

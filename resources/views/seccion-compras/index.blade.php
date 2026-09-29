@@ -5,6 +5,8 @@
 @section('page-description', 'Registro de compras a proveedores')
 
 @push('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css" rel="stylesheet">
 <style>
     .proveedor-card {
         cursor: pointer;
@@ -148,7 +150,7 @@
                                             <option value="{{ $almacen->id_almacen }}" 
                                                     data-tipo="{{ $almacen->tipo_almacen }}"
                                                     data-capacidad="{{ $almacen->capacidad ?? 0 }}">
-                                                {{ $almacen->nombre }} 
+                                                #{{ $almacen->id_almacen }} - {{ $almacen->nombre }} 
                                                 ({{ $almacen->tipo_almacen === 'insumo' ? 'Solo Insumos' : 'Mixto' }})
                                             </option>
                                         @endif
@@ -433,8 +435,23 @@
 
 @endsection
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(document).ready(function() {
+    $('#itemAlmacen').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Seleccionar Almacén',
+        allowClear: true
+    });
+
+    $('#itemSelect').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Primero seleccione almacén',
+        allowClear: true
+    });
+
     let itemsDisponibles = [];
     let capacidadDisponible = null;
 
@@ -460,7 +477,7 @@ $(document).ready(function() {
                                 data-nombre="${item.nombre}"
                                 data-tipo="${item.tipo_item}"
                                 data-unidad="${item.unidad_medida}">
-                                ${item.nombre} (${item.unidad_medida})
+                                #${item.id_item} - ${item.nombre} (${item.unidad_medida})
                             </option>`);
                         });
                         
